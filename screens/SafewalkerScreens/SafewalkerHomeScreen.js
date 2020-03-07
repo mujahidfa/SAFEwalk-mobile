@@ -8,7 +8,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text>SAFEwalker Home Screen</Text>
+      <Text>SAFEwalker Home Screen duhhh</Text>
       <Button
         title="Go to SAFEwalker Tabs"
         onPress={() => navigation.navigate("SafewalkerTab")}
