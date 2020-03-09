@@ -28,7 +28,9 @@ export default function SafewalkerProfileScreen({ navigation }) {
     Linking.openURL("sms:+1" + phoneNumber);
   }
 
-  function handleCancellation() {}
+  function handleCancellation() {
+    navigation.replace("UserHome");
+  }
 
   return (
     <View style={styles.container}>

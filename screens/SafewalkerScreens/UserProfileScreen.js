@@ -37,7 +37,9 @@ export default function UserProfileScreen({ navigation }) {
     Linking.openURL(`https://maps.google.com/?daddr=${daddr}`);
   }
 
-  function handleCancellation() {}
+  function handleCancellation() {
+    navigation.replace("SafewalkerHome");
+  }
 
   return (
     <View style={styles.container}>

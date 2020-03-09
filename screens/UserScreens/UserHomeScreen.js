@@ -11,7 +11,7 @@ export default function UserHomeScreen({ navigation }) {
       <Text>User Home Screen</Text>
       <Button
         title="Go to User Tabs"
-        onPress={() => navigation.navigate("UserTab")}
+        onPress={() => navigation.replace("UserTab")}
       />
       <Button title="Log Out" onPress={() => signout()} />
     </View>
