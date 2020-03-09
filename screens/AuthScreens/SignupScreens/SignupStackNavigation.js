@@ -15,6 +15,7 @@ export default function SignupStackNavigation() {
     <Stack.Navigator
       initialRouteName="Credentials"
       screenOptions={{
+        // left-to-right transition: standard iOS-style slide in from the right
         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
       }}
     >

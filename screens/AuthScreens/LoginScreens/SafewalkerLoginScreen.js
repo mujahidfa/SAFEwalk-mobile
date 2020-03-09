@@ -30,9 +30,9 @@ export default function SafewalkerLoginScreen({ navigation }) {
 
   // upon pressing the submit button
   const onSubmit = data => {
-    const message =
-      "Email: " + data.email + "\n" + "Password: " + data.password;
-    Alert.alert("Form Data", message);
+    // const message =
+    //   "Email: " + data.email + "\n" + "Password: " + data.password;
+    // Alert.alert("Form Data", message);
     login("safewalker", { email: data.email, password: data.password });
   };
 
