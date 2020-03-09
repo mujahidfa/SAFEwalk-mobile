@@ -39,7 +39,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
   }, []);
 
   // forms input handling
-  const { register, setValue, handleSubmit, errors, watch } = useForm();
+  const { register, setValue, handleSubmit, errors } = useForm();
 
   // update input upon change
   useEffect(() => {
