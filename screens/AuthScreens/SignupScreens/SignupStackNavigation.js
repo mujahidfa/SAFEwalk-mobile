@@ -13,17 +13,17 @@ export default function SignupStackNavigation() {
       <Stack.Screen
         name="Credentials"
         component={CredentialsScreen}
-        options={{ title: "Sign up 1: Credentials" }}
+        options={{ title: "Sign up" }}
       />
       <Stack.Screen
         name="PersonalInfo"
         component={PersonalInfoScreen}
-        options={{ title: "Sign up 2: Personal info" }}
+        options={{ title: "Sign up" }}
       />
       <Stack.Screen
         name="Success"
         component={SuccessScreen}
-        options={{ title: "Sign up 3: Success" }}
+        options={{ title: "Sign up" }}
       />
     </Stack.Navigator>
   );

@@ -58,7 +58,7 @@ export function AuthProvider({ children }) {
       // For now, while server is not set, use email as value for user token
       await AsyncStorage.setItem("userToken", JSON.stringify(email));
       // Store the user type i.e. which type of user is logged in, user or SAFEwalker.
-      await AsyncStorage.setItem("userType", userType);
+      await AsyncStorage.setItem("userType", "user");
 
       dispatch({
         type: "LOG_IN",
