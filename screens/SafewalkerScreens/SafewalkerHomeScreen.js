@@ -11,7 +11,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
       <Text>SAFEwalker Home Screen</Text>
       <Button
         title="Go to SAFEwalker Tabs"
-        onPress={() => navigation.navigate("SafewalkerTab")}
+        onPress={() => navigation.replace("SafewalkerTab")}
       />
       <Button title="Log Out" onPress={() => signout()} />
     </View>
