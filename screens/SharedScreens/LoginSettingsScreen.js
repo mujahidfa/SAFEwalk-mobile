@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -19,49 +19,51 @@ export default function LoginSettingsScreen({ navigation }) {
   // forms input handling
   const { register, setValue, handleSubmit, errors, watch } = useForm();
 
-  // update email and password input upon change
+  // password input upon change
   useEffect(() => {
-    register("email");
+    register("currentPassword");
     register("password");
     register("confirmPassword");
   }, [register]);
 
-  // upon pressing the submit button
+  // upon pressing the update password button
   const onSubmit = data => {
-    // check if passwords match
-
     // send post request wiht updated info
-    alert('saved');
+    alert('Updated!');
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
+      <View style={styles.containerTop}>
+        <Avatar
+            rounded
+            size={125}
+            title={"Yoon" + " " + "Cho"}
+            overlayContainerStyle={{ backgroundColor: "orange" }}
+            titleStyle={{ fontSize: 20 }}
+        />
+      </View>
 
-
-        
         {/* Main view */}
         <KeyboardAvoidingView style={styles.innerContainer}>
-          <Image
-            source={require("./../../assets/avatar.png")}
-            style={styles.image}
-            PlaceholderContent={<ActivityIndicator />}
-          />
+
           {errors.email && (
             <Text style={styles.textError}>wisc.edu email is required.</Text>
           )}
+
+          {errors.currentPassword && (
+            <Text style={styles.textError}>Current password is required.</Text>
+          )}
           <TextInput
-            label="Email"
-            placeholder="netid@wisc.edu"
-            ref={register(
-              { name: "email" },
-              { required: true, pattern: /^[A-Z0-9._%+-]+@wisc\.edu$/i }
-            )}
-            onChangeText={text => setValue("email", text, true)}
+            label="Current Password"
+            placeholder="Current Password"
+            ref={register({ name: "currentPassword" }, { required: true })}
+            onChangeText={text => setValue("currentPassword", text, true)}
             mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
+            secureTextEntry
+            theme={{ colors: { primary: 'orange' } }}
             style={styles.textInput}
-            keyboardType="email-address"
           />
 
           {errors.password && (
@@ -74,7 +76,7 @@ export default function LoginSettingsScreen({ navigation }) {
             onChangeText={text => setValue("password", text, true)}
             mode="outlined"
             secureTextEntry
-            theme={{ colors: { primary: colors.red } }}
+            theme={{ colors: { primary: 'orange' } }}
             style={styles.textInput}
           />
 
@@ -94,24 +96,36 @@ export default function LoginSettingsScreen({ navigation }) {
             onChangeText={text => setValue("confirmPassword", text, true)}
             mode="outlined"
             secureTextEntry
-            theme={{ colors: { primary: colors.red } }}
+            theme={{ colors: { primary: 'orange' } }}
             style={styles.textInput}
           />
         </KeyboardAvoidingView>
 
         {/* Footer */}
-        <Button
-          title="Save"
+        <View style={styles.containerBottom}> 
+        <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
-          buttonStyle={styles.buttonNext}
-          titleStyle={styles.buttonNextText}
-        />
+          style={styles.buttonNext}
+        >
+          <Text style={styles.buttonNextText}> Update Password </Text>
+        </TouchableOpacity>
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
+  containerTop: {
+    flex: 0.8,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    marginTop: 100
+  },
+  containerBottom: {
+    flex: 1,
+    backgroundColor: "#fff"
+  },
   container: {
     flex: 1,
     backgroundColor: colors.white
@@ -128,27 +142,28 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   buttonNext: {
+    backgroundColor: "orange",
+    borderColor: "white",
+    borderWidth: 1,
+    borderRadius: 25,
+    marginTop: 20,
     marginHorizontal: 50,
-    marginTop: 10,
-    marginBottom: 20,
-    height: 50,
-    backgroundColor: colors.red
   },
   buttonNextText: {
-    fontSize: 17
-  },
-  footerContainer: {
-    marginBottom: 50,
-    flexDirection: "row",
-    justifyContent: "center"
+    color: "white",
+    fontSize: 24,
+    fontWeight: "bold",
+    overflow: "hidden",
+    padding: 12,
+    textAlign: "center",
   },
   image: {
     width: '30%',
     height: '30%',
     resizeMode: 'center',
-},
-imageContainer: {
-  justifyContent: "center",
-  alignItems: 'center',
-}
+  },
+  imageContainer: {
+    justifyContent: "center",
+    alignItems: 'center',
+  }
 });
