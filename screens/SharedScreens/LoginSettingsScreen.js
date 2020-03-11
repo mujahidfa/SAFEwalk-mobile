@@ -28,7 +28,7 @@ export default function LoginSettingsScreen({ navigation }) {
 
   // upon pressing the update password button
   const onSubmit = data => {
-    // send post request wiht updated info
+    // TODO: send post request wiht updated info
     alert('Updated!');
   };
 
@@ -36,6 +36,7 @@ export default function LoginSettingsScreen({ navigation }) {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
       <View style={styles.containerTop}>
+        {/* TODO: Update avatar with user's name */}
         <Avatar
             rounded
             size={125}
@@ -45,13 +46,8 @@ export default function LoginSettingsScreen({ navigation }) {
         />
       </View>
 
-        {/* Main view */}
+        {/* Middle View */}
         <KeyboardAvoidingView style={styles.innerContainer}>
-
-          {errors.email && (
-            <Text style={styles.textError}>wisc.edu email is required.</Text>
-          )}
-
           {errors.currentPassword && (
             <Text style={styles.textError}>Current password is required.</Text>
           )}
@@ -101,7 +97,7 @@ export default function LoginSettingsScreen({ navigation }) {
           />
         </KeyboardAvoidingView>
 
-        {/* Footer */}
+        {/* Bottom */}
         <View style={styles.containerBottom}> 
         <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
@@ -117,7 +113,7 @@ export default function LoginSettingsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   containerTop: {
-    flex: 0.8,
+    flex: 0.6,
     backgroundColor: "#fff",
     alignItems: "center",
     marginTop: 100
@@ -156,11 +152,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 12,
     textAlign: "center",
-  },
-  image: {
-    width: '30%',
-    height: '30%',
-    resizeMode: 'center',
   },
   imageContainer: {
     justifyContent: "center",
