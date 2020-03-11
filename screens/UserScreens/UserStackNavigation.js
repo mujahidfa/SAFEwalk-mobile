@@ -8,7 +8,6 @@ import Header from "./../../components/Header";
 
 const Stack = createStackNavigator();
 
-// TODO: Figure out how to add hamburger menu to home page header
 export default function UserStackNavigation() {
   return (
     <Stack.Navigator
