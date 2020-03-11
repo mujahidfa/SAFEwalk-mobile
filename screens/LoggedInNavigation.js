@@ -25,7 +25,7 @@ export default function LoggedInNavigation() {
         <Drawer.Screen
           name="UserHome"
           component={UserStackNavigation}
-          options={{ title: "User Home" }}
+          options={{ title: "Home" }}
         />
       )}
       {userType === "safewalker" && (
