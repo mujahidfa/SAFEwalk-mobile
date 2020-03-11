@@ -75,7 +75,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     <View style={styles.container}>
       <FlatList
         data={items}
-        keyExtractor={item => item.id}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <Item item={item} deleteItem={deleteItem} />
         )}
