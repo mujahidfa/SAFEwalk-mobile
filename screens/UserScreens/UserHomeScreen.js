@@ -5,37 +5,54 @@ import {
   View,
   Image,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+    Platform,
 } from "react-native";
 import { Input, Icon, Button } from "react-native-elements";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import colors from "./../../constants/colors";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
   const [time, setTime] = useState(new Date());
   const [request, setRequest] = useState(false);
+  const [show, setShow] = useState(false);
 
+  // Function that handles changing time state
   const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
+    setShow(false);
+    const currentDate = selectedDate || time;
     setTime(currentDate);
   };
 
-  // TODO: Add styling to sheet at bottom
-  //
+  const showTimePicker = () => {
+    setShow(true);
+  };
+
+  // upon clicking request safewalk button
+  const createSafeWalk = async () => {
+    // TODO: This is where the fetch would be to send safewalk information to the database
+  };
+
+  const formatTime = () => {
+    let timeArray = time.toString().split(" ")[4].split(":");
+    if (timeArray[0] > 12) {
+      return parseInt(timeArray[0]) - 12 + ":" + timeArray[1] + " PM";
+    } else {
+      return timeArray[0] + ":" + timeArray[1] + " AM";
+    }
+  };
+
+  // TODO: How to get response from database when request is accepted (some sort of fetching process by polling?)
+
+  // TODO: Fix formatting of input fields and unfocus of time input field
   return (
     <View style={{ flex: 1 }}>
       {!request ? (
         <View style={styles.container}>
           <Input
-            inputStyle={{
-              height: 40,
-              width: 20,
-              borderColor: "orange",
-              borderWidth: 2,
-              borderRadius: 5,
-              marginLeft: 20
-            }}
+            inputStyle={styles.input}
             inputContainerStyle={{
               borderBottomWidth: 0,
               marginBottom: 20,
@@ -50,14 +67,7 @@ export default function UserHomeScreen({ navigation }) {
             }}
           />
           <Input
-            inputStyle={{
-              height: 40,
-              width: 20,
-              borderColor: "orange",
-              borderWidth: 2,
-              borderRadius: 5,
-              marginLeft: 20
-            }}
+            inputStyle={styles.input}
             inputContainerStyle={{ borderBottomWidth: 0, marginBottom: 20 }}
             placeholder="Destination"
             value={destination}
@@ -67,34 +77,65 @@ export default function UserHomeScreen({ navigation }) {
               name: "map-marker"
             }}
           />
-          <View style={{ flex: 0.5, flexDirection: "row" }}>
-            <Icon
-              type="font-awesome"
-              name="clock-o"
-              iconStyle={{ marginLeft: 10 }}
-            />
-            <DateTimePicker
-              style={{
-                height: 40,
-                width: 305,
-                borderColor: "orange",
-                borderWidth: 2,
-                marginLeft: 18,
-                borderRadius: 5
-              }}
-              testID="dateTimePicker"
-              mode={"time"}
-              value={time}
-              display="default"
-              onChange={onChange}
-            />
-          </View>
+          {Platform.OS === "android" ?
+              <Input
+                  inputStyle={styles.time}
+                  inputContainerStyle={{ borderBottomWidth: 0, marginBottom: 20 }}
+                  style={{marginLeft: 50}}
+                  placeholder={"Time"}
+                  value={formatTime()}
+                  onFocus={showTimePicker}
+                  leftIcon={{
+                    type: "font-awesome",
+                    name: "clock-o"
+                  }}
+              /> :
+              <View style={{ flex: 0.5, flexDirection: "row" }}>
+                <Icon
+                    type="font-awesome"
+                    name="clock-o"
+                    iconStyle={{ marginLeft: 10 }}
+                />
+                <DateTimePicker
+                  style={{
+                    height: 40,
+                    width: 305,
+                    borderColor: colors.orange,
+                    borderWidth: 2,
+                    marginLeft: 18,
+                    borderRadius: 5
+                  }}
+                  testID="dateTimePicker"
+                  mode={"time"}
+                  value={time}
+                  display="default"
+                  onChange={onChange}
+                />
+              </View>
+            }
+            {show && (
+                <DateTimePicker
+                    style={{
+                      height: 40,
+                      width: 305,
+                      borderColor: colors.orange,
+                      borderWidth: 2,
+                      marginLeft: 18,
+                      borderRadius: 5
+                    }}
+                    testID="dateTimePicker"
+                    mode={"time"}
+                    value={time}
+                    display="spinner"
+                    onChange={onChange}
+                />
+            )}
           <Image
             style={{
               width: Dimensions.get("window").width,
               height: 350,
               marginBottom: 50,
-              borderColor: "orange",
+              borderColor: colors.orange,
               borderWidth: 2
             }}
             source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
@@ -106,13 +147,12 @@ export default function UserHomeScreen({ navigation }) {
       ) : (
         <View style={styles.container}>
           <Text style={{ fontSize: 45, marginTop: 50, marginBottom: 50 }}>
-            {" "}
-            Searching for a SAFEwalker...{" "}
+            Searching for a {'\n'} SAFEwalker...
           </Text>
           <Icon
             type="font-awesome"
             name="hourglass"
-            color="orange"
+            color={colors.orange}
             size={150}
             iconStyle={{ marginBottom: 50 }}
           />
@@ -121,7 +161,7 @@ export default function UserHomeScreen({ navigation }) {
           </TouchableOpacity>
           <Button
             title="Go to User Tabs"
-            onPress={() => navigation.navigate("UserTab")}
+            onPress={() => navigation.replace("UserTab")}
           />
         </View>
       )}
@@ -132,15 +172,15 @@ export default function UserHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     alignItems: "center"
   },
   buttonRequest: {
-    backgroundColor: "orange",
-    borderColor: "white",
+    backgroundColor: colors.orange,
+    borderColor: colors.white,
     borderWidth: 1,
     borderRadius: 25,
-    color: "white",
+    color: colors.white,
     fontSize: 24,
     fontWeight: "bold",
     overflow: "hidden",
@@ -148,16 +188,28 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   buttonCancel: {
-    backgroundColor: "red",
-    borderColor: "white",
+    backgroundColor: colors.red,
+    borderColor: colors.white,
     borderWidth: 1,
     borderRadius: 25,
-    color: "white",
+    color: colors.white,
     fontSize: 24,
     fontWeight: "bold",
     overflow: "hidden",
     padding: 12,
     textAlign: "center",
     width: 200
+  },
+  input: {
+    borderColor: colors.orange,
+    borderWidth: 2,
+    borderRadius: 5,
+    marginLeft: 20
+  },
+  time: {
+    borderColor: colors.orange,
+    borderWidth: 2,
+    borderRadius: 5,
+    marginLeft: 13
   }
 });
