@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,12 +9,35 @@ import {
 } from "react-native";
 import { Input, Icon, Button } from "react-native-elements";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import io from "socket.io-client";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
   const [time, setTime] = useState(new Date());
   const [request, setRequest] = useState(false);
+
+  useEffect(() => {
+    this.socket = io("http://10.140.88.110:3000");
+
+    this.socket.on("socket id", id => {
+      console.log(id);
+      // PutUser with socket id
+    });
+  }, []);
+
+  // send messag
+  function addRequest() {
+    setRequest(true);
+    // addWalk API
+    this.socket.emit("user changed walk", true); // send notification to Safewalkers
+  }
+
+  function cancelRequest() {
+    setRequest(false);
+    // removeWalk API
+    this.socket.emit("user changed walk", true); // send notification to Safewalkers
+  }
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
@@ -99,32 +122,32 @@ export default function UserHomeScreen({ navigation }) {
             }}
             source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
           />
-          <TouchableOpacity onPress={() => setRequest(true)}>
+          <TouchableOpacity onPress={() => addRequest()}>
             <Text style={styles.buttonRequest}> Request SAFEwalk </Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={styles.container}>
-          <Text style={{ fontSize: 45, marginTop: 50, marginBottom: 50 }}>
-            {" "}
+          <View style={styles.container}>
+            <Text style={{ fontSize: 45, marginTop: 50, marginBottom: 50 }}>
+              {" "}
             Searching for a SAFEwalker...{" "}
-          </Text>
-          <Icon
-            type="font-awesome"
-            name="hourglass"
-            color="orange"
-            size={150}
-            iconStyle={{ marginBottom: 50 }}
-          />
-          <TouchableOpacity onPress={() => setRequest(false)}>
-            <Text style={styles.buttonCancel}> Cancel </Text>
-          </TouchableOpacity>
-          <Button
-            title="Go to User Tabs"
-            onPress={() => navigation.navigate("UserTab")}
-          />
-        </View>
-      )}
+            </Text>
+            <Icon
+              type="font-awesome"
+              name="hourglass"
+              color="orange"
+              size={150}
+              iconStyle={{ marginBottom: 50 }}
+            />
+            <TouchableOpacity onPress={() => cancelRequest()}>
+              <Text style={styles.buttonCancel}> Cancel </Text>
+            </TouchableOpacity>
+            <Button
+              title="Go to User Tabs"
+              onPress={() => navigation.navigate("UserTab")}
+            />
+          </View>
+        )}
     </View>
   );
 }

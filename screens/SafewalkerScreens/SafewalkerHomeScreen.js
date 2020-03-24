@@ -1,11 +1,10 @@
-import React, { useContext, Component} from "react";
+import React, { useContext, useEffect, Component} from "react";
 import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, useState, Icon } from "react-native";
 import { ListItem, List} from 'react-native-elements';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-
-
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { render } from "react-dom";
+import io from "socket.io-client";
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout } = useContext(AuthContext);
@@ -19,6 +18,20 @@ export default function SafewalkerHomeScreen({ navigation }) {
     {id: 6, name: 'Tadao', time: '1:00 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
   ]);
 
+  useEffect(() => {
+    this.socket = io("http://10.140.88.110:3000");
+
+    this.socket.on("socket id", id => {
+      console.log(id);
+      // PutWalker with socket id
+    });
+
+    this.socket.on("user changed walk", status => {
+      console.log(status);
+      // GetWalks API, setItems 
+    });
+  }, []);
+  
 
   const LeftActions = () => {
     return (
