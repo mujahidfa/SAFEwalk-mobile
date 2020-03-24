@@ -55,17 +55,13 @@ export default function UserHomeScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Conditional Statement Based on if the User has made a Request */}
       {!request ? (
         <View style={styles.container}>
+          {/* User Start and End Location Input Fields */}
           <Input
             inputStyle={styles.input}
-            inputContainerStyle={{
-              marginBottom: 20,
-              marginTop: 20,
-              borderColor: colors.orange,
-              borderWidth: 2,
-              borderRadius: 5
-            }}
+            inputContainerStyle={styles.inputContainerTop}
             placeholder="Start Location"
             value={location}
             onChangeText={setLocation}
@@ -76,12 +72,7 @@ export default function UserHomeScreen({ navigation }) {
           />
           <Input
             inputStyle={styles.input}
-            inputContainerStyle={{
-              marginBottom: 20,
-              borderColor: colors.orange,
-              borderWidth: 2,
-              borderRadius: 5
-            }}
+            inputContainerStyle={styles.inputContainer}
             placeholder="Destination"
             value={destination}
             onChangeText={setDestination}
@@ -90,15 +81,12 @@ export default function UserHomeScreen({ navigation }) {
               name: "map-marker"
             }}
           />
+
+          {/* Time Picker for Android and IOS */}
           {Platform.OS === "android" ? (
             <Input
               inputStyle={styles.time}
-              inputContainerStyle={{
-                marginBottom: 20,
-                borderColor: colors.orange,
-                borderWidth: 2,
-                borderRadius: 5
-              }}
+              inputContainerStyle={styles.inputContainer}
               style={{ marginLeft: 50 }}
               placeholder={"Time"}
               value={formatTime()}
@@ -109,28 +97,14 @@ export default function UserHomeScreen({ navigation }) {
               }}
             />
           ) : (
-            <View
-              style={{
-                flex: 0.5,
-                flexDirection: "row",
-                borderColor: colors.orange,
-                borderWidth: 2,
-                borderRadius: 5,
-                height: 20,
-                marginBottom: 45
-              }}
-            >
+            <View style={styles.timeInputIOS}>
               <Icon
                 type="font-awesome"
                 name="clock-o"
                 iconStyle={{ marginLeft: 10, top: 8 }}
               />
               <DateTimePicker
-                style={{
-                  height: 40,
-                  width: 305,
-                  marginLeft: 18
-                }}
+                style={styles.timePickerIOS}
                 testID="dateTimePicker"
                 mode={"time"}
                 value={time}
@@ -141,14 +115,7 @@ export default function UserHomeScreen({ navigation }) {
           )}
           {show && (
             <DateTimePicker
-              style={{
-                height: 40,
-                width: 305,
-                borderColor: colors.orange,
-                borderWidth: 2,
-                marginLeft: 18,
-                borderRadius: 5
-              }}
+              style={styles.timePickerAndroid}
               testID="dateTimePicker"
               mode={"time"}
               value={time}
@@ -156,22 +123,21 @@ export default function UserHomeScreen({ navigation }) {
               onChange={onChange}
             />
           )}
+
+          {/* Google Map */}
           <Image
-            style={{
-              width: Dimensions.get("window").width,
-              height: 350,
-              marginBottom: 30,
-              borderColor: colors.orange,
-              borderWidth: 2
-            }}
+            style={styles.image}
             source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
           />
+
+          {/* Submit Request Button */}
           <TouchableOpacity onPress={() => setRequest(true)}>
             <Text style={styles.buttonRequest}> Request SAFEwalk </Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.container}>
+          {/* View When the User Submits a SAFEwalk Request */}
           <Text style={{ fontSize: 45, marginTop: 50, marginBottom: 50 }}>
             Searching for a {"\n"} SAFEwalker...
           </Text>
@@ -185,6 +151,8 @@ export default function UserHomeScreen({ navigation }) {
           <TouchableOpacity onPress={() => setRequest(false)}>
             <Text style={styles.buttonCancel}> Cancel </Text>
           </TouchableOpacity>
+
+          {/* Button to be Replaced Once Sockets are implemented */}
           <Button
             title="Go to User Tabs"
             onPress={() => navigation.replace("UserTab")}
@@ -231,5 +199,47 @@ const styles = StyleSheet.create({
   },
   time: {
     marginLeft: 13
+  },
+  inputContainer: {
+    marginBottom: 20,
+    borderColor: colors.orange,
+    borderWidth: 2,
+    borderRadius: 5
+  },
+  inputContainerTop: {
+    marginBottom: 20,
+    marginTop: 20,
+    borderColor: colors.orange,
+    borderWidth: 2,
+    borderRadius: 5
+  },
+  timePickerAndroid: {
+    height: 40,
+    width: 305,
+    borderColor: colors.orange,
+    borderWidth: 2,
+    marginLeft: 18,
+    borderRadius: 5
+  },
+  timePickerIOS: {
+    height: 40,
+    width: 305,
+    marginLeft: 18
+  },
+  image: {
+    width: Dimensions.get("window").width,
+    height: 350,
+    marginBottom: 30,
+    borderColor: colors.orange,
+    borderWidth: 2
+  },
+  timeInputIOS: {
+    flex: 0.5,
+    flexDirection: "row",
+    borderColor: colors.orange,
+    borderWidth: 2,
+    borderRadius: 5,
+    height: 20,
+    marginBottom: 45
   }
 });
