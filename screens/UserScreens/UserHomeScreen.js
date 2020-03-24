@@ -20,7 +20,7 @@ export default function UserHomeScreen({ navigation }) {
   const [request, setRequest] = useState(false);
   const [show, setShow] = useState(false);
 
-  // TODO: ADD socket functions from Justin's code here
+  // TODO: ADD socket functions (useEffect) from Justin's code here
 
   // Function that handles changing time state
   const onChange = (event, selectedDate) => {
@@ -29,16 +29,18 @@ export default function UserHomeScreen({ navigation }) {
     setTime(currentDate);
   };
 
+  // Function that handles android time picker
   const showTimePicker = () => {
     Keyboard.dismiss();
     setShow(true);
   };
 
   // upon clicking request safewalk button
-  const createSafeWalk = async () => {
+  const createSafewalkRequest = async () => {
     // TODO: This is where the fetch would be to send safewalk information to the database
   };
 
+  // Function that formats dateTime objects for visual representation
   const formatTime = () => {
     let timeArray = time
       .toString()
