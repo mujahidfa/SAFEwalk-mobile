@@ -28,7 +28,7 @@ export default function LoginSettingsScreen({ navigation }) {
 
   // upon pressing the update password button
   const onSubmit = data => {
-    // TODO: send post request wiht updated info
+    // TODO: send Put request wiht updated info
     alert('Updated!');
   };
 
