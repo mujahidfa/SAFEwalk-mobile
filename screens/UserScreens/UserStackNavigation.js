@@ -22,7 +22,7 @@ export default function UserStackNavigation() {
       <Stack.Screen
         name="UserHome"
         component={UserHomeScreen}
-        options={{ title: "User Home" }}
+        options={{ title: "Home" }}
       />
       <Stack.Screen
         name="UserTab"
