@@ -25,7 +25,7 @@ export default function Main() {
         userToken = await AsyncStorage.getItem("userToken");
         userType = await AsyncStorage.getItem("userType");
       } catch (error) {
-        throw new Error("Error in restoring user token: " + error);
+        console.log("Error in restoring user token: " + error);
       }
 
       // This will switch to the App screen or Auth screen and the loading
