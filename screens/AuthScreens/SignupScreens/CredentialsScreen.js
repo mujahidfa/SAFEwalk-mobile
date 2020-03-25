@@ -25,6 +25,12 @@ export default function CredentialsSignupScreen({ navigation }) {
     register("confirmPassword");
   }, [register]);
 
+  function verifyEmail() {
+    //Get: api/Login/{email}
+    // Responsecodes:
+    // Conflict() 409
+    // Ok() 200
+  }
   // upon pressing the submit button
   const onSubmit = data => {
     // check if email is taken. just check, do not create an account yet.
