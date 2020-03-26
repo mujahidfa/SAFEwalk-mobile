@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import { Avatar, Divider } from "react-native-elements";
 import { TextInput } from "react-native-paper";
 import colors from "../../constants/colors";
 import { useForm } from "react-hook-form";
+import { AuthContext } from "./../../contexts/AuthProvider";
 
 export default function EditProfileScreen() {
   const [image, setImage] = useState("");
@@ -22,6 +23,8 @@ export default function EditProfileScreen() {
   const [interests, setInterests] = useState("");
   const [edit, setEdit] = useState(false);
 
+  const {userToken, userEmail} = useContext(AuthContext);
+
   // forms input handling
   const { register, setValue, handleSubmit, errors } = useForm();
 
@@ -29,18 +32,6 @@ export default function EditProfileScreen() {
   useEffect(() => {
     register("phoneNumber");
   }, [register]);
-
-  const onSubmit = data => {
-    let phone =
-      "(" +
-      data.phoneNumber.substring(0, 3) +
-      ") " +
-      data.phoneNumber.substring(3, 6) +
-      "-" +
-      data.phoneNumber.substring(6, 10);
-    setPhoneNumber(phone);
-    setEdit(false);
-  };
 
   // upon clicking the edit button on the avatar
   const uploadImage = async () => {
@@ -58,15 +49,63 @@ export default function EditProfileScreen() {
     // if process has not been canceled, set state image and send to database
     if (!result.cancelled) {
       setImage(result.uri);
-      // TODO: This is where the fetch would be to send new image to the database
     }
   };
 
   // upon clicking save profile information button
-  const saveProfileInfo = async () => {
-    // set state edit to false and send info to database
-    setEdit(false);
-    // TODO: This is where the fetch would be to send new info to the database
+  /* PUT
+   api/Users/{email}
+   From header: token
+   From route: email
+   From body: User object
+
+   Response codes:
+   401 (unauthorized)
+   200 (ok)*/
+  const saveProfileInfo = async (data) => {
+    // send new info to the database
+    const url = 'https://safewalkapplication.azurewebsites.net/Users/' + userEmail;
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'x-access-token': userToken
+      },
+      body: JSON.stringify({
+        name: firstName.trim() + " " + lastName.trim(),
+        phoneNumber: phoneNumber,
+        interests: interests,
+        image: image
+      })
+    });
+
+    // check response from database
+    const myJson = await response.json();
+    const jsonString = JSON.stringify(myJson);
+    console.log(jsonString);
+
+    // if response is good
+    if (jsonString === '200') {
+      // set state edit to false
+      let phone =
+          "(" +
+          data.phoneNumber.substring(0, 3) +
+          ") " +
+          data.phoneNumber.substring(3, 6) +
+          "-" +
+          data.phoneNumber.substring(6, 10);
+      setPhoneNumber(phone);
+      setEdit(false);
+    } else {
+      // if response is bad
+      alert("Error in saving profile information. Please try again.")
+    }
+  };
+
+  const onSubmit = data => {
+    let response = saveProfileInfo(data);
+    console.log(response);
   };
 
   return (
