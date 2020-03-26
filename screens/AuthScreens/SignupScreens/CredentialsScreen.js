@@ -49,7 +49,7 @@ export default function CredentialsSignupScreen({ navigation }) {
         setIsLoading(false);
 
         if (response.status && response.status === 200) {
-          console.log("login success!");
+          console.log("Email available!");
 
           // if email not taken, go to next screen
           navigation.navigate("PersonalInfo", {
