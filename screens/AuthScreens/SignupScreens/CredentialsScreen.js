@@ -41,7 +41,7 @@ export default function CredentialsSignupScreen({ navigation }) {
   }, [register]);
 
   // upon pressing the submit button
-  const onSubmit = data => {
+  const onSubmit = formData => {
     // check if email is taken. just check, do not create an account yet.
     fetch(url + "/api/Login/" + data.email, { method: "GET" })
       .then(response => {
@@ -53,8 +53,8 @@ export default function CredentialsSignupScreen({ navigation }) {
 
           // if email not taken, go to next screen
           navigation.navigate("PersonalInfo", {
-            email: data.email,
-            password: data.password
+            email: formData.email,
+            password: formData.password
           });
         } else if (response.status && response.status === 409) {
           console.log("captured 409! User not available.");
