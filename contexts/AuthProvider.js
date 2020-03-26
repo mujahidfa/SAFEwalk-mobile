@@ -1,6 +1,8 @@
 import React, { createContext, useReducer, useMemo } from "react";
 import { AsyncStorage } from "react-native";
 
+import url from "./../constants/api";
+
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -9,26 +11,58 @@ export function AuthProvider({ children }) {
     isLoading: true,
     isSignout: false,
     userToken: null,
-    userType: "user"
+    userType: "user",
+    userEmail: null
   });
 
   // Handle Login
   async function login(userType, { email, password }) {
+    let isUser;
+    switch (userType) {
+      case "user":
+        isUser = true;
+      case "safewalker":
+        isUser = false;
+      default:
+        isUser = null;
+    }
+
     try {
       // Put code below for this: make login GET request to server
+      const options = {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json;charset=UTF-8",
+          email: email,
+          password: password,
+          isUser: isUser
+        }
+      };
 
+      //console.log("email:" + email + " pass:" + password);
+
+      let response = await fetch(url + "/api/Login", options);
+      let data = await response.json();
+      //console.log("token:" + data.token);
       // For now, while server is not set, use email as value for user token
-      await AsyncStorage.setItem("userToken", JSON.stringify(email));
+      // await AsyncStorage.setItem("userToken", JSON.stringify(email));
+      await AsyncStorage.setItem("userToken", data["token"]);
       // Store the user type i.e. which type of user is logged in, user or SAFEwalker.
       await AsyncStorage.setItem("userType", userType);
+      // Store the user email
+      await AsyncStorage.setItem("userEmail", JSON.stringify(email));
 
       dispatch({
         type: "LOG_IN",
         token: JSON.stringify(email),
-        userType: userType
+        userType: userType,
+        userEmail: email
       });
+
+      // error status code is 404
     } catch (error) {
-      throw new Error("Error in login(): " + error);
+      console.error("Error in login(): " + error);
     }
   }
 
@@ -37,6 +71,7 @@ export function AuthProvider({ children }) {
     try {
       await AsyncStorage.removeItem("userToken");
       await AsyncStorage.removeItem("userType");
+      await AsyncStorage.removeItem("userEmail");
 
       dispatch({ type: "SIGN_OUT" });
     } catch (error) {
@@ -54,16 +89,37 @@ export function AuthProvider({ children }) {
   }) {
     try {
       // Put code below for this: make register POST request to server
+      const options = {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json;charset=UTF-8"
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber
+        })
+      };
 
+      let response = await fetch(url, options);
+      let data = await response.json();
+
+      // Remove token, user is not logged in after registering
       // For now, while server is not set, use email as value for user token
       await AsyncStorage.setItem("userToken", JSON.stringify(email));
       // Store the user type i.e. which type of user is logged in, user or SAFEwalker.
-      await AsyncStorage.setItem("userType", "user");
+      await AsyncStorage.setItem("userType", userType);
+      // Store the user email
+      await AsyncStorage.setItem("userEmail", JSON.stringify(email));
 
       dispatch({
         type: "LOG_IN",
         token: JSON.stringify(email),
-        userType: "user"
+        userType: "user",
+        userEmail: email
       });
     } catch (error) {
       throw new Error("Error in register(): " + error);
@@ -76,6 +132,7 @@ export function AuthProvider({ children }) {
       isSignout: state.isSignout,
       userToken: state.userToken,
       userType: state.userType,
+      userEmail: state.userEmail,
       dispatch,
       login,
       signout,
@@ -97,21 +154,24 @@ function authReducer(prevState, action) {
         ...prevState,
         isLoading: false,
         userToken: action.token,
-        userType: action.userType
+        userType: action.userType,
+        userEmail: action.userEmail
       };
     case "LOG_IN":
       return {
         ...prevState,
         isSignout: false,
         userToken: action.token,
-        userType: action.userType
+        userType: action.userType,
+        userEmail: action.userEmail
       };
     case "SIGN_OUT":
       return {
         ...prevState,
         isSignout: true,
         userToken: null,
-        userType: null
+        userType: null,
+        userEmail: null
       };
     default: {
       throw new Error(`Unhandled auth action type: ${action.type}`);

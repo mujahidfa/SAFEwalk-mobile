@@ -59,7 +59,7 @@ export default function SuccessSignupScreen({ route }) {
       />
 
       <Button
-        title="Login"
+        title="Go to main screen"
         onPress={() => handleLogin()}
         buttonStyle={styles.buttonLogin}
         titleStyle={styles.buttonLoginText}
