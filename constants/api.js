@@ -1,1 +1,1 @@
-export default url = "http://12aa99cb.ngrok.io";
+export default url = "https://safewalkapplication.azurewebsites.net";
