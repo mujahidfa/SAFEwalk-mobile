@@ -5,8 +5,7 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TouchableWithoutFeedback,
-  Keyboard
+  Alert
 } from "react-native";
 import { Button, Image } from "react-native-elements";
 import { TextInput } from "react-native-paper";
@@ -38,68 +37,66 @@ export default function SafewalkerLoginScreen({ navigation }) {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.logoUWContainer}>
-          <Image
-            source={require("./../../../assets/uw-transportation-logo.png")}
-            style={styles.logoUW}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.logoUWContainer}>
+        <Image
+          source={require("./../../../assets/uw-transportation-logo.png")}
+          style={styles.logoUW}
+        />
+      </View>
+      <KeyboardAvoidingView style={styles.innerContainer}>
+        <View style={styles.logoSAFEwalkContainer}>
+          <Text style={styles.logoSAFE}>SAFE</Text>
+          <Text style={styles.logoWALK}>walk</Text>
+        </View>
+
+        {errors.email && (
+          <Text style={styles.textError}>wisc.edu email is required.</Text>
+        )}
+        <TextInput
+          label="Email"
+          placeholder="netid@wisc.edu"
+          ref={register(
+            { name: "email" },
+            { required: true, pattern: /^\S+@wisc\.edu$/i }
+          )}
+          onChangeText={text => setValue("email", text, true)}
+          mode="outlined"
+          theme={{ colors: { primary: colors.red } }}
+          style={styles.textInput}
+        />
+
+        {errors.password && (
+          <Text style={styles.textError}>Password is required.</Text>
+        )}
+        <TextInput
+          label="Password"
+          placeholder="Password"
+          ref={register({ name: "password" }, { required: true })}
+          onChangeText={text => setValue("password", text, true)}
+          mode="outlined"
+          secureTextEntry
+          theme={{ colors: { primary: colors.red } }}
+          style={styles.textInput}
+        />
+
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Login as SAFEwalker"
+            onPress={handleSubmit(onSubmit)}
+            // onPress={() => login("safewalker", { email, password })}
+            buttonStyle={styles.buttonLogin}
+            titleStyle={styles.buttonLoginText}
           />
         </View>
-        <KeyboardAvoidingView style={styles.innerContainer}>
-          <View style={styles.logoSAFEwalkContainer}>
-            <Text style={styles.logoSAFE}>SAFE</Text>
-            <Text style={styles.logoWALK}>walk</Text>
-          </View>
-
-          {errors.email && (
-            <Text style={styles.textError}>wisc.edu email is required.</Text>
-          )}
-          <TextInput
-            label="Email"
-            placeholder="netid@wisc.edu"
-            ref={register(
-              { name: "email" },
-              { required: true, pattern: /^\S+@wisc\.edu$/i }
-            )}
-            onChangeText={text => setValue("email", text, true)}
-            mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-          />
-
-          {errors.password && (
-            <Text style={styles.textError}>Password is required.</Text>
-          )}
-          <TextInput
-            label="Password"
-            placeholder="Password"
-            ref={register({ name: "password" }, { required: true })}
-            onChangeText={text => setValue("password", text, true)}
-            mode="outlined"
-            secureTextEntry
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-          />
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Login as SAFEwalker"
-              onPress={handleSubmit(onSubmit)}
-              // onPress={() => login("safewalker", { email, password })}
-              buttonStyle={styles.buttonLogin}
-              titleStyle={styles.buttonLoginText}
-            />
-          </View>
-        </KeyboardAvoidingView>
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerPrompt}>Not a SAFEwalker?</Text>
-          <TouchableOpacity onPress={() => navigation.replace("UserLogin")}>
-            <Text style={styles.footerClickable}>Click here.</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+      <View style={styles.footerContainer}>
+        <Text style={styles.footerPrompt}>Not a SAFEwalker?</Text>
+        <TouchableOpacity onPress={() => navigation.replace("UserLogin")}>
+          <Text style={styles.footerClickable}>Click here.</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 

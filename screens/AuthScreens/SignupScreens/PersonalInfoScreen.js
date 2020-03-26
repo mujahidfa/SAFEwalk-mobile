@@ -4,11 +4,8 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  Keyboard
+  TouchableOpacity
 } from "react-native";
-
 import { Button } from "react-native-elements";
 import { TextInput } from "react-native-paper";
 import { useForm } from "react-hook-form";
@@ -66,119 +63,115 @@ export default function PersonalInfoScreen({ navigation, route }) {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
-        {/* Progress animation */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressCircleContainer}>
-            <View style={[styles.progressCircle, styles.progressCurrentCircle]}>
-              <Text style={styles.progressCircleText}>1</Text>
-            </View>
-            <Text style={styles.progressDescription}>Credentials</Text>
+    <View style={styles.container}>
+      {/* Progress animation */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressCircleContainer}>
+          <View style={[styles.progressCircle, styles.progressCurrentCircle]}>
+            <Text style={styles.progressCircleText}>1</Text>
           </View>
-
-          <View
-            style={[
-              styles.progressLine,
-              styles.progressCurrentCircle,
-              { marginRight: 3 }
-            ]}
-          />
-
-          <View style={styles.progressCircleContainer}>
-            <View style={[styles.progressCircle, styles.progressCurrentCircle]}>
-              <Text style={styles.progressCircleText}>2</Text>
-            </View>
-            <Text style={styles.progressDescription}>Basic Info</Text>
-          </View>
-
-          <View
-            style={[styles.progressLine, { marginLeft: 5, marginRight: 10 }]}
-          />
-
-          <View style={styles.progressCircleContainer}>
-            <View style={styles.progressCircle}>
-              <Text style={styles.progressCircleText}>3</Text>
-            </View>
-            <Text style={styles.progressDescription}>Finish</Text>
-          </View>
+          <Text style={styles.progressDescription}>Credentials</Text>
         </View>
 
-        {/* Main view */}
-        <KeyboardAvoidingView style={styles.innerContainer}>
-          {errors.firstName && (
-            <Text style={styles.textError}>First name is required.</Text>
-          )}
-          <TextInput
-            label="First Name"
-            ref={register({ name: "firstName" }, { required: true })}
-            onChangeText={text => setValue("firstName", text, true)}
-            mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-          />
-
-          {errors.lastName && (
-            <Text style={styles.textError}>Last name is required.</Text>
-          )}
-          <TextInput
-            label="Last Name"
-            ref={register({ name: "lastName" }, { required: true })}
-            onChangeText={text => setValue("lastName", text, true)}
-            mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-          />
-
-          {errors.phoneNumber && (
-            <Text style={styles.textError}>
-              Valid US phone number is required.
-            </Text>
-          )}
-          <TextInput
-            label="Phone Number"
-            placeholder="(608) - 123 - 4567"
-            ref={register(
-              { name: "phoneNumber" },
-              {
-                required: true,
-                minLength: 10,
-                maxLength: 10,
-                pattern: /^[0-9]+$/
-              }
-            )}
-            onChangeText={text => setValue("phoneNumber", text, true)}
-            mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-            keyboardType="phone-pad"
-          />
-        </KeyboardAvoidingView>
-
-        {/* Footer */}
-        <Button
-          title="Next"
-          onPress={handleSubmit(onSubmit)}
-          buttonStyle={styles.buttonNext}
-          titleStyle={styles.buttonNextText}
+        <View
+          style={[
+            styles.progressLine,
+            styles.progressCurrentCircle,
+            { marginRight: 3 }
+          ]}
         />
-        <View style={styles.orContainer}>
-          <View style={styles.orLine} />
-          <Text style={styles.orText}>or</Text>
-          <View style={styles.orLine} />
+
+        <View style={styles.progressCircleContainer}>
+          <View style={[styles.progressCircle, styles.progressCurrentCircle]}>
+            <Text style={styles.progressCircleText}>2</Text>
+          </View>
+          <Text style={styles.progressDescription}>Basic Info</Text>
         </View>
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerPrompt}>Already have an account? </Text>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.dangerouslyGetParent().replace("UserLogin")
-            }
-          >
-            <Text style={styles.footerClickable}>Sign in.</Text>
-          </TouchableOpacity>
+
+        <View
+          style={[styles.progressLine, { marginLeft: 5, marginRight: 10 }]}
+        />
+
+        <View style={styles.progressCircleContainer}>
+          <View style={styles.progressCircle}>
+            <Text style={styles.progressCircleText}>3</Text>
+          </View>
+          <Text style={styles.progressDescription}>Finish</Text>
         </View>
       </View>
-    </TouchableWithoutFeedback>
+
+      {/* Main view */}
+      <KeyboardAvoidingView style={styles.innerContainer}>
+        {errors.firstName && (
+          <Text style={styles.textError}>First name is required.</Text>
+        )}
+        <TextInput
+          label="First Name"
+          ref={register({ name: "firstName" }, { required: true })}
+          onChangeText={text => setValue("firstName", text, true)}
+          mode="outlined"
+          theme={{ colors: { primary: colors.red } }}
+          style={styles.textInput}
+        />
+
+        {errors.lastName && (
+          <Text style={styles.textError}>Last name is required.</Text>
+        )}
+        <TextInput
+          label="Last Name"
+          ref={register({ name: "lastName" }, { required: true })}
+          onChangeText={text => setValue("lastName", text, true)}
+          mode="outlined"
+          theme={{ colors: { primary: colors.red } }}
+          style={styles.textInput}
+        />
+
+        {errors.phoneNumber && (
+          <Text style={styles.textError}>
+            Valid US phone number is required.
+          </Text>
+        )}
+        <TextInput
+          label="Phone Number"
+          placeholder="(608) - 123 - 4567"
+          ref={register(
+            { name: "phoneNumber" },
+            {
+              required: true,
+              minLength: 10,
+              maxLength: 10,
+              pattern: /^[0-9]+$/
+            }
+          )}
+          onChangeText={text => setValue("phoneNumber", text, true)}
+          mode="outlined"
+          theme={{ colors: { primary: colors.red } }}
+          style={styles.textInput}
+          keyboardType={"numeric"}
+        />
+      </KeyboardAvoidingView>
+
+      {/* Footer */}
+      <Button
+        title="Next"
+        onPress={handleSubmit(onSubmit)}
+        buttonStyle={styles.buttonNext}
+        titleStyle={styles.buttonNextText}
+      />
+      <View style={styles.orContainer}>
+        <View style={styles.orLine} />
+        <Text style={styles.orText}>or</Text>
+        <View style={styles.orLine} />
+      </View>
+      <View style={styles.footerContainer}>
+        <Text style={styles.footerPrompt}>Already have an account? </Text>
+        <TouchableOpacity
+          onPress={() => navigation.dangerouslyGetParent().replace("UserLogin")}
+        >
+          <Text style={styles.footerClickable}>Sign in.</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 

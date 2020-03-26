@@ -5,8 +5,7 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TouchableWithoutFeedback,
-  Keyboard
+  Alert
 } from "react-native";
 import { Button, Image } from "react-native-elements";
 import { TextInput } from "react-native-paper";
@@ -38,80 +37,76 @@ export default function UserLoginScreen({ navigation }) {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.logoUWContainer}>
-          <Image
-            source={require("./../../../assets/uw-transportation-logo.png")}
-            style={styles.logoUW}
-          />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.logoUWContainer}>
+        <Image
+          source={require("./../../../assets/uw-transportation-logo.png")}
+          style={styles.logoUW}
+        />
+      </View>
+
+      <KeyboardAvoidingView style={styles.innerContainer}>
+        <View style={styles.logoSAFEwalkContainer}>
+          <Text style={styles.logoSAFE}>SAFE</Text>
+          <Text style={styles.logoWALK}>walk</Text>
         </View>
 
-        <KeyboardAvoidingView style={styles.innerContainer}>
-          <View style={styles.logoSAFEwalkContainer}>
-            <Text style={styles.logoSAFE}>SAFE</Text>
-            <Text style={styles.logoWALK}>walk</Text>
-          </View>
-
-          {errors.email && (
-            <Text style={styles.textError}>wisc.edu email is required.</Text>
+        {errors.email && (
+          <Text style={styles.textError}>wisc.edu email is required.</Text>
+        )}
+        <TextInput
+          label="Email"
+          placeholder="netid@wisc.edu"
+          ref={register(
+            { name: "email" },
+            { required: true, pattern: /^\S+@wisc\.edu$/i }
           )}
-          <TextInput
-            label="Email"
-            placeholder="netid@wisc.edu"
-            ref={register(
-              { name: "email" },
-              { required: true, pattern: /^\S+@wisc\.edu$/i }
-            )}
-            onChangeText={text => setValue("email", text, true)}
-            mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
+          onChangeText={text => setValue("email", text, true)}
+          mode="outlined"
+          theme={{ colors: { primary: colors.red } }}
+          style={styles.textInput}
+        />
+
+        {errors.password && (
+          <Text style={styles.textError}>Password is required.</Text>
+        )}
+        <TextInput
+          label="Password"
+          placeholder="Password"
+          ref={register({ name: "password" }, { required: true })}
+          onChangeText={text => setValue("password", text, true)}
+          mode="outlined"
+          secureTextEntry
+          theme={{ colors: { primary: colors.red } }}
+          style={styles.textInput}
+        />
+
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Login"
+            onPress={handleSubmit(onSubmit)}
+            // onPress={() => login("user", { email, password })}
+            buttonStyle={styles.buttonLogin}
+            titleStyle={styles.buttonLoginText}
           />
 
-          {errors.password && (
-            <Text style={styles.textError}>Password is required.</Text>
-          )}
-          <TextInput
-            label="Password"
-            placeholder="Password"
-            ref={register({ name: "password" }, { required: true })}
-            onChangeText={text => setValue("password", text, true)}
-            mode="outlined"
-            secureTextEntry
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
+          <Button
+            title="Don't have an account? Sign Up"
+            onPress={() => navigation.replace("SignupStack")}
+            buttonStyle={styles.buttonSignup}
+            titleStyle={styles.buttonSignupText}
+            containerStyle={styles.buttonSignupContainer}
+            type="outline"
           />
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Login"
-              onPress={handleSubmit(onSubmit)}
-              // onPress={() => login("user", { email, password })}
-              buttonStyle={styles.buttonLogin}
-              titleStyle={styles.buttonLoginText}
-            />
-
-            <Button
-              title="Don't have an account? Sign Up"
-              onPress={() => navigation.replace("SignupStack")}
-              buttonStyle={styles.buttonSignup}
-              titleStyle={styles.buttonSignupText}
-              containerStyle={styles.buttonSignupContainer}
-              type="outline"
-            />
-          </View>
-        </KeyboardAvoidingView>
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerPrompt}>Login as a SAFEwalker?</Text>
-          <TouchableOpacity
-            onPress={() => navigation.replace("SafewalkerLogin")}
-          >
-            <Text style={styles.footerClickable}>Click here.</Text>
-          </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+      <View style={styles.footerContainer}>
+        <Text style={styles.footerPrompt}>Login as a SAFEwalker?</Text>
+        <TouchableOpacity onPress={() => navigation.replace("SafewalkerLogin")}>
+          <Text style={styles.footerClickable}>Click here.</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
