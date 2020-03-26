@@ -13,6 +13,7 @@ import { TextInput } from "react-native-paper";
 import { useForm } from "react-hook-form";
 
 import colors from "./../../../constants/colors";
+import url from "./../../../constants/api";
 
 export default function CredentialsSignupScreen({ navigation }) {
   const [isLoginError, setIsLoginError] = useState(false);
