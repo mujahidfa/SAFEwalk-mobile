@@ -96,9 +96,14 @@ export default function PersonalInfoScreen({ navigation, route }) {
           console.log("Email available!");
 
           // if email not taken, go to next screen
-          navigation.navigate("Success", {
-            email: email,
-            password: password
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "Success",
+                params: { email: email, password: password }
+              }
+            ]
           });
         } else if (response.status && response.status === 409) {
           console.log("captured 409! Cannot use existing account.");
