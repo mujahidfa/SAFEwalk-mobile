@@ -43,7 +43,7 @@ export default function CredentialsSignupScreen({ navigation }) {
   // upon pressing the submit button
   const onSubmit = formData => {
     // check if email is taken. just check, do not create an account yet.
-    fetch(url + "/api/Login/" + data.email, { method: "GET" })
+    fetch(url + "/api/Login/" + formData.email, { method: "GET" })
       .then(response => {
         console.log(JSON.stringify(response.status));
         setIsLoading(false);
