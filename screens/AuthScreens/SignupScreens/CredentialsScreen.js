@@ -121,6 +121,7 @@ export default function CredentialsSignupScreen({ navigation }) {
             theme={{ colors: { primary: colors.red } }}
             style={styles.textInput}
             keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           {errors.password && (

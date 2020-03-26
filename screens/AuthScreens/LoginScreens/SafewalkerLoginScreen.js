@@ -120,6 +120,8 @@ export default function SafewalkerLoginScreen({ navigation }) {
             mode="outlined"
             theme={{ colors: { primary: colors.red } }}
             style={styles.textInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           {errors.password && (

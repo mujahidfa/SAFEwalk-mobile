@@ -121,6 +121,8 @@ export default function UserLoginScreen({ navigation }) {
             mode="outlined"
             theme={{ colors: { primary: colors.red } }}
             style={styles.textInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           {errors.password && (
