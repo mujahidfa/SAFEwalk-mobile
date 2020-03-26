@@ -14,11 +14,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
 
 import colors from "./../../../constants/colors";
+import url from "./../../../constants/api";
 
 import { AuthContext } from "./../../../contexts/AuthProvider";
+import { useState } from "react";
 
 export default function UserLoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
+  const [isLoginError, setIsLoginError] = useState(false);
+  const [isUserNotAvailable, setIsUserNotAvailable] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // hide error after 5 seconds
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsLoginError(false);
+      setIsUserNotAvailable(false);
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [isLoginError, isUserNotAvailable]);
 
   // forms input handling
   const { register, setValue, handleSubmit, errors } = useForm();
@@ -30,11 +45,50 @@ export default function UserLoginScreen({ navigation }) {
   }, [register]);
 
   // upon pressing the submit button
-  const onSubmit = data => {
-    // const message =
-    //   "Email: " + data.email + "\n" + "Password: " + data.password;
-    // Alert.alert("Form Data", message);
-    login("user", { email: data.email, password: data.password });
+  const onSubmit = formData => {
+    setIsLoading(true);
+
+    fetch(url + "/api/Login", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json;charset=UTF-8",
+        email: formData.email,
+        password: formData.password,
+        isUser: true // since this is user login, then isUser has to be true
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        setIsLoading(false);
+        console.log("data: " + data);
+
+        // The endpoint only returns a string upon success
+        // and a full body response if there's an error.
+        // Therefore, if data.status exists, then this means it's an error.
+        if (data.status) {
+          console.log("data in if: " + JSON.stringify(data));
+          if (data.status === 404) {
+            console.log("captured 404! User not available.");
+            setIsUserNotAvailable(true);
+          } else {
+            console.log("Unknown error " + data.status + ". Try again");
+            setIsLoginError(true);
+          }
+        }
+        // The endpoint only returns a string upon success,
+        // so because of that, if it's a success, data.status would be null.
+        else {
+          console.log("data in else: " + data);
+          console.log("email: " + formData.email);
+          login("user", data, formData.email);
+        }
+      })
+      .catch(error => {
+        console.log("Error in login(): " + error);
+        setIsLoginError(true);
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -67,6 +121,8 @@ export default function UserLoginScreen({ navigation }) {
             mode="outlined"
             theme={{ colors: { primary: colors.red } }}
             style={styles.textInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           {errors.password && (
@@ -83,11 +139,23 @@ export default function UserLoginScreen({ navigation }) {
             style={styles.textInput}
           />
 
+          {isLoginError && (
+            <Text style={styles.textErrorAPICall}>
+              There was an error. Please try again.
+            </Text>
+          )}
+          {isUserNotAvailable && (
+            <Text style={styles.textErrorAPICall}>
+              Invalid email or password.
+            </Text>
+          )}
+
           <View style={styles.buttonContainer}>
             <Button
               title="Login"
+              loading={isLoading}
+              disabled={isLoading}
               onPress={handleSubmit(onSubmit)}
-              // onPress={() => login("user", { email, password })}
               buttonStyle={styles.buttonLogin}
               titleStyle={styles.buttonLoginText}
             />
@@ -175,6 +243,11 @@ const styles = StyleSheet.create({
   buttonSignupText: {
     fontSize: 17,
     color: colors.red
+  },
+  textErrorAPICall: {
+    color: colors.red,
+    alignSelf: "center",
+    fontSize: 18
   },
   footerContainer: {
     position: "absolute",

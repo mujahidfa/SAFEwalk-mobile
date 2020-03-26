@@ -14,10 +14,13 @@ import { TextInput } from "react-native-paper";
 import { useForm } from "react-hook-form";
 
 import colors from "./../../../constants/colors";
+import url from "./../../../constants/api";
 
 export default function PersonalInfoScreen({ navigation, route }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSignupError, setIsSignupError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Before anything, validate email and password values
   useEffect(() => {
@@ -28,7 +31,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
     ) {
       setEmail(route.params.email);
     } else {
-      return Error("Email is empty!");
+      console.error("Email is empty!");
     }
     if (
       route.params.password !== null ||
@@ -37,9 +40,18 @@ export default function PersonalInfoScreen({ navigation, route }) {
     ) {
       setPassword(route.params.password);
     } else {
-      return Error("Password is empty!");
+      console.error("Password is empty!");
     }
   }, []);
+
+  // hide error after 5 seconds
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsSignupError(false);
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [isSignupError]);
 
   // forms input handling
   const { register, setValue, handleSubmit, errors } = useForm();
@@ -52,17 +64,60 @@ export default function PersonalInfoScreen({ navigation, route }) {
   }, [register]);
 
   // upon pressing the submit button
-  const onSubmit = data => {
-    // check if email is taken. just check, do not create an account yet.
+  const onSubmit = formData => {
+    // navigation.navigate("Success", {
+    //   email: email,
+    //   password: password,
+    //   firstName: formData.firstName,
+    //   lastName: formData.lastName,
+    //   phoneNumber: formData.phoneNumber
+    // });
+    setIsLoading(true);
 
-    // if email not taken, go to next screen
-    navigation.navigate("Success", {
-      email: email,
-      password: password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      phoneNumber: data.phoneNumber
-    });
+    fetch(url + "/api/Users", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber
+      })
+    })
+      .then(response => {
+        console.log(JSON.stringify(response.status));
+        setIsLoading(false);
+
+        if (response.status && response.status === 200) {
+          console.log("Email available!");
+
+          // if email not taken, go to next screen
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "Success",
+                params: { email: email, password: password }
+              }
+            ]
+          });
+        } else if (response.status && response.status === 409) {
+          console.log("captured 409! Cannot use existing account.");
+          setIsUserNotAvailable(true);
+        } else {
+          console.log("Unknown error" + response.status + " Try again");
+          setIsSignupError(true);
+        }
+      })
+      .catch(error => {
+        console.log("Error in login(): " + error);
+        setIsSignupError(true);
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -153,11 +208,19 @@ export default function PersonalInfoScreen({ navigation, route }) {
             style={styles.textInput}
             keyboardType="phone-pad"
           />
+
+          {isSignupError && (
+            <Text style={styles.textErrorAPICall}>
+              There was an error. Please try again.
+            </Text>
+          )}
         </KeyboardAvoidingView>
 
         {/* Footer */}
         <Button
-          title="Next"
+          title="Create Account"
+          loading={isLoading}
+          disabled={isLoading}
           onPress={handleSubmit(onSubmit)}
           buttonStyle={styles.buttonNext}
           titleStyle={styles.buttonNextText}
@@ -227,6 +290,11 @@ const styles = StyleSheet.create({
   },
   textError: {
     color: colors.red
+  },
+  textErrorAPICall: {
+    color: colors.red,
+    alignSelf: "center",
+    fontSize: 18
   },
   textInput: {
     marginBottom: 20
