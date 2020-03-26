@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,6 +15,20 @@ import { useForm } from "react-hook-form";
 import colors from "./../../../constants/colors";
 
 export default function CredentialsSignupScreen({ navigation }) {
+  const [isLoginError, setIsLoginError] = useState(false);
+  const [isUserNotAvailable, setIsUserNotAvailable] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // hide error after 5 seconds
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsLoginError(false);
+      setIsUserNotAvailable(false);
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [isLoginError, isUserNotAvailable]);
+
   // forms input handling
   const { register, setValue, handleSubmit, errors, watch } = useForm();
 
@@ -25,21 +39,35 @@ export default function CredentialsSignupScreen({ navigation }) {
     register("confirmPassword");
   }, [register]);
 
-  function verifyEmail() {
-    //Get: api/Login/{email}
-    // Responsecodes:
-    // Conflict() 409
-    // Ok() 200
-  }
   // upon pressing the submit button
   const onSubmit = data => {
     // check if email is taken. just check, do not create an account yet.
+    fetch(url + "/api/Login/" + data.email, { method: "GET" })
+      .then(response => {
+        console.log(JSON.stringify(response.status));
+        setIsLoading(false);
 
-    // if email not taken, go to next screen
-    navigation.navigate("PersonalInfo", {
-      email: data.email,
-      password: data.password
-    });
+        if (response.status && response.status === 200) {
+          console.log("login success!");
+
+          // if email not taken, go to next screen
+          navigation.navigate("PersonalInfo", {
+            email: data.email,
+            password: data.password
+          });
+        } else if (response.status && response.status === 409) {
+          console.log("captured 409! User not available.");
+          setIsUserNotAvailable(true);
+        } else {
+          console.log("Unknown error" + response.status + " Try again");
+          setIsLoginError(true);
+        }
+      })
+      .catch(error => {
+        console.log("Error: " + error);
+        setIsLoginError(true);
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -127,11 +155,24 @@ export default function CredentialsSignupScreen({ navigation }) {
             theme={{ colors: { primary: colors.red } }}
             style={styles.textInput}
           />
+
+          {isLoginError && (
+            <Text style={styles.textErrorAPICall}>
+              There was an error. Please try again.
+            </Text>
+          )}
+          {isUserNotAvailable && (
+            <Text style={styles.textErrorAPICall}>
+              Email is taken. Use a different email.
+            </Text>
+          )}
         </KeyboardAvoidingView>
 
         {/* Footer */}
         <Button
           title="Next"
+          loading={isLoading}
+          disabled={isLoading}
           onPress={handleSubmit(onSubmit)}
           buttonStyle={styles.buttonNext}
           titleStyle={styles.buttonNextText}
@@ -204,6 +245,11 @@ const styles = StyleSheet.create({
   },
   textInput: {
     marginBottom: 20
+  },
+  textErrorAPICall: {
+    color: colors.red,
+    alignSelf: "center",
+    fontSize: 18
   },
   buttonNext: {
     marginHorizontal: 50,
