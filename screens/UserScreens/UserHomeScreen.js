@@ -5,65 +5,168 @@ import {
   View,
   Image,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  Platform,
+  Keyboard,
+  AsyncStorage
 } from "react-native";
 import { Input, Icon, Button } from "react-native-elements";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import io from "socket.io-client";
+import colors from "./../../constants/colors";
+import socket from "./../../contexts/socket";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
   const [time, setTime] = useState(new Date());
   const [request, setRequest] = useState(false);
+  const [show, setShow] = useState(false);
+
+  async function setSocketId() {
+    const userEmail = 'bo@wisc.edu';
+
+    // PutUser API call
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + userEmail, {
+      method: 'PUT',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        socketId: socket.id
+      })
+    });
+
+    if (status != 200 && status != 201) {
+      console.log("set socketId failed: status " + status);
+      return;
+    }
+  }
 
   useEffect(() => {
-    this.socket = io("http://10.140.88.110:3000");
+    console.log('socket id ' + socket.id);
+    setSocketId();
 
-    this.socket.on("socket id", id => {
-      console.log(id);
-      // PutUser with socket id
+    // socket to listen to walker status change
+    socket.on('walker walk status', status => {
+      console.log(status);
+      
+      switch (status) {
+        case -2:
+          navigation.navigate('UserHome');
+          alert('The SAFEwalker has canceled the walk.');
+          break;
+        case -1:
+          setRequest(false);
+          alert('Your request was denied.');
+          break;
+        case 1:
+          navigation.navigate('UserTab');
+          alert('A SAFEwalker is on their way!');
+          setRequest(false);
+          break;
+        case 2:
+          navigation.navigate('UserHome');
+          alert('The walk has been completed!');
+          break;
+      }
     });
   }, []);
 
-  // send messag
-  function addRequest() {
+  async function addRequest() {
+    // addWalk API call
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
+      method: 'POST',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
+        'email': 'bo@wisc.edu',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        time: new Date(),
+        startText: location,
+        destText: destination
+      })
+    });
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("add walk failed: status " + status);
+      return;
+    }
+
+    let data = await res.json();
+    await AsyncStorage.setItem('walkId', data['id']);
+
     setRequest(true);
-    // addWalk API
-    this.socket.emit("user changed walk", true); // send notification to Safewalkers
+    socket.emit("walk status", true); // send notification to all Safewalkers
   }
 
-  function cancelRequest() {
+  async function cancelRequest() {
     setRequest(false);
-    // removeWalk API
-    this.socket.emit("user changed walk", true); // send notification to Safewalkers
+    alert("Request Canceled");
+
+    const id = await AsyncStorage.getItem('walkId');
+    // DeleteWalk API call
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
+      method: 'DELETE',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
+        'email': 'bo@wisc.edu',
+        'isUser': true
+      }
+    });
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("delete walk failed: status " + status);
+      return;
+    }
+
+    // remove walk-related info
+    await AsyncStorage.removeItem('WalkId');
+
+    socket.emit("walk status", true); // send notification to all Safewalkers
   }
 
+  // Function that handles changing time state
   const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
+    setShow(false);
+    const currentDate = selectedDate || time;
     setTime(currentDate);
   };
 
-  // TODO: Add styling to sheet at bottom
-  //
+  // Function that handles android time picker
+  const showTimePicker = () => {
+    Keyboard.dismiss();
+    setShow(true);
+  };
+
+  // Function that formats dateTime objects for visual representation
+  const formatTime = () => {
+    let timeArray = time
+      .toString()
+      .split(" ")[4]
+      .split(":");
+    if (timeArray[0] >= 12) {
+      if (timeArray[0] === "12") timeArray[0] = "24";
+      return parseInt(timeArray[0]) - 12 + ":" + timeArray[1] + " PM";
+    } else {
+      if (timeArray[0] === "00") timeArray[0] = "12";
+      return timeArray[0] + ":" + timeArray[1] + " AM";
+    }
+  };
+
   return (
     <View style={{ flex: 1 }}>
+      {/* Conditional Statement Based on if the User has made a Request */}
       {!request ? (
         <View style={styles.container}>
+          {/* User Start and End Location Input Fields */}
           <Input
-            inputStyle={{
-              height: 40,
-              width: 20,
-              borderColor: "orange",
-              borderWidth: 2,
-              borderRadius: 5,
-              marginLeft: 20
-            }}
-            inputContainerStyle={{
-              borderBottomWidth: 0,
-              marginBottom: 20,
-              marginTop: 20
-            }}
+            inputStyle={styles.input}
+            inputContainerStyle={styles.inputContainerTop}
             placeholder="Start Location"
             value={location}
             onChangeText={setLocation}
@@ -73,15 +176,8 @@ export default function UserHomeScreen({ navigation }) {
             }}
           />
           <Input
-            inputStyle={{
-              height: 40,
-              width: 20,
-              borderColor: "orange",
-              borderWidth: 2,
-              borderRadius: 5,
-              marginLeft: 20
-            }}
-            inputContainerStyle={{ borderBottomWidth: 0, marginBottom: 20 }}
+            inputStyle={styles.input}
+            inputContainerStyle={styles.inputContainer}
             placeholder="Destination"
             value={destination}
             onChangeText={setDestination}
@@ -90,36 +186,52 @@ export default function UserHomeScreen({ navigation }) {
               name: "map-marker"
             }}
           />
-          <View style={{ flex: 0.5, flexDirection: "row" }}>
-            <Icon
-              type="font-awesome"
-              name="clock-o"
-              iconStyle={{ marginLeft: 10 }}
-            />
-            <DateTimePicker
-              style={{
-                height: 40,
-                width: 305,
-                borderColor: "orange",
-                borderWidth: 2,
-                marginLeft: 18,
-                borderRadius: 5
+
+          {/* Time Picker for Android and IOS */}
+          {Platform.OS === "android" ? (
+            <Input
+              inputStyle={styles.time}
+              inputContainerStyle={styles.inputContainer}
+              style={{ marginLeft: 50 }}
+              placeholder={"Time"}
+              value={formatTime()}
+              onFocus={showTimePicker}
+              leftIcon={{
+                type: "font-awesome",
+                name: "clock-o"
               }}
+            />
+          ) : (
+              <View style={styles.timeInputIOS}>
+                <Icon
+                  type="font-awesome"
+                  name="clock-o"
+                  iconStyle={{ marginLeft: 10, top: 8 }}
+                />
+                <DateTimePicker
+                  style={styles.timePickerIOS}
+                  testID="dateTimePicker"
+                  mode={"time"}
+                  value={time}
+                  display="default"
+                  onChange={onChange}
+                />
+              </View>
+            )}
+          {show && (
+            <DateTimePicker
+              style={styles.timePickerAndroid}
               testID="dateTimePicker"
               mode={"time"}
               value={time}
-              display="default"
+              display="spinner"
               onChange={onChange}
             />
-          </View>
+          )}
+
+          {/* Google Map */}
           <Image
-            style={{
-              width: Dimensions.get("window").width,
-              height: 350,
-              marginBottom: 50,
-              borderColor: "orange",
-              borderWidth: 2
-            }}
+            style={styles.image}
             source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
           />
           <TouchableOpacity onPress={() => addRequest()}>
@@ -128,23 +240,25 @@ export default function UserHomeScreen({ navigation }) {
         </View>
       ) : (
           <View style={styles.container}>
+            {/* View When the User Submits a SAFEwalk Request */}
             <Text style={{ fontSize: 45, marginTop: 50, marginBottom: 50 }}>
-              {" "}
-            Searching for a SAFEwalker...{" "}
-            </Text>
+              Searching for a {"\n"} SAFEwalker...
+          </Text>
             <Icon
               type="font-awesome"
               name="hourglass"
-              color="orange"
+              color={colors.orange}
               size={150}
               iconStyle={{ marginBottom: 50 }}
             />
             <TouchableOpacity onPress={() => cancelRequest()}>
               <Text style={styles.buttonCancel}> Cancel </Text>
             </TouchableOpacity>
+
+            {/* Button to be Replaced Once Sockets are implemented */}
             <Button
               title="Go to User Tabs"
-              onPress={() => navigation.navigate("UserTab")}
+              onPress={() => navigation.replace("UserTab")}
             />
           </View>
         )}
@@ -155,15 +269,15 @@ export default function UserHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     alignItems: "center"
   },
   buttonRequest: {
-    backgroundColor: "orange",
-    borderColor: "white",
+    backgroundColor: colors.orange,
+    borderColor: colors.white,
     borderWidth: 1,
     borderRadius: 25,
-    color: "white",
+    color: colors.white,
     fontSize: 24,
     fontWeight: "bold",
     overflow: "hidden",
@@ -171,16 +285,64 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   buttonCancel: {
-    backgroundColor: "red",
-    borderColor: "white",
+    backgroundColor: colors.red,
+    borderColor: colors.white,
     borderWidth: 1,
     borderRadius: 25,
-    color: "white",
+    color: colors.white,
     fontSize: 24,
     fontWeight: "bold",
     overflow: "hidden",
     padding: 12,
     textAlign: "center",
     width: 200
+  },
+  input: {
+    marginLeft: 20
+  },
+  time: {
+    marginLeft: 13
+  },
+  inputContainer: {
+    marginBottom: 20,
+    borderColor: colors.orange,
+    borderWidth: 2,
+    borderRadius: 5
+  },
+  inputContainerTop: {
+    marginBottom: 20,
+    marginTop: 20,
+    borderColor: colors.orange,
+    borderWidth: 2,
+    borderRadius: 5
+  },
+  timePickerAndroid: {
+    height: 40,
+    width: 305,
+    borderColor: colors.orange,
+    borderWidth: 2,
+    marginLeft: 18,
+    borderRadius: 5
+  },
+  timePickerIOS: {
+    height: 40,
+    width: 305,
+    marginLeft: 18
+  },
+  image: {
+    width: Dimensions.get("window").width,
+    height: 350,
+    marginBottom: 30,
+    borderColor: colors.orange,
+    borderWidth: 2
+  },
+  timeInputIOS: {
+    flex: 0.5,
+    flexDirection: "row",
+    borderColor: colors.orange,
+    borderWidth: 2,
+    borderRadius: 5,
+    height: 20,
+    marginBottom: 45
   }
 });

@@ -1,23 +1,69 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
-
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-
 import colors from "./../../constants/colors";
+import socket from "./../../contexts/socket";
 
 export default function SafewalkerProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
+  async function loadWalkerProfile() {
+    const walkId = await AsyncStorage.getItem('walkId');
+    console.log('walkId: ' + walkId);
+
+    // GetWalk API call - get email
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + walkId, {
+      method: 'GET',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
+        'email': 'bo@wisc.edu',
+        'isUser': true
+      }
+    });
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("get walk failed: status " + status);
+      return;
+    }
+
+    const data = await res.json();
+    const walkerEmail = data['walkerEmail'];
+    await AsyncStorage.setItem('walkerEmail', walkerEmail);
+
+    // GetWalker API call
+    const res1 = await fetch('https://safewalkapplication.azurewebsites.net/api/Safewalkers/' + walkerEmail, {
+      method: 'GET',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
+        'email': 'bo@wisc.edu',
+        'isUser': true
+      }
+    });
+
+    status = res1.status;
+    if (status != 200 && status != 201) {
+      console.log("get user failed: status " + status);
+      return;
+    }
+
+    const data1 = await res1.json();
+    console.log(data1);
+    // set safewalker profile info
+    setFirstname(data1['firstName']);
+    setLastname(data1['lastName']);
+    setPhoneNumber(data1['phoneNumber']);
+
+    // set socketId in async storage
+    await AsyncStorage.setItem('walkerSocketId', data1['socketId']);
+  }
+
   useEffect(() => {
-    // later, call from server for user information
-    // for now, just set default values
-    setFirstname("Mujahid");
-    setLastname("Anuar");
-    setPhoneNumber("6081234567");
+    loadWalkerProfile();
   }, []);
 
   function handleCall() {
@@ -28,8 +74,36 @@ export default function SafewalkerProfileScreen({ navigation }) {
     Linking.openURL("sms:+1" + phoneNumber);
   }
 
-  function handleCancellation() {
-    navigation.replace("UserHome");
+  async function cancelWalk() {
+    // get socketId from async storage
+    const walkerSocketId = await AsyncStorage.getItem('walkerSocketId');
+    // notify user walk has been cancelled
+    socket.emit("user walk status", { walkerId: walkerSocketId, status: -2 });
+
+    const id = await AsyncStorage.getItem('walkId');
+    // DeleteWalk API call
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
+      method: 'DELETE',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
+        'email': 'bo@wisc.edu',
+        'isUser': true
+      }
+    });
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("delete walk failed: status " + status);
+      return;
+    }
+
+    // remove all current walk-related information
+    await AsyncStorage.removeItem('walkId');
+    await AsyncStorage.removeItem('walkerEmail');
+    await AsyncStorage.removeItem('walkerSocketId');
+
+    navigation.navigate('UserHome');
+    alert('Canceled Walk');
   }
 
   return (
@@ -58,7 +132,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
       <Button
         title="Cancel"
         buttonStyle={styles.buttonCancel}
-        onPress={() => handleCancellation()}
+        onPress={() => cancelWalk()}
       />
     </View>
   );

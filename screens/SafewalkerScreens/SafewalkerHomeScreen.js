@@ -1,88 +1,226 @@
-import React, { useContext, useEffect, Component} from "react";
-import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, useState, Icon } from "react-native";
-import { ListItem, List} from 'react-native-elements';
+import React, { useContext, useEffect, Component } from "react";
+import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, useState, Icon, AsyncStorage } from "react-native";
+import { ListItem, List } from 'react-native-elements';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { render } from "react-dom";
 import io from "socket.io-client";
+import socket from "./../../contexts/socket";
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout } = useContext(AuthContext);
+  const [items, setItems] = React.useState([]);
 
-  const [items, setItems] = React.useState([
-    {id: 1, name: 'Katie', time: '1:30 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
-    {id: 2, name: 'Alex', time: '1:17 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
-    {id: 3, name: 'Yoon', time: '1:15 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
-    {id: 4, name: 'Justin', time: '1:10 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
-    {id: 5, name: 'Mujahid', time: '1:05 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
-    {id: 6, name: 'Tadao', time: '1:00 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
-  ]);
+  async function LoadWalk() {
+    // GetWalks API, setItems 
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
+      method: 'GET',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
+        'email': 'shimura@wisc.edu',
+      }
+    });
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("get walks failed: status " + status);
+      return;
+    }
+
+    const data = await res.json();
+    let walks = [];
+    for (const walk of Object.entries(data)) {
+      walks.push({
+        'id': walk[1]['id'],
+        'username': walk[1]['userEmail'],
+        'time': walk[1]['time'],
+        'startText': walk[1]['startText'],
+        'endText': walk[1]['destText'],
+      });
+    }
+
+    setItems(walks);
+  }
+
+  async function setSocketId(socketId) {
+    const walkerEmail = 'shimura@wisc.edu';
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA';
+
+    // PutSafewalker API call
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Safewalkers/' + walkerEmail, {
+      method: 'PUT',
+      headers: {
+        'token': token,
+        'email': walkerEmail,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        socketId: socketId
+      })
+    });
+
+    const status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("set socketId failed: status " + status);
+      return;
+    }
+  }
 
   useEffect(() => {
-    this.socket = io("http://10.140.88.110:3000");
+    setSocketId(socket.id);
 
-    this.socket.on("socket id", id => {
-      console.log(id);
-      // PutWalker with socket id
+    LoadWalk();
+
+    socket.on("walk status", status => {
+      console.log(status);
+      if (status) LoadWalk();
     });
 
-    this.socket.on("user changed walk", status => {
+    
+    // socket to listen to user status change
+    socket.on('user walk status', status => {
       console.log(status);
-      // GetWalks API, setItems 
+      
+      switch (status) {
+        case -2:
+          navigation.navigate('SafewalkerHome');
+          alert('The user canceled the walk.');
+          break;
+      }
     });
   }, []);
-  
+
+  async function acceptRequest(id) {
+    // putWalk API call
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
+      method: 'PUT',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
+        'email': 'shimura@wisc.edu',
+        'isUser': false,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: 1
+      })
+    });
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("accept walk failed: status " + status);
+      return;
+    }
+
+    const data = await res.json();
+    let userEmail = data['userEmail'];
+
+    await AsyncStorage.setItem('userEmail', userEmail);
+    await AsyncStorage.setItem('walkId', id);
+
+    socket.emit('walk status', true);
+
+    //navigate to tab
+    navigation.navigate("SafewalkerTab");
+  }
+
+  async function deleteItem(id) {
+    setItems((prevItems) => {
+      return prevItems.filter(item => item.id != id);
+    });
+
+    // DeleteWalk API call
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
+      method: 'DELETE',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
+        'email': 'shimura@wisc.edu',
+        'isUser': false
+      }
+    });
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("delete walk failed: status " + status);
+      return;
+    }
+
+    const data = await res.json();
+    const userEmail = data['userEmail'];
+
+    console.log(userEmail);
+
+    // GetUser API - to get socket id
+    const res1 = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + userEmail, {
+      method: 'GET',
+      headers: {
+        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
+        'email': 'shimura@wisc.edu',
+        'isUser': false
+      }
+    });
+
+    status = res1.status;
+    if (status != 200 && status != 201) {
+      console.log("get user failed: status " + status);
+      return;
+    }
+
+    const data1 = await res1.json();
+    console.log(data1);
+    const userSocketId = data1['socketId'];
+    
+    console.log(userSocketId);
+
+    // notify user request has been denied
+    socket.emit("walker walk status", { userId: userSocketId, status: -1 }); 
+  };
 
   const LeftActions = () => {
     return (
       <View style={styles.LeftAction}>
-      <TouchableOpacity
-      onPress={() => navigation.navigate("SafewalkerTab")}
-      >
-        <Text style={styles.actionText}>Accept Request</Text>
-      </TouchableOpacity>
+        <Text style={styles.actionText}>Accept</Text>
       </View>
     )
   };
 
-  const RightActions = ({onPress, deleteItem, item}) => {
+  const RightActions = () => {
     return (
       <View style={styles.RightAction}>
-      <TouchableOpacity 
-        onPress={() => alert('Request Denied')}
-      >
-        <Text style={styles.actionText}>Deny Request</Text>
-      </TouchableOpacity>
+        <Text style={styles.actionText}>Deny</Text>
       </View>
     )
   };
 
-
-  const deleteItem = id => {
-    setItems((prevItems) => {
-      return prevItems.filter(item => item.id != id);
-    });
-  };
-
-  function Item({item, onPress, deleteItem}) {
+  function Item({ item, onPress, deleteItem }) {
     return (
-      <Swipeable
-      renderLeftActions={LeftActions}
-      renderRightActions={RightActions}
-    >
-    <View style={styles.row}>
-      <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.location}>{item.start}{item.end}</Text>
-      <Text style={styles.time}>{item.time}{item.date}</Text>
-      <Button
-      title = "Delete"
-      onPress={() => deleteItem(item.id)}
-      />
-    </View>
-    </Swipeable>
+      <View style={styles.swipeable}>
+        <Swipeable
+          renderLeftActions={LeftActions}
+          renderRightActions={RightActions}
+          onSwipeableLeftOpen={() => acceptRequest(item.id)}
+          onSwipeableRightOpen={() => deleteItem(item.id)}
+        >
+          <View style={styles.column}>
+            <View style={styles.row}>
+              <Text style={styles.name}>{item.username}</Text>
+              <Text style={styles.time}>{item.time}</Text>
+            </View>
+            <View>
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={{ color: 'green', fontWeight: 'bold' }}>A: </Text>
+                <Text style={styles.location}>{item.startText}</Text>
+              </View>
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={{ color: 'red', fontWeight: 'bold' }}>B: </Text>
+                <Text style={styles.location}>{item.endText}</Text>
+              </View>
+            </View>
+
+          </View>
+        </Swipeable>
+      </View>
     );
   }
-
 
   return (
     <View style={styles.container}>
@@ -99,43 +237,54 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
 
 const styles = StyleSheet.create({
+  swipeable: {
+    borderBottomWidth: 3,
+    borderColor: '#e8e8e8',
+  },
   container: {
+    borderTopWidth: 2,
+    borderColor: '#e8e8e8',
     flex: 1,
     backgroundColor: "#fff",
     //alignItems: "center",
     //justifyContent: "center"
   },
-  row: {
+  column: {
     flex: 1,
-    paddingVertical: 25,
-    paddingHorizontal: 15,
-    flexDirection: 'row',
-    borderColor: '#a9a9a9',
-    borderBottomWidth: 2,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    flexDirection: 'column',
     backgroundColor: '#fff',
     justifyContent: 'flex-start',
   },
+  row: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: 6
+  },
   name: {
-    fontSize: 25,
-    flex: 2,
+    fontSize: 17,
     fontWeight: '600',
   },
   location: {
-    fontSize: 20,
-    flex: 2,
+    fontSize: 15,
+    color: 'grey'
   },
   time: {
-    fontSize: 20,
-    flex: 2,
+    fontSize: 13,
+    color: 'grey'
   },
   LeftAction: {
     backgroundColor: '#388e3c',
     justifyContent: 'center',
+    width: '100%'
   },
   RightAction: {
     backgroundColor: '#dd2c00',
     justifyContent: 'center',
-    alignItems: 'flex-end'
+    alignItems: 'flex-end',
+    width: '100%'
   },
   actionText: {
     color: '#fff',
