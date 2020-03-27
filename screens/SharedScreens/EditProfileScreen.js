@@ -91,6 +91,18 @@ export default function EditProfileScreen() {
     }
   };
 
+  // for formatting phone number
+  const formatPhone = () => {
+    let phone =
+        "(" +
+        phoneNumber.substring(0, 3) +
+        ") " +
+        phoneNumber.substring(3, 6) +
+        "-" +
+        phoneNumber.substring(6, 10);
+    return phone;
+  };
+
   // upon clicking save profile information button
   /*
    Response codes:
@@ -98,15 +110,7 @@ export default function EditProfileScreen() {
    200 (ok)
    */
   const saveProfileInfo = async (data) => {
-    // set state edit to false
-    let phone =
-        "(" +
-        data.phoneNumber.substring(0, 3) +
-        ") " +
-        data.phoneNumber.substring(3, 6) +
-        "-" +
-        data.phoneNumber.substring(6, 10);
-    await setPhoneNumber(phone);
+    await setPhoneNumber(data.phoneNumber);
 
     // send new info to the database
     let userEmail = await AsyncStorage.getItem('userEmail');
@@ -121,7 +125,7 @@ export default function EditProfileScreen() {
       body: JSON.stringify({
         firstName: firstName,
         lastName: lastName,
-        phoneNumber: phone,
+        phoneNumber: phoneNumber,
         interest: interests,
         photo: image
       })
@@ -175,7 +179,7 @@ export default function EditProfileScreen() {
                 <Text style={styles.text}>First Name: {firstName}</Text>
                 <Text style={styles.text}>Last Name: {lastName}</Text>
                 <Divider style={styles.divider} />
-                <Text style={styles.text}>Phone Number: {phoneNumber}</Text>
+                <Text style={styles.text}>Phone Number: {formatPhone()}</Text>
                 <Divider style={styles.divider} />
                 <Text style={styles.text}>Interests: {interests}</Text>
                 <Divider style={styles.divider} />
@@ -244,10 +248,12 @@ export default function EditProfileScreen() {
                           required: false,
                           minLength: 10,
                           maxLength: 10,
-                          pattern: /^[0-9]+$|^[(][0-9][)][0-9][-][0-9]+$/
+                          pattern: /^[0-9]+$/
                         }
                     )}
-                    onChangeText={text => setValue("phoneNumber", text, true)}
+                    onChangeText={text => {
+                      setValue("phoneNumber", text, true)
+                    }}
                     mode="outlined"
                     theme={{ colors: { primary: colors.orange } }}
                     style={styles.inputContainer}
