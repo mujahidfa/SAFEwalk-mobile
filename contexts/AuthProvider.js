@@ -9,8 +9,7 @@ export function AuthProvider({ children }) {
     isLoading: true,
     isSignout: false,
     userToken: null,
-    userType: "user",
-    userEmail: null
+    userType: "user"
   });
 
   // Handle Login
@@ -29,10 +28,8 @@ export function AuthProvider({ children }) {
         userType: userType,
         userEmail: email
       });
-
-      // error status code is 404
     } catch (error) {
-      console.error("Error in login(): " + error);
+      throw new Error("Error in login(): " + error);
     }
   }
 
@@ -41,7 +38,6 @@ export function AuthProvider({ children }) {
     try {
       await AsyncStorage.removeItem("userToken");
       await AsyncStorage.removeItem("userType");
-      await AsyncStorage.removeItem("userEmail");
 
       dispatch({ type: "SIGN_OUT" });
     } catch (error) {
@@ -55,7 +51,6 @@ export function AuthProvider({ children }) {
       isSignout: state.isSignout,
       userToken: state.userToken,
       userType: state.userType,
-      userEmail: state.userEmail,
       dispatch,
       login,
       signout
@@ -76,24 +71,21 @@ function authReducer(prevState, action) {
         ...prevState,
         isLoading: false,
         userToken: action.token,
-        userType: action.userType,
-        userEmail: action.userEmail
+        userType: action.userType
       };
     case "LOG_IN":
       return {
         ...prevState,
         isSignout: false,
         userToken: action.token,
-        userType: action.userType,
-        userEmail: action.userEmail
+        userType: action.userType
       };
     case "SIGN_OUT":
       return {
         ...prevState,
         isSignout: true,
         userToken: null,
-        userType: null,
-        userEmail: null
+        userType: null
       };
     default: {
       console.error(`Unhandled auth action type: ${action.type}`);

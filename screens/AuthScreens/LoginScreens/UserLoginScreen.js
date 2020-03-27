@@ -58,128 +58,128 @@ export default function UserLoginScreen({ navigation }) {
         isUser: true // since this is user login, then isUser has to be true
       }
     })
-      .then(response => response.json())
-      .then(data => {
-        setIsLoading(false);
-        console.log("data: " + data);
+        .then(response => response.json())
+        .then(data => {
+          setIsLoading(false);
+          console.log("data: " + data);
 
-        // The endpoint only returns a string upon success
-        // and a full body response if there's an error.
-        // Therefore, if data.status exists, then this means it's an error.
-        if (data.status) {
-          console.log("data in if: " + JSON.stringify(data));
-          if (data.status === 404) {
-            console.log("captured 404! User not available.");
-            setIsUserNotAvailable(true);
-          } else {
-            console.log("Unknown error " + data.status + ". Try again");
-            setIsLoginError(true);
+          // The endpoint only returns a string upon success
+          // and a full body response if there's an error.
+          // Therefore, if data.status exists, then this means it's an error.
+          if (data.status) {
+            console.log("data in if: " + JSON.stringify(data));
+            if (data.status === 404) {
+              console.log("captured 404! User not available.");
+              setIsUserNotAvailable(true);
+            } else {
+              console.log("Unknown error " + data.status + ". Try again");
+              setIsLoginError(true);
+            }
           }
-        }
-        // The endpoint only returns a string upon success,
-        // so because of that, if it's a success, data.status would be null.
-        else {
-          console.log("data in else: " + data);
-          console.log("email: " + formData.email);
-          login("user", data, formData.email);
-        }
-      })
-      .catch(error => {
-        console.log("Error in login(): " + error);
-        setIsLoginError(true);
-        setIsLoading(false);
-      });
+              // The endpoint only returns a string upon success,
+          // so because of that, if it's a success, data.status would be null.
+          else {
+            console.log("data in else: " + data);
+            console.log("email: " + formData.email);
+            login("user", data, formData.email);
+          }
+        })
+        .catch(error => {
+          console.log("Error in login(): " + error);
+          setIsLoginError(true);
+          setIsLoading(false);
+        });
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.logoUWContainer}>
-          <Image
-            source={require("./../../../assets/uw-transportation-logo.png")}
-            style={styles.logoUW}
-          />
-        </View>
-
-        <KeyboardAvoidingView style={styles.innerContainer}>
-          <View style={styles.logoSAFEwalkContainer}>
-            <Text style={styles.logoSAFE}>SAFE</Text>
-            <Text style={styles.logoWALK}>walk</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.logoUWContainer}>
+            <Image
+                source={require("./../../../assets/uw-transportation-logo.png")}
+                style={styles.logoUW}
+            />
           </View>
 
-          {errors.email && (
-            <Text style={styles.textError}>wisc.edu email is required.</Text>
-          )}
-          <TextInput
-            label="Email"
-            placeholder="netid@wisc.edu"
-            ref={register(
-              { name: "email" },
-              { required: true, pattern: /^\S+@wisc\.edu$/i }
+          <KeyboardAvoidingView style={styles.innerContainer}>
+            <View style={styles.logoSAFEwalkContainer}>
+              <Text style={styles.logoSAFE}>SAFE</Text>
+              <Text style={styles.logoWALK}>walk</Text>
+            </View>
+
+            {errors.email && (
+                <Text style={styles.textError}>wisc.edu email is required.</Text>
             )}
-            onChangeText={text => setValue("email", text, true)}
-            mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          {errors.password && (
-            <Text style={styles.textError}>Password is required.</Text>
-          )}
-          <TextInput
-            label="Password"
-            placeholder="Password"
-            ref={register({ name: "password" }, { required: true })}
-            onChangeText={text => setValue("password", text, true)}
-            mode="outlined"
-            secureTextEntry
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-          />
-
-          {isLoginError && (
-            <Text style={styles.textErrorAPICall}>
-              There was an error. Please try again.
-            </Text>
-          )}
-          {isUserNotAvailable && (
-            <Text style={styles.textErrorAPICall}>
-              Invalid email or password.
-            </Text>
-          )}
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Login"
-              loading={isLoading}
-              disabled={isLoading}
-              onPress={handleSubmit(onSubmit)}
-              buttonStyle={styles.buttonLogin}
-              titleStyle={styles.buttonLoginText}
+            <TextInput
+                label="Email"
+                placeholder="netid@wisc.edu"
+                ref={register(
+                    { name: "email" },
+                    { required: true, pattern: /^\S+@wisc\.edu$/i }
+                )}
+                onChangeText={text => setValue("email", text, true)}
+                mode="outlined"
+                theme={{ colors: { primary: colors.red } }}
+                style={styles.textInput}
+                keyboardType="email-address"
+                autoCapitalize="none"
             />
 
-            <Button
-              title="Don't have an account? Sign Up"
-              onPress={() => navigation.replace("SignupStack")}
-              buttonStyle={styles.buttonSignup}
-              titleStyle={styles.buttonSignupText}
-              containerStyle={styles.buttonSignupContainer}
-              type="outline"
+            {errors.password && (
+                <Text style={styles.textError}>Password is required.</Text>
+            )}
+            <TextInput
+                label="Password"
+                placeholder="Password"
+                ref={register({ name: "password" }, { required: true })}
+                onChangeText={text => setValue("password", text, true)}
+                mode="outlined"
+                secureTextEntry
+                theme={{ colors: { primary: colors.red } }}
+                style={styles.textInput}
             />
+
+            {isLoginError && (
+                <Text style={styles.textErrorAPICall}>
+                  There was an error. Please try again.
+                </Text>
+            )}
+            {isUserNotAvailable && (
+                <Text style={styles.textErrorAPICall}>
+                  Invalid email or password.
+                </Text>
+            )}
+
+            <View style={styles.buttonContainer}>
+              <Button
+                  title="Login"
+                  loading={isLoading}
+                  disabled={isLoading}
+                  onPress={handleSubmit(onSubmit)}
+                  buttonStyle={styles.buttonLogin}
+                  titleStyle={styles.buttonLoginText}
+              />
+
+              <Button
+                  title="Don't have an account? Sign Up"
+                  onPress={() => navigation.replace("SignupStack")}
+                  buttonStyle={styles.buttonSignup}
+                  titleStyle={styles.buttonSignupText}
+                  containerStyle={styles.buttonSignupContainer}
+                  type="outline"
+              />
+            </View>
+          </KeyboardAvoidingView>
+          <View style={styles.footerContainer}>
+            <Text style={styles.footerPrompt}>Login as a SAFEwalker?</Text>
+            <TouchableOpacity
+                onPress={() => navigation.replace("SafewalkerLogin")}
+            >
+              <Text style={styles.footerClickable}>Click here.</Text>
+            </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerPrompt}>Login as a SAFEwalker?</Text>
-          <TouchableOpacity
-            onPress={() => navigation.replace("SafewalkerLogin")}
-          >
-            <Text style={styles.footerClickable}>Click here.</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
   );
 }
 

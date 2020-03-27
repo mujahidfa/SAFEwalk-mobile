@@ -44,158 +44,158 @@ export default function CredentialsSignupScreen({ navigation }) {
   const onSubmit = formData => {
     // check if email is taken. just check, do not create an account yet.
     fetch(url + "/api/Login/" + formData.email, { method: "GET" })
-      .then(response => {
-        console.log(JSON.stringify(response.status));
-        setIsLoading(false);
+        .then(response => {
+          console.log(JSON.stringify(response.status));
+          setIsLoading(false);
 
-        if (response.status && response.status === 200) {
-          console.log("Email available!");
+          if (response.status && response.status === 200) {
+            console.log("Email available!");
 
-          // if email not taken, go to next screen
-          navigation.navigate("PersonalInfo", {
-            email: formData.email,
-            password: formData.password
-          });
-        } else if (response.status && response.status === 409) {
-          console.log("captured 409! User not available.");
-          setIsUserNotAvailable(true);
-        } else {
-          console.log("Unknown error" + response.status + " Try again");
+            // if email not taken, go to next screen
+            navigation.navigate("PersonalInfo", {
+              email: formData.email,
+              password: formData.password
+            });
+          } else if (response.status && response.status === 409) {
+            console.log("captured 409! User not available.");
+            setIsUserNotAvailable(true);
+          } else {
+            console.log("Unknown error" + response.status + " Try again");
+            setIsLoginError(true);
+          }
+        })
+        .catch(error => {
+          console.log("Error: " + error);
           setIsLoginError(true);
-        }
-      })
-      .catch(error => {
-        console.log("Error: " + error);
-        setIsLoginError(true);
-        setIsLoading(false);
-      });
+          setIsLoading(false);
+        });
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
-        {/* Progress animation */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressCircleContainer}>
-            <View style={[styles.progressCircle, styles.progressCurrentCircle]}>
-              <Text style={styles.progressCircleText}>1</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.container}>
+          {/* Progress animation */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressCircleContainer}>
+              <View style={[styles.progressCircle, styles.progressCurrentCircle]}>
+                <Text style={styles.progressCircleText}>1</Text>
+              </View>
+              <Text style={styles.progressDescription}>Credentials</Text>
             </View>
-            <Text style={styles.progressDescription}>Credentials</Text>
+
+            <View style={[styles.progressLine, { marginRight: 3 }]} />
+
+            <View style={styles.progressCircleContainer}>
+              <View style={styles.progressCircle}>
+                <Text style={styles.progressCircleText}>2</Text>
+              </View>
+              <Text style={styles.progressDescription}>Basic Info</Text>
+            </View>
+
+            <View
+                style={[styles.progressLine, { marginLeft: 5, marginRight: 10 }]}
+            />
+
+            <View style={styles.progressCircleContainer}>
+              <View style={styles.progressCircle}>
+                <Text style={styles.progressCircleText}>3</Text>
+              </View>
+              <Text style={styles.progressDescription}>Finish</Text>
+            </View>
           </View>
 
-          <View style={[styles.progressLine, { marginRight: 3 }]} />
-
-          <View style={styles.progressCircleContainer}>
-            <View style={styles.progressCircle}>
-              <Text style={styles.progressCircleText}>2</Text>
-            </View>
-            <Text style={styles.progressDescription}>Basic Info</Text>
-          </View>
-
-          <View
-            style={[styles.progressLine, { marginLeft: 5, marginRight: 10 }]}
-          />
-
-          <View style={styles.progressCircleContainer}>
-            <View style={styles.progressCircle}>
-              <Text style={styles.progressCircleText}>3</Text>
-            </View>
-            <Text style={styles.progressDescription}>Finish</Text>
-          </View>
-        </View>
-
-        {/* Main view */}
-        <KeyboardAvoidingView style={styles.innerContainer}>
-          {errors.email && (
-            <Text style={styles.textError}>wisc.edu email is required.</Text>
-          )}
-          <TextInput
-            label="Email"
-            placeholder="netid@wisc.edu"
-            ref={register(
-              { name: "email" },
-              { required: true, pattern: /^[A-Z0-9._%+-]+@wisc\.edu$/i }
+          {/* Main view */}
+          <KeyboardAvoidingView style={styles.innerContainer}>
+            {errors.email && (
+                <Text style={styles.textError}>wisc.edu email is required.</Text>
             )}
-            onChangeText={text => setValue("email", text, true)}
-            mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+            <TextInput
+                label="Email"
+                placeholder="netid@wisc.edu"
+                ref={register(
+                    { name: "email" },
+                    { required: true, pattern: /^[A-Z0-9._%+-]+@wisc\.edu$/i }
+                )}
+                onChangeText={text => setValue("email", text, true)}
+                mode="outlined"
+                theme={{ colors: { primary: colors.red } }}
+                style={styles.textInput}
+                keyboardType="email-address"
+                autoCapitalize="none"
+            />
 
-          {errors.password && (
-            <Text style={styles.textError}>Password is required.</Text>
-          )}
-          <TextInput
-            label="Password"
-            placeholder="Password"
-            ref={register({ name: "password" }, { required: true })}
-            onChangeText={text => setValue("password", text, true)}
-            mode="outlined"
-            secureTextEntry
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-          />
-
-          {errors.confirmPassword && (
-            <Text style={styles.textError}>The passwords do not match.</Text>
-          )}
-          <TextInput
-            label="Confirm password"
-            ref={register(
-              { name: "confirmPassword" },
-              {
-                required: true,
-                validate: value =>
-                  value === watch("password") || "The passwords do not match."
-              }
+            {errors.password && (
+                <Text style={styles.textError}>Password is required.</Text>
             )}
-            onChangeText={text => setValue("confirmPassword", text, true)}
-            mode="outlined"
-            secureTextEntry
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
+            <TextInput
+                label="Password"
+                placeholder="Password"
+                ref={register({ name: "password" }, { required: true })}
+                onChangeText={text => setValue("password", text, true)}
+                mode="outlined"
+                secureTextEntry
+                theme={{ colors: { primary: colors.red } }}
+                style={styles.textInput}
+            />
+
+            {errors.confirmPassword && (
+                <Text style={styles.textError}>The passwords do not match.</Text>
+            )}
+            <TextInput
+                label="Confirm password"
+                ref={register(
+                    { name: "confirmPassword" },
+                    {
+                      required: true,
+                      validate: value =>
+                          value === watch("password") || "The passwords do not match."
+                    }
+                )}
+                onChangeText={text => setValue("confirmPassword", text, true)}
+                mode="outlined"
+                secureTextEntry
+                theme={{ colors: { primary: colors.red } }}
+                style={styles.textInput}
+            />
+
+            {isLoginError && (
+                <Text style={styles.textErrorAPICall}>
+                  There was an error. Please try again.
+                </Text>
+            )}
+            {isUserNotAvailable && (
+                <Text style={styles.textErrorAPICall}>
+                  Email is taken. Use a different email.
+                </Text>
+            )}
+          </KeyboardAvoidingView>
+
+          {/* Footer */}
+          <Button
+              title="Next"
+              loading={isLoading}
+              disabled={isLoading}
+              onPress={handleSubmit(onSubmit)}
+              buttonStyle={styles.buttonNext}
+              titleStyle={styles.buttonNextText}
           />
-
-          {isLoginError && (
-            <Text style={styles.textErrorAPICall}>
-              There was an error. Please try again.
-            </Text>
-          )}
-          {isUserNotAvailable && (
-            <Text style={styles.textErrorAPICall}>
-              Email is taken. Use a different email.
-            </Text>
-          )}
-        </KeyboardAvoidingView>
-
-        {/* Footer */}
-        <Button
-          title="Next"
-          loading={isLoading}
-          disabled={isLoading}
-          onPress={handleSubmit(onSubmit)}
-          buttonStyle={styles.buttonNext}
-          titleStyle={styles.buttonNextText}
-        />
-        <View style={styles.orContainer}>
-          <View style={styles.orLine} />
-          <Text style={styles.orText}>or</Text>
-          <View style={styles.orLine} />
+          <View style={styles.orContainer}>
+            <View style={styles.orLine} />
+            <Text style={styles.orText}>or</Text>
+            <View style={styles.orLine} />
+          </View>
+          <View style={styles.footerContainer}>
+            <Text style={styles.footerPrompt}>Already have an account? </Text>
+            <TouchableOpacity
+                onPress={() =>
+                    navigation.dangerouslyGetParent().replace("UserLogin")
+                }
+            >
+              <Text style={styles.footerClickable}>Sign in.</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerPrompt}>Already have an account? </Text>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.dangerouslyGetParent().replace("UserLogin")
-            }
-          >
-            <Text style={styles.footerClickable}>Sign in.</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
   );
 }
 
