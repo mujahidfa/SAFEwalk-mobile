@@ -68,6 +68,7 @@ export default function EditProfileScreen() {
     setFirstName(response.firstName);
     setLastName(response.lastName);
     setPhoneNumber(response.phoneNumber);
+    setValue("phoneNumber", response.phoneNumber);
     setImage(response.photo);
     setInterests(response.interest);
   };
@@ -93,14 +94,14 @@ export default function EditProfileScreen() {
 
   // for formatting phone number
   const formatPhone = () => {
-    let phone =
+    return (
         "(" +
         phoneNumber.substring(0, 3) +
         ") " +
         phoneNumber.substring(3, 6) +
         "-" +
-        phoneNumber.substring(6, 10);
-    return phone;
+        phoneNumber.substring(6, 10)
+    );
   };
 
   // upon clicking save profile information button
@@ -135,6 +136,7 @@ export default function EditProfileScreen() {
             console.log("captured " + response.status + "! Try again.");
           }
           else {
+            console.log("success!");
             setEdit(false);
           }
         })
@@ -155,7 +157,7 @@ export default function EditProfileScreen() {
           {!edit ? (
               <View style={styles.containerBottom}>
                 <View style={{ alignItems: "center", marginBottom: 80 }}>
-                  {image === "" ? (
+                  {!image ? (
                       <Avatar
                           rounded
                           size={200}
@@ -190,7 +192,7 @@ export default function EditProfileScreen() {
           ) : (
               <View style={styles.containerBottom}>
                 <View style={{ alignItems: "center" }}>
-                  {image === "" ? (
+                  {!image ? (
                       <Avatar
                           rounded
                           size={200}
