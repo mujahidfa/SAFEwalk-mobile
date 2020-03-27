@@ -1,5 +1,5 @@
-import React, { useContext, Component} from "react";
-import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, useState, Icon } from "react-native";
+import React, { useContext, Component, useEffect} from "react";
+import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, useState, Icon, ActivityIndicator } from "react-native";
 import { ListItem, List} from 'react-native-elements';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 
@@ -9,8 +9,10 @@ import { render } from "react-dom";
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout } = useContext(AuthContext);
+  const [loading, setLoading] = React.useState(false);
 
-  const [items, setItems] = React.useState([
+  // Data is here for testing, once connected with backend this array should be empty
+  const [request, setRequest] = React.useState([
     {id: 1, name: 'Katie', time: '1:30 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
     {id: 2, name: 'Alex', time: '1:17 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
     {id: 3, name: 'Yoon', time: '1:15 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
@@ -19,7 +21,18 @@ export default function SafewalkerHomeScreen({ navigation }) {
     {id: 6, name: 'Tadao', time: '1:00 ', date: '3/14/20', start: 'start:KK ', end: 'end:UU'},
   ]);
 
+  // TODO: Pull requests from database
+  useEffect(()=>{
+    setLoading(true);
+    // Pull here
+    setLoading(false);
+  } , []);
 
+ 
+  // TODO: Implement pull down to refresh
+
+
+  // TODO: change from button to full swipe to accept
   const LeftActions = () => {
     return (
       <View style={styles.LeftAction}>
@@ -32,6 +45,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
     )
   };
 
+  // TODO: Implement swipe to delete
+  // TODO: Add in confirm deletion pop up
   const RightActions = ({onPress, deleteItem, item}) => {
     return (
       <View style={styles.RightAction}>
@@ -44,13 +59,13 @@ export default function SafewalkerHomeScreen({ navigation }) {
     )
   };
 
-
   const deleteItem = id => {
-    setItems((prevItems) => {
+    setRequest((prevItems) => {
       return prevItems.filter(item => item.id != id);
     });
   };
 
+  // Each request is an Item
   function Item({item, onPress, deleteItem}) {
     return (
       <Swipeable
@@ -70,12 +85,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
     );
   }
 
-
   return (
     <View style={styles.container}>
       <FlatList
-        data={items}
-        keyExtractor={item => item.id}
+        data={request}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <Item item={item} deleteItem={deleteItem} />
         )}
