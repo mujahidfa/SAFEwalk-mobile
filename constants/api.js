@@ -1,1 +1,2 @@
-export default url = "https://safewalkapplication.azurewebsites.net";
+let url  = "https://safewalkapplication.azurewebsites.net";
+export default url;

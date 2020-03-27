@@ -13,19 +13,20 @@ export function AuthProvider({ children }) {
   });
 
   // Handle Login
-  async function login(userType, { email, password }) {
+  async function login(userType, userToken, email) {
     try {
-      // Put code below for this: make login GET request to server
-
-      // For now, while server is not set, use email as value for user token
-      await AsyncStorage.setItem("userToken", JSON.stringify(email));
+      // Store user token
+      await AsyncStorage.setItem("userToken", userToken);
       // Store the user type i.e. which type of user is logged in, user or SAFEwalker.
       await AsyncStorage.setItem("userType", userType);
+      // Store the user email
+      await AsyncStorage.setItem("userEmail", email);
 
       dispatch({
         type: "LOG_IN",
-        token: JSON.stringify(email),
-        userType: userType
+        token: userToken,
+        userType: userType,
+        userEmail: email
       });
     } catch (error) {
       throw new Error("Error in login(): " + error);
@@ -40,33 +41,7 @@ export function AuthProvider({ children }) {
 
       dispatch({ type: "SIGN_OUT" });
     } catch (error) {
-      throw new Error("Error in signout(): " + error);
-    }
-  }
-
-  // Handle register
-  async function register({
-    email,
-    password,
-    firstName,
-    lastName,
-    phoneNumber
-  }) {
-    try {
-      // Put code below for this: make register POST request to server
-
-      // For now, while server is not set, use email as value for user token
-      await AsyncStorage.setItem("userToken", JSON.stringify(email));
-      // Store the user type i.e. which type of user is logged in, user or SAFEwalker.
-      await AsyncStorage.setItem("userType", "user");
-
-      dispatch({
-        type: "LOG_IN",
-        token: JSON.stringify(email),
-        userType: "user"
-      });
-    } catch (error) {
-      throw new Error("Error in register(): " + error);
+      console.error("Error in signout(): " + error);
     }
   }
 
@@ -78,8 +53,7 @@ export function AuthProvider({ children }) {
       userType: state.userType,
       dispatch,
       login,
-      signout,
-      register
+      signout
     };
   }, [state]);
 
@@ -114,7 +88,7 @@ function authReducer(prevState, action) {
         userType: null
       };
     default: {
-      throw new Error(`Unhandled auth action type: ${action.type}`);
+      console.error(`Unhandled auth action type: ${action.type}`);
     }
   }
 }
