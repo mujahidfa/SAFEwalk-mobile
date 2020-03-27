@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
 import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import { AuthContext } from "./../../contexts/AuthProvider";
 
 export default function UserProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
@@ -13,16 +14,19 @@ export default function UserProfileScreen({ navigation }) {
   const [address, setAddress] = useState("728 State St");
   const [postalCode, setPostalCode] = useState("53715");
   const [city, setCity] = useState("Madison");
+  const { userToken, email } = useContext(AuthContext);
 
   async function loadUserProfile() {
+    const email = await AsyncStorage.getItem('email');
     // get user email from async storage
     const userEmail = await AsyncStorage.getItem('userEmail');
+
     // GetUser API
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + userEmail, {
       method: 'GET',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
-        'email': 'shimura@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': false
       }
     });
@@ -64,6 +68,7 @@ export default function UserProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
+    const email = await AsyncStorage.getItem('email');
     // get socketId from async storage
     const userSocketId = await AsyncStorage.getItem('userSocketId');
     // notify user walk has been cancelled
@@ -74,8 +79,8 @@ export default function UserProfileScreen({ navigation }) {
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
       method: 'DELETE',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
-        'email': 'shimura@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': false
       }
     });
@@ -92,6 +97,7 @@ export default function UserProfileScreen({ navigation }) {
     await AsyncStorage.removeItem('userSocketId');
 
     navigation.navigate('SafewalkerHome');
+    alert('You canceled the walk.');
   }
 
   return (

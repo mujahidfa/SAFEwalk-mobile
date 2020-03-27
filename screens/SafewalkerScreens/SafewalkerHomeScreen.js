@@ -1,23 +1,21 @@
-import React, { useContext, useEffect, Component } from "react";
-import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, useState, Icon, AsyncStorage } from "react-native";
-import { ListItem, List } from 'react-native-elements';
+import React, { useContext, useEffect } from "react";
+import { StyleSheet, Text, View, FlatList, AsyncStorage } from "react-native";
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { AuthContext } from "./../../contexts/AuthProvider";
-import { render } from "react-dom";
-import io from "socket.io-client";
 import socket from "./../../contexts/socket";
 
 export default function SafewalkerHomeScreen({ navigation }) {
-  const { signout } = useContext(AuthContext);
+  const { signout, userToken, email } = useContext(AuthContext);
   const [items, setItems] = React.useState([]);
 
   async function LoadWalk() {
+    const email = await AsyncStorage.getItem('email');
     // GetWalks API, setItems 
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
       method: 'GET',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
-        'email': 'shimura@wisc.edu',
+        'token': userToken,
+        'email': email,
       }
     });
 
@@ -42,20 +40,22 @@ export default function SafewalkerHomeScreen({ navigation }) {
     setItems(walks);
   }
 
-  async function setSocketId(socketId) {
-    const walkerEmail = 'shimura@wisc.edu';
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA';
+  async function setSocketId() {
+    const email = await AsyncStorage.getItem('email');
+
+    console.log(email);
+    console.log(socket.id);
 
     // PutSafewalker API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Safewalkers/' + walkerEmail, {
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Safewalkers/' + email, {
       method: 'PUT',
       headers: {
-        'token': token,
-        'email': walkerEmail,
+        'token': userToken,
+        'email': email,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        socketId: socketId
+        socketId: socket.id
       })
     });
 
@@ -67,7 +67,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
   }
 
   useEffect(() => {
-    setSocketId(socket.id);
+    setSocketId();
 
     LoadWalk();
 
@@ -76,11 +76,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
       if (status) LoadWalk();
     });
 
-    
+
     // socket to listen to user status change
     socket.on('user walk status', status => {
       console.log(status);
-      
+
       switch (status) {
         case -2:
           navigation.navigate('SafewalkerHome');
@@ -91,12 +91,14 @@ export default function SafewalkerHomeScreen({ navigation }) {
   }, []);
 
   async function acceptRequest(id) {
+    const email = await AsyncStorage.getItem('email');
+
     // putWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
       method: 'PUT',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
-        'email': 'shimura@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': false,
         'Content-Type': 'application/json'
       },
@@ -128,12 +130,14 @@ export default function SafewalkerHomeScreen({ navigation }) {
       return prevItems.filter(item => item.id != id);
     });
 
+    const email = await AsyncStorage.getItem('email');
+
     // DeleteWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
       method: 'DELETE',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
-        'email': 'shimura@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': false
       }
     });
@@ -153,8 +157,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
     const res1 = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + userEmail, {
       method: 'GET',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjEyMzQ1Njc4OTg3NjVoYyIsIm5iZiI6MTU4Mzc2NTE1MCwiZXhwIjoxNTgzODUxNTUwLCJpYXQiOjE1ODM3NjUxNTB9.lIqN2RuvbOK79Succ98r3DnlDa59MfahHddfNMyArsA',
-        'email': 'shimura@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': false
       }
     });
@@ -168,11 +172,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
     const data1 = await res1.json();
     console.log(data1);
     const userSocketId = data1['socketId'];
-    
+
     console.log(userSocketId);
 
     // notify user request has been denied
-    socket.emit("walker walk status", { userId: userSocketId, status: -1 }); 
+    socket.emit("walker walk status", { userId: userSocketId, status: -1 });
   };
 
   const LeftActions = () => {

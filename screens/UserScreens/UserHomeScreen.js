@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,6 +15,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import io from "socket.io-client";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import { AuthContext } from "./../../contexts/AuthProvider";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
@@ -22,15 +23,16 @@ export default function UserHomeScreen({ navigation }) {
   const [time, setTime] = useState(new Date());
   const [request, setRequest] = useState(false);
   const [show, setShow] = useState(false);
+  const {userToken, email} = useContext(AuthContext);
 
   async function setSocketId() {
-    const userEmail = 'bo@wisc.edu';
+    const email = await AsyncStorage.getItem('email');
 
     // PutUser API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + userEmail, {
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + email, {
       method: 'PUT',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
+        'token': userToken,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -75,12 +77,14 @@ export default function UserHomeScreen({ navigation }) {
   }, []);
 
   async function addRequest() {
+    const email = await AsyncStorage.getItem('email');
+
     // addWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
       method: 'POST',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
-        'email': 'bo@wisc.edu',
+        'token': userToken, 
+        'email': email,      
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -107,13 +111,15 @@ export default function UserHomeScreen({ navigation }) {
     setRequest(false);
     alert("Request Canceled");
 
+    const email = await AsyncStorage.getItem('email');
     const id = await AsyncStorage.getItem('walkId');
+
     // DeleteWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
       method: 'DELETE',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
-        'email': 'bo@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': true
       }
     });

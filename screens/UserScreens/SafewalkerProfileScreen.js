@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import { AuthContext } from "./../../contexts/AuthProvider";
 
 export default function SafewalkerProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const {userToken, email} = useContext(AuthContext);
 
   async function loadWalkerProfile() {
+    const email = await AsyncStorage.getItem('email');
     const walkId = await AsyncStorage.getItem('walkId');
     console.log('walkId: ' + walkId);
 
@@ -19,8 +22,8 @@ export default function SafewalkerProfileScreen({ navigation }) {
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + walkId, {
       method: 'GET',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
-        'email': 'bo@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': true
       }
     });
@@ -39,8 +42,8 @@ export default function SafewalkerProfileScreen({ navigation }) {
     const res1 = await fetch('https://safewalkapplication.azurewebsites.net/api/Safewalkers/' + walkerEmail, {
       method: 'GET',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
-        'email': 'bo@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': true
       }
     });
@@ -75,6 +78,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
+    const email = await AsyncStorage.getItem('email');
     // get socketId from async storage
     const walkerSocketId = await AsyncStorage.getItem('walkerSocketId');
     // notify user walk has been cancelled
@@ -85,8 +89,8 @@ export default function SafewalkerProfileScreen({ navigation }) {
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
       method: 'DELETE',
       headers: {
-        'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjNhMzIwNzE3LTBjMTctNDUwOC1hZjZmLWEwOWVhNDViZjhlZSIsIm5iZiI6MTU4Mzg3Nzg3NiwiZXhwIjoxNTgzOTY0Mjc2LCJpYXQiOjE1ODM4Nzc4NzZ9.9OIX5XwyqJW7URYp2YvpRt8vRWS2STNJ0ikKGD5aS-I',
-        'email': 'bo@wisc.edu',
+        'token': userToken,
+        'email': email,
         'isUser': true
       }
     });
