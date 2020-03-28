@@ -40,8 +40,6 @@ export default function LoginSettingsScreen({ navigation }) {
 
   const getProfileInfo = async () => {
     // get info from the database
-    let email = await AsyncStorage.getItem("email");
-
     const response = await fetch(url + "/api/Users/" + email, {
       method: "GET",
       headers: {
@@ -74,8 +72,6 @@ export default function LoginSettingsScreen({ navigation }) {
     //await setPassword(data.confirmPassword);
 
     // send new info to the database
-    let email = await AsyncStorage.getItem("email");
-
     const response = await fetch(url + "/api/Users/" + email, {
       method: "PUT",
       headers: {

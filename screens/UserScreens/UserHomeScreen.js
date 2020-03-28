@@ -23,11 +23,9 @@ export default function UserHomeScreen({ navigation }) {
   const [time, setTime] = useState(new Date());
   const [request, setRequest] = useState(false);
   const [show, setShow] = useState(false);
-  const {userToken, email} = useContext(AuthContext);
+  const { userToken, email } = useContext(AuthContext);
 
   async function setSocketId() {
-    const email = await AsyncStorage.getItem('email');
-
     // PutUser API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + email, {
       method: 'PUT',
@@ -53,7 +51,7 @@ export default function UserHomeScreen({ navigation }) {
     // socket to listen to walker status change
     socket.on('walker walk status', status => {
       console.log(status);
-      
+
       switch (status) {
         case -2:
           navigation.navigate('UserHome');
@@ -77,14 +75,12 @@ export default function UserHomeScreen({ navigation }) {
   }, []);
 
   async function addRequest() {
-    const email = await AsyncStorage.getItem('email');
-
     // addWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
       method: 'POST',
       headers: {
-        'token': userToken, 
-        'email': email,      
+        'token': userToken,
+        'email': email,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -111,9 +107,7 @@ export default function UserHomeScreen({ navigation }) {
     setRequest(false);
     alert("Request Canceled");
 
-    const email = await AsyncStorage.getItem('email');
     const id = await AsyncStorage.getItem('walkId');
-
     // DeleteWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
       method: 'DELETE',
@@ -247,25 +241,19 @@ export default function UserHomeScreen({ navigation }) {
       ) : (
           <View style={styles.container}>
             {/* View When the User Submits a SAFEwalk Request */}
-            <Text style={{ fontSize: 45, marginTop: 50, marginBottom: 50 }}>
-              Searching for a {"\n"} SAFEwalker...
-          </Text>
+            <Text style={{ textAlign: "center", fontSize: 30, color: colors.orange, fontWeight: "bold", }}>
+              Searching for {'\n'} SAFEwalker...
+            </Text>
             <Icon
               type="font-awesome"
               name="hourglass"
               color={colors.orange}
-              size={150}
-              iconStyle={{ marginBottom: 50 }}
+              size={80}
+              iconStyle={{ marginBottom: 100 }}
             />
             <TouchableOpacity onPress={() => cancelRequest()}>
               <Text style={styles.buttonCancel}> Cancel </Text>
             </TouchableOpacity>
-
-            {/* Button to be Replaced Once Sockets are implemented */}
-            <Button
-              title="Go to User Tabs"
-              onPress={() => navigation.replace("UserTab")}
-            />
           </View>
         )}
     </View>
@@ -276,10 +264,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    alignItems: "center"
+    alignItems: "center",
+    justifyContent: "space-evenly"
   },
   buttonRequest: {
-    backgroundColor: colors.orange,
+    backgroundColor: "#77b01a",
     borderColor: colors.white,
     borderWidth: 1,
     borderRadius: 25,

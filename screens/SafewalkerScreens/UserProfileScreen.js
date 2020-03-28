@@ -17,7 +17,6 @@ export default function UserProfileScreen({ navigation }) {
   const { userToken, email } = useContext(AuthContext);
 
   async function loadUserProfile() {
-    const email = await AsyncStorage.getItem('email');
     // get user email from async storage
     const userEmail = await AsyncStorage.getItem('userEmail');
 
@@ -68,11 +67,12 @@ export default function UserProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
-    const email = await AsyncStorage.getItem('email');
     // get socketId from async storage
     const userSocketId = await AsyncStorage.getItem('userSocketId');
-    // notify user walk has been cancelled
-    socket.emit("walker walk status", { userId: userSocketId, status: -2 });
+    if (userSocketId) {
+      // notify user walk has been cancelled
+      socket.emit("walker walk status", { userId: userSocketId, status: -2 });
+    }
 
     const id = await AsyncStorage.getItem('walkId');
     // DeleteWalk API call

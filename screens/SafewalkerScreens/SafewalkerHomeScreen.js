@@ -9,7 +9,6 @@ export default function SafewalkerHomeScreen({ navigation }) {
   const [items, setItems] = React.useState([]);
 
   async function LoadWalk() {
-    const email = await AsyncStorage.getItem('email');
     // GetWalks API, setItems 
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
       method: 'GET',
@@ -41,11 +40,6 @@ export default function SafewalkerHomeScreen({ navigation }) {
   }
 
   async function setSocketId() {
-    const email = await AsyncStorage.getItem('email');
-
-    console.log(email);
-    console.log(socket.id);
-
     // PutSafewalker API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Safewalkers/' + email, {
       method: 'PUT',
@@ -91,8 +85,6 @@ export default function SafewalkerHomeScreen({ navigation }) {
   }, []);
 
   async function acceptRequest(id) {
-    const email = await AsyncStorage.getItem('email');
-
     // putWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
       method: 'PUT',
@@ -129,8 +121,6 @@ export default function SafewalkerHomeScreen({ navigation }) {
     setItems((prevItems) => {
       return prevItems.filter(item => item.id != id);
     });
-
-    const email = await AsyncStorage.getItem('email');
 
     // DeleteWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
@@ -170,13 +160,12 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     const data1 = await res1.json();
-    console.log(data1);
+
     const userSocketId = data1['socketId'];
-
-    console.log(userSocketId);
-
-    // notify user request has been denied
-    socket.emit("walker walk status", { userId: userSocketId, status: -1 });
+    if (userSocketId) {
+      // notify user request has been denied
+      socket.emit("walker walk status", { userId: userSocketId, status: -1 });
+    }
   };
 
   const LeftActions = () => {

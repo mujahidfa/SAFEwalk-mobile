@@ -43,8 +43,6 @@ export default function EditProfileScreen() {
 
   const getProfileInfo = async () => {
     // get info from the database
-    let email = await AsyncStorage.getItem('email');
-
     const response = await fetch(url + '/api/Users/' + email, {
       method: 'GET',
       headers: {
@@ -114,8 +112,6 @@ export default function EditProfileScreen() {
     await setPhoneNumber(data.phoneNumber);
 
     // send new info to the database
-    let email = await AsyncStorage.getItem('email');
-
     const response = await fetch(url + '/api/Users/' + email, {
       method: 'PUT',
       headers: {

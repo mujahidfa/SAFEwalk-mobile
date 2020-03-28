@@ -11,10 +11,9 @@ export default function SafewalkerProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const {userToken, email} = useContext(AuthContext);
+  const { userToken, email } = useContext(AuthContext);
 
   async function loadWalkerProfile() {
-    const email = await AsyncStorage.getItem('email');
     const walkId = await AsyncStorage.getItem('walkId');
     console.log('walkId: ' + walkId);
 
@@ -78,11 +77,12 @@ export default function SafewalkerProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
-    const email = await AsyncStorage.getItem('email');
     // get socketId from async storage
     const walkerSocketId = await AsyncStorage.getItem('walkerSocketId');
-    // notify user walk has been cancelled
-    socket.emit("user walk status", { walkerId: walkerSocketId, status: -2 });
+    if (walkerSocketId) {
+      // notify user walk has been cancelled
+      socket.emit("user walk status", { walkerId: walkerSocketId, status: -2 });
+    }
 
     const id = await AsyncStorage.getItem('walkId');
     // DeleteWalk API call
