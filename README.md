@@ -5,7 +5,7 @@ Use the following repos:
 - SAFEwalk-backend
 
 To Set Up Application (required before running):
-1. add local ip address to index.js in SAFEwalk-mobile (use 'ipconfig' for windows)
+1. add local ip address to socket.js in SAFEwalk-mobile (use 'ipconfig' for windows)
 
 To Run Application:
 1. run 'nodemon index.js' in SAFEwalk-backend
