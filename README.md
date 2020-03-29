@@ -1,7 +1,7 @@
 Note - APIs and Database deployed on Azure
 
 Use the following repos:
-- SAFEwalk-mobile
+- SAFEwalk-mobile branch iteration-1
 - SAFEwalk-backend
 
 To Set Up Application (required before running):
