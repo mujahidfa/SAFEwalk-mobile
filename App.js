@@ -5,6 +5,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider } from "./contexts/AuthProvider";
 
+console.disableYellowBox = true;
+
 export default function App() {
   return (
     <AuthProvider>
