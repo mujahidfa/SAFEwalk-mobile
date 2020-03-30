@@ -27,16 +27,19 @@ export default function UserHomeScreen({ navigation }) {
 
   async function setSocketId() {
     // PutUser API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + email, {
-      method: 'PUT',
-      headers: {
-        'token': userToken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        socketId: socket.id
-      })
-    });
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Users/" + email,
+      {
+        method: "PUT",
+        headers: {
+          token: userToken,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          socketId: socket.id
+        })
+      }
+    );
 
     if (status != 200 && status != 201) {
       console.log("set socketId failed: status " + status);
@@ -45,30 +48,54 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   useEffect(() => {
-    console.log('socket id ' + socket.id);
+    console.log("socket id " + socket.id);
     setSocketId();
 
     // socket to listen to walker status change
-    socket.on('walker walk status', status => {
+    socket.on("walker walk status", status => {
       console.log(status);
 
       switch (status) {
         case -2:
-          navigation.navigate('UserHome');
-          alert('The SAFEwalker has canceled the walk.');
+          // navigation.navigate('UserHome');
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserHome"
+              }
+            ]
+          });
+          alert("The SAFEwalker has canceled the walk.");
           break;
         case -1:
           setRequest(false);
-          alert('Your request was denied.');
+          alert("Your request was denied.");
           break;
         case 1:
-          navigation.navigate('UserTab');
-          alert('A SAFEwalker is on their way!');
+          // navigation.navigate("UserTab");
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserTab"
+              }
+            ]
+          });
+          alert("A SAFEwalker is on their way!");
           setRequest(false);
           break;
         case 2:
-          navigation.navigate('UserHome');
-          alert('The walk has been completed!');
+          // navigation.navigate("UserHome");
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserHome"
+              }
+            ]
+          });
+          alert("The walk has been completed!");
           break;
       }
     });
@@ -76,19 +103,22 @@ export default function UserHomeScreen({ navigation }) {
 
   async function addRequest() {
     // addWalk API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
-      method: 'POST',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        time: new Date(),
-        startText: location,
-        destText: destination
-      })
-    });
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks",
+      {
+        method: "POST",
+        headers: {
+          token: userToken,
+          email: email,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          time: new Date(),
+          startText: location,
+          destText: destination
+        })
+      }
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -97,7 +127,7 @@ export default function UserHomeScreen({ navigation }) {
     }
 
     let data = await res.json();
-    await AsyncStorage.setItem('walkId', data['id']);
+    await AsyncStorage.setItem("walkId", data["id"]);
 
     setRequest(true);
     socket.emit("walk status", true); // send notification to all Safewalkers
@@ -107,16 +137,19 @@ export default function UserHomeScreen({ navigation }) {
     setRequest(false);
     alert("Request Canceled");
 
-    const id = await AsyncStorage.getItem('walkId');
+    const id = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
-      method: 'DELETE',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': true
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "DELETE",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true
+        }
       }
-    });
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -125,7 +158,7 @@ export default function UserHomeScreen({ navigation }) {
     }
 
     // remove walk-related info
-    await AsyncStorage.removeItem('WalkId');
+    await AsyncStorage.removeItem("WalkId");
 
     socket.emit("walk status", true); // send notification to all Safewalkers
   }
@@ -202,22 +235,22 @@ export default function UserHomeScreen({ navigation }) {
               }}
             />
           ) : (
-              <View style={styles.timeInputIOS}>
-                <Icon
-                  type="font-awesome"
-                  name="clock-o"
-                  iconStyle={{ marginLeft: 10, top: 8 }}
-                />
-                <DateTimePicker
-                  style={styles.timePickerIOS}
-                  testID="dateTimePicker"
-                  mode={"time"}
-                  value={time}
-                  display="default"
-                  onChange={onChange}
-                />
-              </View>
-            )}
+            <View style={styles.timeInputIOS}>
+              <Icon
+                type="font-awesome"
+                name="clock-o"
+                iconStyle={{ marginLeft: 10, top: 8 }}
+              />
+              <DateTimePicker
+                style={styles.timePickerIOS}
+                testID="dateTimePicker"
+                mode={"time"}
+                value={time}
+                display="default"
+                onChange={onChange}
+              />
+            </View>
+          )}
           {show && (
             <DateTimePicker
               style={styles.timePickerAndroid}
@@ -239,23 +272,30 @@ export default function UserHomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       ) : (
-          <View style={styles.container}>
-            {/* View When the User Submits a SAFEwalk Request */}
-            <Text style={{ textAlign: "center", fontSize: 30, color: colors.orange, fontWeight: "bold", }}>
-              Searching for {'\n'} SAFEwalker...
-            </Text>
-            <Icon
-              type="font-awesome"
-              name="hourglass"
-              color={colors.orange}
-              size={80}
-              iconStyle={{ marginBottom: 100 }}
-            />
-            <TouchableOpacity onPress={() => cancelRequest()}>
-              <Text style={styles.buttonCancel}> Cancel </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={styles.container}>
+          {/* View When the User Submits a SAFEwalk Request */}
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 30,
+              color: colors.orange,
+              fontWeight: "bold"
+            }}
+          >
+            Searching for {"\n"} SAFEwalker...
+          </Text>
+          <Icon
+            type="font-awesome"
+            name="hourglass"
+            color={colors.orange}
+            size={80}
+            iconStyle={{ marginBottom: 100 }}
+          />
+          <TouchableOpacity onPress={() => cancelRequest()}>
+            <Text style={styles.buttonCancel}> Cancel </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

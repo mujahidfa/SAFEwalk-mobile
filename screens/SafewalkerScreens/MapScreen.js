@@ -10,20 +10,23 @@ export default function MapScreen({ navigation }) {
   const { userToken, email } = useContext(AuthContext);
 
   async function handleSubmit() {
-    const id = await AsyncStorage.getItem('walkId');
+    const id = await AsyncStorage.getItem("walkId");
     // putWalk API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
-      method: 'PUT',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': false,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        status: 2
-      })
-    });
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "PUT",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          status: 2
+        })
+      }
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -32,13 +35,21 @@ export default function MapScreen({ navigation }) {
     }
 
     // get socketId from async storage
-    const userSocketId = await AsyncStorage.getItem('userSocketId');
+    const userSocketId = await AsyncStorage.getItem("userSocketId");
     if (userSocketId) {
       // Let user know walk has been completed
       socket.emit("walker walk status", { userId: userSocketId, status: 2 }); // send notification to user
     }
 
-    navigation.navigate('SafewalkerHome');
+    // navigation.navigate('SafewalkerHome');
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "SafewalkerHome"
+        }
+      ]
+    });
   }
 
   return (

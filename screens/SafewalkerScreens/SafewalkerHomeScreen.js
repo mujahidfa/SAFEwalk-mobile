@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { StyleSheet, Text, View, FlatList, AsyncStorage } from "react-native";
-import Swipeable from 'react-native-gesture-handler/Swipeable';
+import Swipeable from "react-native-gesture-handler/Swipeable";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import socket from "./../../contexts/socket";
 
@@ -9,14 +9,17 @@ export default function SafewalkerHomeScreen({ navigation }) {
   const [items, setItems] = React.useState([]);
 
   async function LoadWalk() {
-    // GetWalks API, setItems 
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
-      method: 'GET',
-      headers: {
-        'token': userToken,
-        'email': email,
+    // GetWalks API, setItems
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks",
+      {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email
+        }
       }
-    });
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -28,11 +31,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
     let walks = [];
     for (const walk of Object.entries(data)) {
       walks.push({
-        'id': walk[1]['id'],
-        'username': walk[1]['userEmail'],
-        'time': walk[1]['time'],
-        'startText': walk[1]['startText'],
-        'endText': walk[1]['destText'],
+        id: walk[1]["id"],
+        username: walk[1]["userEmail"],
+        time: walk[1]["time"],
+        startText: walk[1]["startText"],
+        endText: walk[1]["destText"]
       });
     }
 
@@ -41,17 +44,20 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   async function setSocketId() {
     // PutSafewalker API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Safewalkers/' + email, {
-      method: 'PUT',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        socketId: socket.id
-      })
-    });
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Safewalkers/" + email,
+      {
+        method: "PUT",
+        headers: {
+          token: userToken,
+          email: email,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          socketId: socket.id
+        })
+      }
+    );
 
     const status = res.status;
     if (status != 200 && status != 201) {
@@ -70,15 +76,22 @@ export default function SafewalkerHomeScreen({ navigation }) {
       if (status) LoadWalk();
     });
 
-
     // socket to listen to user status change
-    socket.on('user walk status', status => {
+    socket.on("user walk status", status => {
       console.log(status);
 
       switch (status) {
         case -2:
-          navigation.navigate('SafewalkerHome');
-          alert('The user canceled the walk.');
+          // navigation.navigate('SafewalkerHome');
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "SafewalkerHome"
+              }
+            ]
+          });
+          alert("The user canceled the walk.");
           break;
       }
     });
@@ -86,18 +99,21 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   async function acceptRequest(id) {
     // putWalk API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
-      method: 'PUT',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': false,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        status: 1
-      })
-    });
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "PUT",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          status: 1
+        })
+      }
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -106,31 +122,42 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     const data = await res.json();
-    let userEmail = data['userEmail'];
+    let userEmail = data["userEmail"];
 
-    await AsyncStorage.setItem('userEmail', userEmail);
-    await AsyncStorage.setItem('walkId', id);
+    await AsyncStorage.setItem("userEmail", userEmail);
+    await AsyncStorage.setItem("walkId", id);
 
-    socket.emit('walk status', true);
+    socket.emit("walk status", true);
 
     //navigate to tab
-    navigation.navigate("SafewalkerTab");
+    // navigation.navigate("SafewalkerTab");
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "SafewalkerTab"
+        }
+      ]
+    });
   }
 
   async function deleteItem(id) {
-    setItems((prevItems) => {
+    setItems(prevItems => {
       return prevItems.filter(item => item.id != id);
     });
 
     // DeleteWalk API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
-      method: 'DELETE',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': false
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "DELETE",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false
+        }
       }
-    });
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -139,19 +166,22 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     const data = await res.json();
-    const userEmail = data['userEmail'];
+    const userEmail = data["userEmail"];
 
     console.log(userEmail);
 
     // GetUser API - to get socket id
-    const res1 = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + userEmail, {
-      method: 'GET',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': false
+    const res1 = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Users/" + userEmail,
+      {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false
+        }
       }
-    });
+    );
 
     status = res1.status;
     if (status != 200 && status != 201) {
@@ -161,19 +191,19 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
     const data1 = await res1.json();
 
-    const userSocketId = data1['socketId'];
+    const userSocketId = data1["socketId"];
     if (userSocketId) {
       // notify user request has been denied
       socket.emit("walker walk status", { userId: userSocketId, status: -1 });
     }
-  };
+  }
 
   const LeftActions = () => {
     return (
       <View style={styles.LeftAction}>
         <Text style={styles.actionText}>Accept</Text>
       </View>
-    )
+    );
   };
 
   const RightActions = () => {
@@ -181,7 +211,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
       <View style={styles.RightAction}>
         <Text style={styles.actionText}>Deny</Text>
       </View>
-    )
+    );
   };
 
   function Item({ item, onPress, deleteItem }) {
@@ -199,16 +229,15 @@ export default function SafewalkerHomeScreen({ navigation }) {
               <Text style={styles.time}>{item.time}</Text>
             </View>
             <View>
-              <View style={{ flexDirection: 'row' }}>
-                <Text style={{ color: 'green', fontWeight: 'bold' }}>A: </Text>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={{ color: "green", fontWeight: "bold" }}>A: </Text>
                 <Text style={styles.location}>{item.startText}</Text>
               </View>
-              <View style={{ flexDirection: 'row' }}>
-                <Text style={{ color: 'red', fontWeight: 'bold' }}>B: </Text>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={{ color: "red", fontWeight: "bold" }}>B: </Text>
                 <Text style={styles.location}>{item.endText}</Text>
               </View>
             </View>
-
           </View>
         </Swipeable>
       </View>
@@ -220,25 +249,22 @@ export default function SafewalkerHomeScreen({ navigation }) {
       <FlatList
         data={items}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Item item={item} deleteItem={deleteItem} />
-        )}
+        renderItem={({ item }) => <Item item={item} deleteItem={deleteItem} />}
       />
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
   swipeable: {
     borderBottomWidth: 3,
-    borderColor: '#e8e8e8',
+    borderColor: "#e8e8e8"
   },
   container: {
     borderTopWidth: 2,
-    borderColor: '#e8e8e8',
+    borderColor: "#e8e8e8",
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#fff"
     //alignItems: "center",
     //justifyContent: "center"
   },
@@ -246,42 +272,42 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 15,
     paddingHorizontal: 18,
-    flexDirection: 'column',
-    backgroundColor: '#fff',
-    justifyContent: 'flex-start',
+    flexDirection: "column",
+    backgroundColor: "#fff",
+    justifyContent: "flex-start"
   },
   row: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingBottom: 6
   },
   name: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "600"
   },
   location: {
     fontSize: 15,
-    color: 'grey'
+    color: "grey"
   },
   time: {
     fontSize: 13,
-    color: 'grey'
+    color: "grey"
   },
   LeftAction: {
-    backgroundColor: '#388e3c',
-    justifyContent: 'center',
-    width: '100%'
+    backgroundColor: "#388e3c",
+    justifyContent: "center",
+    width: "100%"
   },
   RightAction: {
-    backgroundColor: '#dd2c00',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    width: '100%'
+    backgroundColor: "#dd2c00",
+    justifyContent: "center",
+    alignItems: "flex-end",
+    width: "100%"
   },
   actionText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     padding: 20
   }
 });
