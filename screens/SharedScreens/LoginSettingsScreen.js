@@ -21,7 +21,7 @@ import colors from "./../../constants/colors";
 export default function LoginSettingsScreen({ navigation }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const { userToken, email } = useContext(AuthContext);
+  const { userToken, email, userType } = useContext(AuthContext);
 
   // forms input handling
   const { register, setValue, handleSubmit, errors, watch } = useForm();
@@ -39,15 +39,22 @@ export default function LoginSettingsScreen({ navigation }) {
   }, []);
 
   const getProfileInfo = async () => {
+    let user = true;
+    let endpoint = "/api/Users/";
+    if (userType == "safewalker") {
+      endpoint = "/api/Safewalkers/";
+      user = false;
+    }
+
     // get info from the database
-    const response = await fetch(url + "/api/Users/" + email, {
+    const response = await fetch(url + endpoint + email, {
       method: "GET",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
         email: email,
         token: userToken,
-        isUser: true
+        isUser: user
       }
     }).then(response => {
       if (!(response.status === 200)) {
@@ -70,9 +77,13 @@ export default function LoginSettingsScreen({ navigation }) {
    */
   const saveProfileInfo = async data => {
     //await setPassword(data.confirmPassword);
+    let endpoint = "/api/Users/";
+    if (userType == "safewalker") {
+      endpoint = "/api/Safewalkers/";
+    }
 
     // send new info to the database
-    const response = await fetch(url + "/api/Users/" + email, {
+    const response = await fetch(url + endpoint + email, {
       method: "PUT",
       headers: {
         Accept: "application/json",

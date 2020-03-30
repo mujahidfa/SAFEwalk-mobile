@@ -14,18 +14,21 @@ export default function SafewalkerProfileScreen({ navigation }) {
   const { userToken, email } = useContext(AuthContext);
 
   async function loadWalkerProfile() {
-    const walkId = await AsyncStorage.getItem('walkId');
-    console.log('walkId: ' + walkId);
+    const walkId = await AsyncStorage.getItem("walkId");
+    console.log("walkId: " + walkId);
 
     // GetWalk API call - get email
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + walkId, {
-      method: 'GET',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': true
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
+      {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true
+        }
       }
-    });
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -34,18 +37,22 @@ export default function SafewalkerProfileScreen({ navigation }) {
     }
 
     const data = await res.json();
-    const walkerEmail = data['walkerEmail'];
-    await AsyncStorage.setItem('walkerEmail', walkerEmail);
+    const walkerEmail = data["walkerEmail"];
+    await AsyncStorage.setItem("walkerEmail", walkerEmail);
 
     // GetWalker API call
-    const res1 = await fetch('https://safewalkapplication.azurewebsites.net/api/Safewalkers/' + walkerEmail, {
-      method: 'GET',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': true
+    const res1 = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Safewalkers/" +
+        walkerEmail,
+      {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true
+        }
       }
-    });
+    );
 
     status = res1.status;
     if (status != 200 && status != 201) {
@@ -56,12 +63,12 @@ export default function SafewalkerProfileScreen({ navigation }) {
     const data1 = await res1.json();
     console.log(data1);
     // set safewalker profile info
-    setFirstname(data1['firstName']);
-    setLastname(data1['lastName']);
-    setPhoneNumber(data1['phoneNumber']);
+    setFirstname(data1["firstName"]);
+    setLastname(data1["lastName"]);
+    setPhoneNumber(data1["phoneNumber"]);
 
     // set socketId in async storage
-    await AsyncStorage.setItem('walkerSocketId', data1['socketId']);
+    await AsyncStorage.setItem("walkerSocketId", data1["socketId"]);
   }
 
   useEffect(() => {
@@ -78,22 +85,25 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
   async function cancelWalk() {
     // get socketId from async storage
-    const walkerSocketId = await AsyncStorage.getItem('walkerSocketId');
+    const walkerSocketId = await AsyncStorage.getItem("walkerSocketId");
     if (walkerSocketId) {
       // notify user walk has been cancelled
       socket.emit("user walk status", { walkerId: walkerSocketId, status: -2 });
     }
 
-    const id = await AsyncStorage.getItem('walkId');
+    const id = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
-      method: 'DELETE',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': true
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "DELETE",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true
+        }
       }
-    });
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -102,12 +112,20 @@ export default function SafewalkerProfileScreen({ navigation }) {
     }
 
     // remove all current walk-related information
-    await AsyncStorage.removeItem('walkId');
-    await AsyncStorage.removeItem('walkerEmail');
-    await AsyncStorage.removeItem('walkerSocketId');
+    await AsyncStorage.removeItem("walkId");
+    await AsyncStorage.removeItem("walkerEmail");
+    await AsyncStorage.removeItem("walkerSocketId");
 
-    navigation.navigate('UserHome');
-    alert('Canceled Walk');
+    // navigation.navigate('UserHome');
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "UserHome"
+        }
+      ]
+    });
+    alert("Canceled Walk");
   }
 
   return (
