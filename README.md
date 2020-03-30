@@ -1,8 +1,11 @@
 Note - APIs and Database deployed on Azure
 
 Use the following repos:
-- SAFEwalk-mobile (branch iteration-1)
+- SAFEwalk-mobile (branch iteration-1) 
+  https://github.com/mujahidfa/SAFEwalk-mobile/tree/iteration-1 
 - SAFEwalk-backend (branch iteration-1)
+  https://github.com/justinztan11/SAFEwalk-backend/tree/iteration-1
+
 
 To Set Up Application (required before running):
 1. Add local ip address (use 'ipconfig' for windows) to socket.js located in the contexts folder in SAFEwalk-mobile 
