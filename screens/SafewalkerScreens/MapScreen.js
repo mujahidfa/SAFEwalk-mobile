@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Button } from "react-native-elements";
 import colors from "./../../constants/colors";
@@ -9,7 +9,30 @@ export default function MapScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const { userToken, email } = useContext(AuthContext);
 
+  useEffect(() => {
+    // socket to listen to user status change
+    socket.on('user walk status', status => {
+      console.log(status);
+
+      switch (status) {
+        case -2:
+          navigation.navigate('SafewalkerHome');
+          alert('The user canceled the walk.');
+          break;
+      }
+    });
+    
+    return () => socket.off("user walk status", null);
+  }, []);
+
   async function handleSubmit() {
+    // get socketId from async storage
+    const userSocketId = await AsyncStorage.getItem('userSocketId');
+    if (userSocketId) {
+      // Let user know walk has been completed
+      socket.emit("walker walk status", { userId: userSocketId, status: 2 }); // send notification to user
+    }
+
     const id = await AsyncStorage.getItem('walkId');
     // putWalk API call
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
@@ -29,13 +52,6 @@ export default function MapScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log("finish walk failed: status " + status);
       return;
-    }
-
-    // get socketId from async storage
-    const userSocketId = await AsyncStorage.getItem('userSocketId');
-    if (userSocketId) {
-      // Let user know walk has been completed
-      socket.emit("walker walk status", { userId: userSocketId, status: 2 }); // send notification to user
     }
 
     navigation.navigate('SafewalkerHome');

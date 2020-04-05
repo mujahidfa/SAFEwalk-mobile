@@ -25,38 +25,10 @@ export default function UserHomeScreen({ navigation }) {
   const [show, setShow] = useState(false);
   const { userToken, email } = useContext(AuthContext);
 
-  async function setSocketId() {
-    // PutUser API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + email, {
-      method: 'PUT',
-      headers: {
-        'token': userToken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        socketId: socket.id
-      })
-    });
-
-    if (status != 200 && status != 201) {
-      console.log("set socketId failed: status " + status);
-      return;
-    }
-  }
-
   useEffect(() => {
-    console.log('socket id ' + socket.id);
-    setSocketId();
-
     // socket to listen to walker status change
     socket.on('walker walk status', status => {
-      console.log(status);
-
       switch (status) {
-        case -2:
-          navigation.navigate('UserHome');
-          alert('The SAFEwalker has canceled the walk.');
-          break;
         case -1:
           setRequest(false);
           alert('Your request was denied.');
@@ -66,16 +38,20 @@ export default function UserHomeScreen({ navigation }) {
           alert('A SAFEwalker is on their way!');
           setRequest(false);
           break;
-        case 2:
-          navigation.navigate('UserHome');
-          alert('The walk has been completed!');
-          break;
       }
     });
+
+    return () => socket.off("walker walk status", null);
   }, []);
 
   async function addRequest() {
-    // addWalk API call
+    // time out after 30 second
+    setTimeout(() => {
+      alert('Your request timed out.');
+      cancelRequest();
+    }, 30000);
+
+    // addWalk API call - create walk
     const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
       method: 'POST',
       headers: {
@@ -86,12 +62,14 @@ export default function UserHomeScreen({ navigation }) {
       body: JSON.stringify({
         time: new Date(),
         startText: location,
-        destText: destination
+        destText: destination,
+        userSocketId: socket.id
       })
     });
 
     let status = res.status;
     if (status != 200 && status != 201) {
+      alert('Request failed');
       console.log("add walk failed: status " + status);
       return;
     }
@@ -121,7 +99,6 @@ export default function UserHomeScreen({ navigation }) {
     let status = res.status;
     if (status != 200 && status != 201) {
       console.log("delete walk failed: status " + status);
-      return;
     }
 
     // remove walk-related info
