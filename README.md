@@ -1,13 +1,16 @@
 Note - APIs and Database deployed on Azure
 
 Use the following repos:
-- SAFEwalk-mobile
-- SAFEwalk-backend
+- SAFEwalk-mobile (branch iteration-1) 
+  https://github.com/mujahidfa/SAFEwalk-mobile/tree/iteration-1 
+- SAFEwalk-backend (branch iteration-1)
+  https://github.com/justinztan11/SAFEwalk-backend/tree/iteration-1
+
 
 To Set Up Application (required before running):
-1. add local ip address to index.js in SAFEwalk-mobile (use 'ipconfig' for windows)
+1. Add local ip address (use 'ipconfig' for windows) to socket.js located in the contexts folder in SAFEwalk-mobile 
 
 To Run Application:
-1. run 'nodemon index.js' in SAFEwalk-backend
-2. run 'yarn start' in SAFEwalk-mobile
-3. scan Expo QR Code through Expo App (or run on android/ios emulator)
+1. Run 'nodemon index.js' in SAFEwalk-backend 
+2. Run 'yarn start' in SAFEwalk-mobile
+3. Scan Expo QR Code through Expo App (or run on android/ios emulator)

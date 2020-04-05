@@ -8,11 +8,25 @@ export default function MapScreen({ navigation }) {
     socket.on('walker walk status', status => {
       switch (status) {
         case -2:
-          navigation.navigate('UserHome');
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserHome"
+              }
+            ]
+          });
           alert('The SAFEwalker has canceled the walk.');
           break;
         case 2:
-          navigation.navigate('UserHome');
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserHome"
+              }
+            ]
+          });
           alert('The walk has been completed!');
           break;
       }

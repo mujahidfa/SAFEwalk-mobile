@@ -18,17 +18,20 @@ export default function UserProfileScreen({ navigation }) {
 
   async function loadUserProfile() {
     // get user email from async storage
-    const userEmail = await AsyncStorage.getItem('userEmail');
+    const userEmail = await AsyncStorage.getItem("userEmail");
 
     // GetUser API
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Users/' + userEmail, {
-      method: 'GET',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': false
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Users/" + userEmail,
+      {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false
+        }
       }
-    });
+    );
 
     const status = res.status;
     if (status != 200 && status != 201) {
@@ -54,7 +57,14 @@ export default function UserProfileScreen({ navigation }) {
     socket.on('user walk status', status => {
       switch (status) {
         case -2:
-          navigation.navigate('SafewalkerHome');
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'SafewalkerHome'
+              }
+            ]
+          });
           alert('The user canceled the walk.');
           cleanUpStorage();
           break;
@@ -87,16 +97,19 @@ export default function UserProfileScreen({ navigation }) {
       socket.emit("walker walk status", { userId: userSocketId, status: -2 });
     }
 
-    const id = await AsyncStorage.getItem('walkId');
+    const id = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
-      method: 'DELETE',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': false
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "DELETE",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false
+        }
       }
-    });
+    );
 
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -105,8 +118,16 @@ export default function UserProfileScreen({ navigation }) {
       alert('You canceled the walk.');
     }
 
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'SafewalkerHome'
+        }
+      ]
+    });
+
     // remove all current walk-related information
-    navigation.navigate('SafewalkerHome');
     cleanUpStorage();
   }
 
