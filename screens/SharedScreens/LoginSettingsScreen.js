@@ -28,7 +28,7 @@ export default function LoginSettingsScreen({ navigation }) {
 
   // password input upon change
   useEffect(() => {
-    //register("currentPassword");
+    register("currentPassword");
     register("password");
     register("confirmPassword");
   }, [register]);
@@ -76,12 +76,38 @@ export default function LoginSettingsScreen({ navigation }) {
    200 (ok)
    */
   const saveProfileInfo = async data => {
+    // first check old password
+    let endpoint = "/api/Login/";
+    //setOldPassword("fail");
+    let oldPass = 0;
+
+    // checking old password with database
+    const response1 = await fetch(url + endpoint + email, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "password": data.currentPassword
+      }
+    }).then(response1 => {
+      if (!(response1.status === 200)) {
+        //setOldPassword("fail");
+        oldPass = 0;
+        // console.log("Current " + data.currentPassword + " ");
+        console.log("captured " + response1.status + "! Try again.");
+      } else {
+        oldPass = 1;
+        // return response1.json();
+      }
+    });
+
     //await setPassword(data.confirmPassword);
-    let endpoint = "/api/Users/";
+    endpoint = "/api/Users/";
     if (userType == "safewalker") {
       endpoint = "/api/Safewalkers/";
     }
 
+    if (oldPass == 1) {
     // send new info to the database
     const response = await fetch(url + endpoint + email, {
       method: "PUT",
@@ -106,6 +132,9 @@ export default function LoginSettingsScreen({ navigation }) {
         console.log(error.message);
         console.log("Error in updating password. Please try again.");
       });
+    } else {
+      alert("Incorrect Password")
+    };
   };
 
   // upon pressing the update password button
@@ -129,7 +158,6 @@ export default function LoginSettingsScreen({ navigation }) {
 
         {/* Middle View */}
         <KeyboardAvoidingView style={styles.innerContainer}>
-          {/*
           {errors.currentPassword && (
             <Text style={styles.textError}>Current password is required.</Text>
           )}
@@ -143,7 +171,6 @@ export default function LoginSettingsScreen({ navigation }) {
             theme={{ colors: { primary: 'orange' } }}
             style={styles.textInput}
           />
-          */}
 
           {errors.password && (
             <Text style={styles.textError}>Password is required.</Text>
@@ -199,7 +226,8 @@ const styles = StyleSheet.create({
     flex: 0.6,
     backgroundColor: "#fff",
     alignItems: "center",
-    marginTop: 100
+    marginTop: 100,
+    marginBottom: 100
   },
   containerBottom: {
     flex: 1,
