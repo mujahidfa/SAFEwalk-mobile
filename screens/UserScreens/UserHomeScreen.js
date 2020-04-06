@@ -8,10 +8,10 @@ import {
   TouchableOpacity,
   Platform,
   Keyboard,
-  AsyncStorage
+  AsyncStorage,
 } from "react-native";
 import { Input, Icon, Button } from "react-native-elements";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import LottieView from 'lottie-react-native';
 import io from "socket.io-client";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
@@ -20,9 +20,7 @@ import { AuthContext } from "./../../contexts/AuthProvider";
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
-  const [time, setTime] = useState(new Date());
-  const [request, setRequest] = useState(false);
-  const [show, setShow] = useState(false);
+  const [request, setRequest] = useState(true);
   const { userToken, email } = useContext(AuthContext);
 
   async function setSocketId() {
@@ -163,34 +161,6 @@ export default function UserHomeScreen({ navigation }) {
     socket.emit("walk status", true); // send notification to all Safewalkers
   }
 
-  // Function that handles changing time state
-  const onChange = (event, selectedDate) => {
-    setShow(false);
-    const currentDate = selectedDate || time;
-    setTime(currentDate);
-  };
-
-  // Function that handles android time picker
-  const showTimePicker = () => {
-    Keyboard.dismiss();
-    setShow(true);
-  };
-
-  // Function that formats dateTime objects for visual representation
-  const formatTime = () => {
-    let timeArray = time
-      .toString()
-      .split(" ")[4]
-      .split(":");
-    if (timeArray[0] >= 12) {
-      if (timeArray[0] === "12") timeArray[0] = "24";
-      return parseInt(timeArray[0]) - 12 + ":" + timeArray[1] + " PM";
-    } else {
-      if (timeArray[0] === "00") timeArray[0] = "12";
-      return timeArray[0] + ":" + timeArray[1] + " AM";
-    }
-  };
-
   return (
     <View style={{ flex: 1 }}>
       {/* Conditional Statement Based on if the User has made a Request */}
@@ -220,48 +190,6 @@ export default function UserHomeScreen({ navigation }) {
             }}
           />
 
-          {/* Time Picker for Android and IOS */}
-          {Platform.OS === "android" ? (
-            <Input
-              inputStyle={styles.time}
-              inputContainerStyle={styles.inputContainer}
-              style={{ marginLeft: 50 }}
-              placeholder={"Time"}
-              value={formatTime()}
-              onFocus={showTimePicker}
-              leftIcon={{
-                type: "font-awesome",
-                name: "clock-o"
-              }}
-            />
-          ) : (
-            <View style={styles.timeInputIOS}>
-              <Icon
-                type="font-awesome"
-                name="clock-o"
-                iconStyle={{ marginLeft: 10, top: 8 }}
-              />
-              <DateTimePicker
-                style={styles.timePickerIOS}
-                testID="dateTimePicker"
-                mode={"time"}
-                value={time}
-                display="default"
-                onChange={onChange}
-              />
-            </View>
-          )}
-          {show && (
-            <DateTimePicker
-              style={styles.timePickerAndroid}
-              testID="dateTimePicker"
-              mode={"time"}
-              value={time}
-              display="spinner"
-              onChange={onChange}
-            />
-          )}
-
           {/* Google Map */}
           <Image
             style={styles.image}
@@ -284,12 +212,11 @@ export default function UserHomeScreen({ navigation }) {
           >
             Searching for {"\n"} SAFEwalker...
           </Text>
-          <Icon
-            type="font-awesome"
-            name="hourglass"
-            color={colors.orange}
-            size={80}
-            iconStyle={{ marginBottom: 100 }}
+          <LottieView
+            source={require('./../../assets/18121-map-pin-location')}
+            speed={2}
+            autoPlay={true}
+            loop
           />
           <TouchableOpacity onPress={() => cancelRequest()}>
             <Text style={styles.buttonCancel}> Cancel </Text>
@@ -305,10 +232,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     alignItems: "center",
-    justifyContent: "space-evenly"
   },
   buttonRequest: {
-    backgroundColor: "#77b01a",
+    backgroundColor: colors.orange,
     borderColor: colors.white,
     borderWidth: 1,
     borderRadius: 25,
@@ -335,49 +261,27 @@ const styles = StyleSheet.create({
   input: {
     marginLeft: 20
   },
-  time: {
-    marginLeft: 13
-  },
   inputContainer: {
     marginBottom: 20,
-    borderColor: colors.orange,
+    borderColor: "black",
     borderWidth: 2,
     borderRadius: 5
   },
   inputContainerTop: {
     marginBottom: 20,
-    marginTop: 20,
-    borderColor: colors.orange,
+    marginTop: 40,
+    borderColor: "black",
     borderWidth: 2,
     borderRadius: 5
-  },
-  timePickerAndroid: {
-    height: 40,
-    width: 305,
-    borderColor: colors.orange,
-    borderWidth: 2,
-    marginLeft: 18,
-    borderRadius: 5
-  },
-  timePickerIOS: {
-    height: 40,
-    width: 305,
-    marginLeft: 18
   },
   image: {
     width: Dimensions.get("window").width,
     height: 350,
-    marginBottom: 30,
-    borderColor: colors.orange,
-    borderWidth: 2
+    marginBottom: 40,
+    marginTop: 20
   },
-  timeInputIOS: {
-    flex: 0.5,
-    flexDirection: "row",
-    borderColor: colors.orange,
-    borderWidth: 2,
-    borderRadius: 5,
-    height: 20,
-    marginBottom: 45
+  loading: {
+    width: 100,
+    height: 100
   }
 });
