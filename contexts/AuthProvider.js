@@ -9,7 +9,8 @@ export function AuthProvider({ children }) {
     isLoading: true,
     isSignout: false,
     userToken: null,
-    userType: "user"
+    userType: "user",
+    email: null
   });
 
   // Handle Login
@@ -20,13 +21,13 @@ export function AuthProvider({ children }) {
       // Store the user type i.e. which type of user is logged in, user or SAFEwalker.
       await AsyncStorage.setItem("userType", userType);
       // Store the user email
-      await AsyncStorage.setItem("userEmail", email);
+      await AsyncStorage.setItem("email", email);
 
       dispatch({
         type: "LOG_IN",
         token: userToken,
         userType: userType,
-        userEmail: email
+        email: email
       });
     } catch (error) {
       throw new Error("Error in login(): " + error);
@@ -38,6 +39,7 @@ export function AuthProvider({ children }) {
     try {
       await AsyncStorage.removeItem("userToken");
       await AsyncStorage.removeItem("userType");
+      await AsyncStorage.removeItem("email");
 
       dispatch({ type: "SIGN_OUT" });
     } catch (error) {
@@ -51,6 +53,7 @@ export function AuthProvider({ children }) {
       isSignout: state.isSignout,
       userToken: state.userToken,
       userType: state.userType,
+      email: state.email,
       dispatch,
       login,
       signout
@@ -71,21 +74,24 @@ function authReducer(prevState, action) {
         ...prevState,
         isLoading: false,
         userToken: action.token,
-        userType: action.userType
+        userType: action.userType,
+        email: action.email
       };
     case "LOG_IN":
       return {
         ...prevState,
         isSignout: false,
         userToken: action.token,
-        userType: action.userType
+        userType: action.userType,
+        email: action.email
       };
     case "SIGN_OUT":
       return {
         ...prevState,
         isSignout: true,
         userToken: null,
-        userType: null
+        userType: null,
+        email: null
       };
     default: {
       console.error(`Unhandled auth action type: ${action.type}`);

@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -26,7 +26,7 @@ export default function EditProfileScreen() {
   const [interests, setInterests] = useState("");
   const [edit, setEdit] = useState(false);
 
-  const {userToken, userEmail} = useContext(AuthContext);
+  const { userToken, email, userType } = useContext(AuthContext);
 
   // forms input handling
   const { register, setValue, handleSubmit, errors } = useForm();
@@ -42,32 +42,36 @@ export default function EditProfileScreen() {
   }, []);
 
   const getProfileInfo = async () => {
-    // get info from the database
-    let userEmail = await AsyncStorage.getItem('userEmail');
+    let user = true;
+    let endpoint = "/api/Users/";
+    if (userType == "safewalker") {
+      endpoint = "/api/Safewalkers/";
+      user = false;
+    }
 
-    const response = await fetch(url + '/api/Users/' + userEmail, {
-      method: 'GET',
+    // get info from the database
+    const response = await fetch(url + endpoint + email, {
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'email': userEmail,
-        'token': userToken,
-        'isUser': true
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        email: email,
+        token: userToken,
+        isUser: user
       }
-    })
-        .then(response => {
-          if (!(response.status === 200)) {
-            console.log("captured " + response.status + "! Try again.");
-          }
-          else {
-            return response.json();
-          }
-        });
+    }).then(response => {
+      if (!(response.status === 200)) {
+        console.log("captured " + response.status + "! Try again.");
+      } else {
+        return response.json();
+      }
+    });
 
     // set states to proper values based on backend response
     setFirstName(response.firstName);
     setLastName(response.lastName);
     setPhoneNumber(response.phoneNumber);
+    setValue("phoneNumber", response.phoneNumber);
     setImage(response.photo);
     setInterests(response.interest);
   };
@@ -93,14 +97,14 @@ export default function EditProfileScreen() {
 
   // for formatting phone number
   const formatPhone = () => {
-    let phone =
-        "(" +
-        phoneNumber.substring(0, 3) +
-        ") " +
-        phoneNumber.substring(3, 6) +
-        "-" +
-        phoneNumber.substring(6, 10);
-    return phone;
+    return (
+      "(" +
+      phoneNumber.substring(0, 3) +
+      ") " +
+      phoneNumber.substring(3, 6) +
+      "-" +
+      phoneNumber.substring(6, 10)
+    );
   };
 
   // upon clicking save profile information button
@@ -109,39 +113,42 @@ export default function EditProfileScreen() {
    401 (unauthorized)
    200 (ok)
    */
-  const saveProfileInfo = async (data) => {
+  const saveProfileInfo = async data => {
     await setPhoneNumber(data.phoneNumber);
 
+    let endpoint = "/api/Users/";
+    if (userType == "safewalker") {
+      endpoint = "/api/Safewalkers/";
+    }
+    console.log("Phone number in saveProfileInfo:" + phoneNumber);
     // send new info to the database
-    let userEmail = await AsyncStorage.getItem('userEmail');
-
-    const response = await fetch(url + '/api/Users/' + userEmail, {
-      method: 'PUT',
+    const response = await fetch(url + endpoint + email, {
+      method: "PUT",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'token': userToken
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        token: userToken
       },
       body: JSON.stringify({
         firstName: firstName,
         lastName: lastName,
-        phoneNumber: phoneNumber,
+        phoneNumber: data.phoneNumber,
         interest: interests,
         photo: image
       })
     })
-        .then(response => {
-          if (!(response.status === 200)) {
-            console.log("captured " + response.status + "! Try again.");
-          }
-          else {
-            setEdit(false);
-          }
-        })
-        .catch(error => {
-          console.log(error.message);
-          console.log("Error in saving profile information. Please try again.")
-        });
+      .then(response => {
+        if (!(response.status === 200)) {
+          console.log("captured " + response.status + "! Try again.");
+        } else {
+          console.log("success!");
+          setEdit(false);
+        }
+      })
+      .catch(error => {
+        console.log(error.message);
+        console.log("Error in saving profile information. Please try again.");
+      });
   };
 
   // function that is called after save profile information button is pushed
@@ -150,131 +157,131 @@ export default function EditProfileScreen() {
   };
 
   return (
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={"padding"}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-          {!edit ? (
-              <View style={styles.containerBottom}>
-                <View style={{ alignItems: "center", marginBottom: 80 }}>
-                  {image === "" ? (
-                      <Avatar
-                          rounded
-                          size={200}
-                          title={firstName + " " + lastName}
-                          containerStyle={{ marginTop: 20 }}
-                          overlayContainerStyle={{ backgroundColor: colors.orange }}
-                          titleStyle={{ fontSize: 20 }}
-                      />
-                  ) : (
-                      <Avatar
-                          rounded
-                          source={{ uri: image }}
-                          size={200}
-                          title={firstName + " " + lastName}
-                          overlayContainerStyle={{ backgroundColor: colors.orange }}
-                          titleStyle={{ fontSize: 20 }}
-                      />
-                  )}
-                </View>
-                <Divider style={styles.divider} />
-                <Text style={styles.text}>First Name: {firstName}</Text>
-                <Text style={styles.text}>Last Name: {lastName}</Text>
-                <Divider style={styles.divider} />
-                <Text style={styles.text}>Phone Number: {formatPhone()}</Text>
-                <Divider style={styles.divider} />
-                <Text style={styles.text}>Interests: {interests}</Text>
-                <Divider style={styles.divider} />
-                <TouchableOpacity onPress={() => setEdit(true)}>
-                  <Text style={styles.buttonEdit}> Edit Profile Information </Text>
-                </TouchableOpacity>
-              </View>
-          ) : (
-              <View style={styles.containerBottom}>
-                <View style={{ alignItems: "center" }}>
-                  {image === "" ? (
-                      <Avatar
-                          rounded
-                          size={200}
-                          title={firstName + " " + lastName}
-                          containerStyle={{ marginBottom: 30 }}
-                          overlayContainerStyle={{ backgroundColor: colors.orange }}
-                          titleStyle={{ fontSize: 20 }}
-                          showEditButton
-                          onEditPress={() => uploadImage()}
-                      />
-                  ) : (
-                      <Avatar
-                          rounded
-                          source={{ uri: image }}
-                          size={200}
-                          title={firstName + " " + lastName}
-                          overlayContainerStyle={{ backgroundColor: colors.orange }}
-                          titleStyle={{ fontSize: 20 }}
-                          showEditButton
-                          onEditPress={() => uploadImage()}
-                      />
-                  )}
-                </View>
-                <TextInput
-                    label="First Name"
-                    defaultValue={firstName}
-                    placeholder={firstName}
-                    onChangeText={setFirstName}
-                    mode="outlined"
-                    theme={{ colors: { primary: colors.orange } }}
-                    style={styles.inputContainer}
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={"padding"}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
+        {!edit ? (
+          <View style={styles.containerBottom}>
+            <View style={{ alignItems: "center", marginBottom: 80 }}>
+              {!image ? (
+                <Avatar
+                  rounded
+                  size={200}
+                  title={firstName + " " + lastName}
+                  containerStyle={{ marginTop: 20 }}
+                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  titleStyle={{ fontSize: 20 }}
                 />
-                <TextInput
-                    label="Last Name"
-                    defaultValue={lastName}
-                    placeholder={lastName}
-                    onChangeText={setLastName}
-                    mode="outlined"
-                    theme={{ colors: { primary: colors.orange } }}
-                    style={styles.inputContainer}
+              ) : (
+                <Avatar
+                  rounded
+                  source={{ uri: image }}
+                  size={200}
+                  title={firstName + " " + lastName}
+                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  titleStyle={{ fontSize: 20 }}
                 />
+              )}
+            </View>
+            <Divider style={styles.divider} />
+            <Text style={styles.text}>First Name: {firstName}</Text>
+            <Text style={styles.text}>Last Name: {lastName}</Text>
+            <Divider style={styles.divider} />
+            <Text style={styles.text}>Phone Number: {formatPhone()}</Text>
+            <Divider style={styles.divider} />
+            <Text style={styles.text}>Interests: {interests}</Text>
+            <Divider style={styles.divider} />
+            <TouchableOpacity onPress={() => setEdit(true)}>
+              <Text style={styles.buttonEdit}> Edit Profile Information </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.containerBottom}>
+            <View style={{ alignItems: "center" }}>
+              {!image ? (
+                <Avatar
+                  rounded
+                  size={200}
+                  title={firstName + " " + lastName}
+                  containerStyle={{ marginBottom: 30 }}
+                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  titleStyle={{ fontSize: 20 }}
+                  showEditButton
+                  onEditPress={() => uploadImage()}
+                />
+              ) : (
+                <Avatar
+                  rounded
+                  source={{ uri: image }}
+                  size={200}
+                  title={firstName + " " + lastName}
+                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  titleStyle={{ fontSize: 20 }}
+                  showEditButton
+                  onEditPress={() => uploadImage()}
+                />
+              )}
+            </View>
+            <TextInput
+              label="First Name"
+              defaultValue={firstName}
+              placeholder={firstName}
+              onChangeText={setFirstName}
+              mode="outlined"
+              theme={{ colors: { primary: colors.orange } }}
+              style={styles.inputContainer}
+            />
+            <TextInput
+              label="Last Name"
+              defaultValue={lastName}
+              placeholder={lastName}
+              onChangeText={setLastName}
+              mode="outlined"
+              theme={{ colors: { primary: colors.orange } }}
+              style={styles.inputContainer}
+            />
 
-                {errors.phoneNumber && (
-                    <Text style={styles.textError}>
-                      Valid US phone number is required.
-                    </Text>
-                )}
-                <TextInput
-                    label="Phone Number"
-                    defaultValue={phoneNumber}
-                    placeholder={phoneNumber}
-                    ref={register(
-                        { name: "phoneNumber" },
-                        {
-                          required: false,
-                          minLength: 10,
-                          maxLength: 10,
-                          pattern: /^[0-9]+$/
-                        }
-                    )}
-                    onChangeText={text => {
-                      setValue("phoneNumber", text, true)
-                    }}
-                    mode="outlined"
-                    theme={{ colors: { primary: colors.orange } }}
-                    style={styles.inputContainer}
-                    keyboardType={"numeric"}
-                />
-                <TextInput
-                    label="Interests"
-                    defaultValue={interests}
-                    placeholder={interests}
-                    onChangeText={setInterests}
-                    mode="outlined"
-                    theme={{ colors: { primary: colors.orange } }}
-                    style={styles.inputContainer}
-                />
-                <TouchableOpacity onPress={handleSubmit(onSubmit)}>
-                  <Text style={styles.buttonEdit}> Save Profile Information </Text>
-                </TouchableOpacity>
-              </View>
-          )}
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+            {errors.phoneNumber && (
+              <Text style={styles.textError}>
+                Valid US phone number is required.
+              </Text>
+            )}
+            <TextInput
+              label="Phone Number"
+              defaultValue={phoneNumber}
+              placeholder={phoneNumber}
+              ref={register(
+                { name: "phoneNumber" },
+                {
+                  required: false,
+                  minLength: 10,
+                  maxLength: 10,
+                  pattern: /^[0-9]+$/
+                }
+              )}
+              onChangeText={text => {
+                setValue("phoneNumber", text, true);
+              }}
+              mode="outlined"
+              theme={{ colors: { primary: colors.orange } }}
+              style={styles.inputContainer}
+              keyboardType={"numeric"}
+            />
+            <TextInput
+              label="Interests"
+              defaultValue={interests}
+              placeholder={interests}
+              onChangeText={setInterests}
+              mode="outlined"
+              theme={{ colors: { primary: colors.orange } }}
+              style={styles.inputContainer}
+            />
+            <TouchableOpacity onPress={handleSubmit(onSubmit)}>
+              <Text style={styles.buttonEdit}> Save Profile Information </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

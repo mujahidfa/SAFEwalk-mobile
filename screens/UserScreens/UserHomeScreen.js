@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,11 +7,15 @@ import {
   Dimensions,
   TouchableOpacity,
   Platform,
-  Keyboard
+  Keyboard,
+  AsyncStorage
 } from "react-native";
 import { Input, Icon, Button } from "react-native-elements";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import io from "socket.io-client";
 import colors from "./../../constants/colors";
+import socket from "./../../contexts/socket";
+import { AuthContext } from "./../../contexts/AuthProvider";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
@@ -19,8 +23,98 @@ export default function UserHomeScreen({ navigation }) {
   const [time, setTime] = useState(new Date());
   const [request, setRequest] = useState(false);
   const [show, setShow] = useState(false);
+  const { userToken, email } = useContext(AuthContext);
 
-  // TODO: ADD socket functions (useEffect) from Justin's code here
+  useEffect(() => {
+    // socket to listen to walker status change
+    socket.on('walker walk status', status => {
+      switch (status) {
+        case -1:
+          setRequest(false);
+          alert("Your request was denied.");
+          break;
+        case 1:
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserTab"
+              }
+            ]
+          });
+          alert("A SAFEwalker is on their way!");
+          setRequest(false);
+          break;
+      }
+    });
+
+    return () => socket.off("walker walk status", null);
+  }, []);
+
+  async function addRequest() {
+    // time out after 5 seconds
+    setTimeout(() => {
+      console.log("time expired");
+    }, 5000);
+
+    // addWalk API call - create walk
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
+      method: 'POST',
+      headers: {
+        'token': userToken,
+        'email': email,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        time: new Date(),
+        startText: location,
+        destText: destination,
+        userSocketId: socket.id
+      })
+    });
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      alert('Request failed');
+      console.log("add walk failed: status " + status);
+      return;
+    }
+
+    let data = await res.json();
+    await AsyncStorage.setItem("walkId", data["id"]);
+
+    setRequest(true);
+    socket.emit("walk status", true); // send notification to all Safewalkers
+  }
+
+  async function cancelRequest() {
+    setRequest(false);
+    alert("Request Canceled");
+
+    const id = await AsyncStorage.getItem("walkId");
+    // DeleteWalk API call
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "DELETE",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true
+        }
+      }
+    );
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("delete walk failed: status " + status);
+    }
+
+    // remove walk-related info
+    await AsyncStorage.removeItem("WalkId");
+
+    socket.emit("walk status", true); // send notification to all Safewalkers
+  }
 
   // Function that handles changing time state
   const onChange = (event, selectedDate) => {
@@ -33,11 +127,6 @@ export default function UserHomeScreen({ navigation }) {
   const showTimePicker = () => {
     Keyboard.dismiss();
     setShow(true);
-  };
-
-  // upon clicking request safewalk button
-  const createSafewalkRequest = async () => {
-    // TODO: This is where the fetch would be to send safewalk information to the database
   };
 
   // Function that formats dateTime objects for visual representation
@@ -131,34 +220,33 @@ export default function UserHomeScreen({ navigation }) {
             style={styles.image}
             source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
           />
-
-          {/* Submit Request Button */}
-          <TouchableOpacity onPress={() => setRequest(true)}>
+          <TouchableOpacity onPress={() => addRequest()}>
             <Text style={styles.buttonRequest}> Request SAFEwalk </Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.container}>
           {/* View When the User Submits a SAFEwalk Request */}
-          <Text style={{ fontSize: 45, marginTop: 50, marginBottom: 50 }}>
-            Searching for a {"\n"} SAFEwalker...
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 30,
+              color: colors.orange,
+              fontWeight: "bold"
+            }}
+          >
+            Searching for {"\n"} SAFEwalker...
           </Text>
           <Icon
             type="font-awesome"
             name="hourglass"
             color={colors.orange}
-            size={150}
-            iconStyle={{ marginBottom: 50 }}
+            size={80}
+            iconStyle={{ marginBottom: 100 }}
           />
-          <TouchableOpacity onPress={() => setRequest(false)}>
+          <TouchableOpacity onPress={() => cancelRequest()}>
             <Text style={styles.buttonCancel}> Cancel </Text>
           </TouchableOpacity>
-
-          {/* Button to be Replaced Once Sockets are implemented */}
-          <Button
-            title="Go to User Tabs"
-            onPress={() => navigation.replace("UserTab")}
-          />
         </View>
       )}
     </View>
@@ -169,10 +257,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    alignItems: "center"
+    alignItems: "center",
+    justifyContent: "space-evenly"
   },
   buttonRequest: {
-    backgroundColor: colors.orange,
+    backgroundColor: "#77b01a",
     borderColor: colors.white,
     borderWidth: 1,
     borderRadius: 25,

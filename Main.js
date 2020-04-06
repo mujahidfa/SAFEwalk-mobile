@@ -19,18 +19,25 @@ export default function Main() {
     async function prepareAppForFirstBoot() {
       let userToken;
       let userType; // user or safewalker
+      let email;
 
       try {
         // Check if a user is logged in or not
         userToken = await AsyncStorage.getItem("userToken");
         userType = await AsyncStorage.getItem("userType");
+        email = await AsyncStorage.getItem("email");
       } catch (error) {
         throw new Error("Error in restoring user token: " + error);
       }
 
       // This will switch to the App screen or Auth screen and the loading
       // screen will be unmounted and thrown away.
-      dispatch({ type: "RESTORE_TOKEN", token: userToken, userType: userType });
+      dispatch({
+        type: "RESTORE_TOKEN",
+        token: userToken,
+        userType: userType,
+        email: email
+      });
     }
 
     prepareAppForFirstBoot();

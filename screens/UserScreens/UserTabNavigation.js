@@ -13,7 +13,7 @@ const Tab = createBottomTabNavigator();
 export default function UserTabNavigation() {
   return (
     <Tab.Navigator
-      initialRouteName="Map"
+      initialRouteName="SafewalkerProfile"
       tabBarOptions={{
         activeTintColor: colors.orange
       }}

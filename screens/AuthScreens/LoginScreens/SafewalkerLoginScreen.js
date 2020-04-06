@@ -54,7 +54,7 @@ export default function SafewalkerLoginScreen({ navigation }) {
         "Content-Type": "application/json;charset=UTF-8",
         email: formData.email,
         password: formData.password,
-        isUser: true // since this is SAFEwalker login, then this is false
+        isUser: false // since this is SAFEwalker login, then this is false
       }
     })
         .then(response => response.json())
