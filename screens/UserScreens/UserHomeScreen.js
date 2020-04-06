@@ -16,6 +16,21 @@ import io from "socket.io-client";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
+import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+
+const { width, height } = Dimensions.get('window');
+const ASPECT_RATIO = width / height;
+const LATITUDE = 43.076492;
+const LONGITUDE = -89.401185;
+const LATITUDE_DELTA = 0.0922;
+const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+
+var initialRegion = {
+  latitude: LATITUDE,
+  longitude: LONGITUDE,
+  latitudeDelta: LATITUDE_DELTA,
+  longitudeDelta: LONGITUDE_DELTA,
+};
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
@@ -24,6 +39,40 @@ export default function UserHomeScreen({ navigation }) {
   const [request, setRequest] = useState(false);
   const [show, setShow] = useState(false);
   const { userToken, email } = useContext(AuthContext);
+
+  const [region, setRegion] = useState(
+    {
+      region: {
+        latitude: LATITUDE,
+        longitude: LONGITUDE,
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA,
+      }
+    }
+  );
+
+  async function getInitialState() {
+    return {
+      region: {
+        latitude: LATITUDE,
+        longitude: LONGITUDE,
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA,
+      },
+    };
+  }
+
+  async function onRegionChange(region) {
+    setRegion({ region });
+  }
+
+  async function onRegionChangeComplete(region){
+    useState({ region });
+  }
+
+  async function onRegionChange(region) {
+    useState({ region });
+  }
 
   async function setSocketId() {
     // PutUser API call
@@ -163,110 +212,48 @@ export default function UserHomeScreen({ navigation }) {
     socket.emit("walk status", true); // send notification to all Safewalkers
   }
 
-  // Function that handles changing time state
-  const onChange = (event, selectedDate) => {
-    setShow(false);
-    const currentDate = selectedDate || time;
-    setTime(currentDate);
-  };
-
-  // Function that handles android time picker
-  const showTimePicker = () => {
-    Keyboard.dismiss();
-    setShow(true);
-  };
-
-  // Function that formats dateTime objects for visual representation
-  const formatTime = () => {
-    let timeArray = time
-      .toString()
-      .split(" ")[4]
-      .split(":");
-    if (timeArray[0] >= 12) {
-      if (timeArray[0] === "12") timeArray[0] = "24";
-      return parseInt(timeArray[0]) - 12 + ":" + timeArray[1] + " PM";
-    } else {
-      if (timeArray[0] === "00") timeArray[0] = "12";
-      return timeArray[0] + ":" + timeArray[1] + " AM";
-    }
-  };
-
   return (
     <View style={{ flex: 1 }}>
       {/* Conditional Statement Based on if the User has made a Request */}
       {!request ? (
         <View style={styles.container}>
           {/* User Start and End Location Input Fields */}
-          <Input
-            inputStyle={styles.input}
-            inputContainerStyle={styles.inputContainerTop}
-            placeholder="Start Location"
-            value={location}
-            onChangeText={setLocation}
-            leftIcon={{
-              type: "font-awesome",
-              name: "map-marker"
+          <MapView
+            initialRegion={initialRegion}
+            provider={PROVIDER_GOOGLE}
+            style={styles.mapStyle}
+            onRegionChangeComplete={onRegionChangeComplete}
+            onRegionChange={onRegionChange}
+            showsUserLocation={true}
+            ref={map => {
+                map = map;
             }}
-          />
-          <Input
-            inputStyle={styles.input}
-            inputContainerStyle={styles.inputContainer}
-            placeholder="Destination"
-            value={destination}
-            onChangeText={setDestination}
-            leftIcon={{
-              type: "font-awesome",
-              name: "map-marker"
-            }}
-          />
-
-          {/* Time Picker for Android and IOS */}
-          {Platform.OS === "android" ? (
+            minZoomLevel={10}
+            maxZoomLevel={15}
+          >
             <Input
-              inputStyle={styles.time}
-              inputContainerStyle={styles.inputContainer}
-              style={{ marginLeft: 50 }}
-              placeholder={"Time"}
-              value={formatTime()}
-              onFocus={showTimePicker}
+              inputStyle={styles.input}
+              inputContainerStyle={styles.inputContainerTop}
+              placeholder="Start Location"
+              value={location}
+              onChangeText={setLocation}
               leftIcon={{
                 type: "font-awesome",
-                name: "clock-o"
+                name: "map-marker"
               }}
             />
-          ) : (
-            <View style={styles.timeInputIOS}>
-              <Icon
-                type="font-awesome"
-                name="clock-o"
-                iconStyle={{ marginLeft: 10, top: 8 }}
-              />
-              <DateTimePicker
-                style={styles.timePickerIOS}
-                testID="dateTimePicker"
-                mode={"time"}
-                value={time}
-                display="default"
-                onChange={onChange}
-              />
-            </View>
-          )}
-          {show && (
-            <DateTimePicker
-              style={styles.timePickerAndroid}
-              testID="dateTimePicker"
-              mode={"time"}
-              value={time}
-              display="spinner"
-              onChange={onChange}
+            <Input
+              inputStyle={styles.input}
+              inputContainerStyle={styles.inputContainer}
+              placeholder="Destination"
+              value={destination}
+              onChangeText={setDestination}
+              leftIcon={{
+                type: "font-awesome",
+                name: "map-marker"
+              }}
             />
-          )}
-
-          {/* Google Map */}
-          <Image
-            style={styles.image}
-            source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
-          />
+          </MapView>
           <TouchableOpacity onPress={() => addRequest()}>
             <Text style={styles.buttonRequest}> Request SAFEwalk </Text>
           </TouchableOpacity>
@@ -305,7 +292,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     alignItems: "center",
-    justifyContent: "space-evenly"
+    justifyContent: "space-around"
   },
   buttonRequest: {
     backgroundColor: "#77b01a",
@@ -317,7 +304,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     overflow: "hidden",
     padding: 12,
-    textAlign: "center"
+    textAlign: "center",
+    marginBottom: 110
   },
   buttonCancel: {
     backgroundColor: colors.red,
@@ -333,36 +321,23 @@ const styles = StyleSheet.create({
     width: 200
   },
   input: {
-    marginLeft: 20
-  },
-  time: {
-    marginLeft: 13
+    marginLeft: 20,
   },
   inputContainer: {
     marginBottom: 20,
-    borderColor: colors.orange,
+    marginTop: 0,
+    borderColor: 'transparent',
+    backgroundColor: 'white',
     borderWidth: 2,
     borderRadius: 5
   },
   inputContainerTop: {
     marginBottom: 20,
     marginTop: 20,
-    borderColor: colors.orange,
+    borderColor: 'transparent',
+    backgroundColor: 'white',
     borderWidth: 2,
     borderRadius: 5
-  },
-  timePickerAndroid: {
-    height: 40,
-    width: 305,
-    borderColor: colors.orange,
-    borderWidth: 2,
-    marginLeft: 18,
-    borderRadius: 5
-  },
-  timePickerIOS: {
-    height: 40,
-    width: 305,
-    marginLeft: 18
   },
   image: {
     width: Dimensions.get("window").width,
@@ -371,13 +346,9 @@ const styles = StyleSheet.create({
     borderColor: colors.orange,
     borderWidth: 2
   },
-  timeInputIOS: {
-    flex: 0.5,
-    flexDirection: "row",
-    borderColor: colors.orange,
-    borderWidth: 2,
-    borderRadius: 5,
-    height: 20,
-    marginBottom: 45
+  mapStyle: {
+    marginTop: 50,
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height-90,
   }
 });
