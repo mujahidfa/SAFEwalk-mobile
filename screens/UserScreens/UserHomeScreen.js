@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,223 +6,129 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
-  Platform,
-  Keyboard,
   AsyncStorage,
 } from "react-native";
-import { Input, Icon, Button } from "react-native-elements";
-import LottieView from 'lottie-react-native';
-import io from "socket.io-client";
+import { Input } from "react-native-elements";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
+import {useForm} from "react-hook-form";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
-  const [request, setRequest] = useState(true);
   const { userToken, email } = useContext(AuthContext);
 
-  async function setSocketId() {
-    // PutUser API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Users/" + email,
-      {
-        method: "PUT",
-        headers: {
-          token: userToken,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          socketId: socket.id
-        })
-      }
-    );
+  // forms input handling
+  const { register, setValue, errors, triggerValidation } = useForm();
 
-    if (status != 200 && status != 201) {
-      console.log("set socketId failed: status " + status);
-      return;
+  const changeLocation = (type, location) => {
+    if (type === 'start') {
+      setValue("startLocation", location, true);
+      setLocation(location);
+      console.log(location)
+
+    } else {
+      setValue("endLocation", location, true);
+      setDestination(location);
+      console.log(location)
     }
-  }
-
-  useEffect(() => {
-    console.log("socket id " + socket.id);
-    setSocketId();
-
-    // socket to listen to walker status change
-    socket.on("walker walk status", status => {
-      console.log(status);
-
-      switch (status) {
-        case -2:
-          // navigation.navigate('UserHome');
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserHome"
-              }
-            ]
-          });
-          alert("The SAFEwalker has canceled the walk.");
-          break;
-        case -1:
-          setRequest(false);
-          alert("Your request was denied.");
-          break;
-        case 1:
-          // navigation.navigate("UserTab");
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserTab"
-              }
-            ]
-          });
-          alert("A SAFEwalker is on their way!");
-          setRequest(false);
-          break;
-        case 2:
-          // navigation.navigate("UserHome");
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserHome"
-              }
-            ]
-          });
-          alert("The walk has been completed!");
-          break;
-      }
-    });
-  }, []);
+  };
 
   async function addRequest() {
-    // addWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks",
-      {
-        method: "POST",
-        headers: {
-          token: userToken,
-          email: email,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          time: new Date(),
-          startText: location,
-          destText: destination
-        })
+    const startLocationNotEmpty = await triggerValidation('startLocation');
+    console.log(startLocationNotEmpty);
+    const destinationNotEmpty = await triggerValidation('endLocation');
+    console.log(destinationNotEmpty);
+    if (startLocationNotEmpty && destinationNotEmpty) {
+      // addWalk API call
+      const res = await fetch(
+          "https://safewalkapplication.azurewebsites.net/api/Walks",
+          {
+            method: "POST",
+            headers: {
+              token: userToken,
+              email: email,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              time: new Date(),
+              startText: location,
+              destText: destination
+            })
+          }
+      );
+
+      let status = res.status;
+      if (status !== 200 && status !== 201) {
+        console.log("add walk failed: status " + status);
+        return;
       }
-    );
 
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("add walk failed: status " + status);
-      return;
+      // TODO: FIX!!!
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "UserWait"
+          }
+        ]
+      });
+      let data = await res.json();
+      await AsyncStorage.setItem("walkId", data["id"]);
+
+      socket.emit("walk status", true); // send notification to all Safewalkers
     }
-
-    let data = await res.json();
-    await AsyncStorage.setItem("walkId", data["id"]);
-
-    setRequest(true);
-    socket.emit("walk status", true); // send notification to all Safewalkers
-  }
-
-  async function cancelRequest() {
-    setRequest(false);
-    alert("Request Canceled");
-
-    const id = await AsyncStorage.getItem("walkId");
-    // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true
-        }
-      }
-    );
-
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("delete walk failed: status " + status);
-      return;
-    }
-
-    // remove walk-related info
-    await AsyncStorage.removeItem("WalkId");
-
-    socket.emit("walk status", true); // send notification to all Safewalkers
   }
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Conditional Statement Based on if the User has made a Request */}
-      {!request ? (
-        <View style={styles.container}>
-          {/* User Start and End Location Input Fields */}
-          <Input
-            inputStyle={styles.input}
-            inputContainerStyle={styles.inputContainerTop}
-            placeholder="Start Location"
-            value={location}
-            onChangeText={setLocation}
-            leftIcon={{
-              type: "font-awesome",
-              name: "map-marker"
-            }}
-          />
-          <Input
-            inputStyle={styles.input}
-            inputContainerStyle={styles.inputContainer}
-            placeholder="Destination"
-            value={destination}
-            onChangeText={setDestination}
-            leftIcon={{
-              type: "font-awesome",
-              name: "map-marker"
-            }}
-          />
+      <View style={styles.container}>
+        {/* User Start and End Location Input Fields */}
+        {errors.startLocation && (
+            <Text style={styles.textError}>
+              A start location is required to submit a request.
+            </Text>
+        )}
+        <Input
+          inputStyle={styles.input}
+          inputContainerStyle={styles.inputContainerTop}
+          placeholder="Start Location"
+          ref={register({ name: "startLocation" }, { required: true })}
+          value={location}
+          onChangeText={text => {changeLocation('start', text)}}
+          leftIcon={{
+            type: "font-awesome",
+            name: "map-marker"
+          }}
+        />
+        {errors.endLocation && (
+            <Text style={styles.textError}>
+              A destination is required to submit a request.
+            </Text>
+        )}
+        <Input
+          inputStyle={styles.input}
+          inputContainerStyle={styles.inputContainer}
+          placeholder="Destination"
+          ref={register({ name: "endLocation" }, { required: true })}
+          value={destination}
+          onChangeText={text => {changeLocation('end', text)}}
+          leftIcon={{
+            type: "font-awesome",
+            name: "map-marker"
+          }}
+        />
 
-          {/* Google Map */}
-          <Image
-            style={styles.image}
-            source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
-          />
-          <TouchableOpacity onPress={() => addRequest()}>
-            <Text style={styles.buttonRequest}> Request SAFEwalk </Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.container}>
-          {/* View When the User Submits a SAFEwalk Request */}
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 30,
-              color: colors.orange,
-              fontWeight: "bold"
-            }}
-          >
-            Searching for {"\n"} SAFEwalker...
-          </Text>
-          <LottieView
-            source={require('./../../assets/18121-map-pin-location')}
-            speed={2}
-            autoPlay={true}
-            loop
-          />
-          <TouchableOpacity onPress={() => cancelRequest()}>
-            <Text style={styles.buttonCancel}> Cancel </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        {/* Google Map */}
+        <Image
+          style={styles.image}
+          source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
+        />
+        <TouchableOpacity onPress={() => addRequest()}>
+          <Text style={styles.buttonRequest}> Request SAFEwalk Now</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -269,7 +175,7 @@ const styles = StyleSheet.create({
   },
   inputContainerTop: {
     marginBottom: 20,
-    marginTop: 40,
+    marginTop: 10,
     borderColor: "black",
     borderWidth: 2,
     borderRadius: 5
@@ -280,8 +186,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     marginTop: 20
   },
-  loading: {
-    width: 100,
-    height: 100
+  textError: {
+    color: colors.red,
+    marginTop: 5
   }
 });

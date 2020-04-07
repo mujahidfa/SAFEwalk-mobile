@@ -7,10 +7,8 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-  ActivityIndicator,
-  AsyncStorage
 } from "react-native";
-import { Button, Image, Avatar, Input, Divider } from "react-native-elements";
+import { Avatar } from "react-native-elements";
 import { TextInput } from "react-native-paper";
 import { useForm } from "react-hook-form";
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -41,7 +39,7 @@ export default function LoginSettingsScreen({ navigation }) {
   const getProfileInfo = async () => {
     let user = true;
     let endpoint = "/api/Users/";
-    if (userType == "safewalker") {
+    if (userType === "safewalker") {
       endpoint = "/api/Safewalkers/";
       user = false;
     }
@@ -78,7 +76,7 @@ export default function LoginSettingsScreen({ navigation }) {
   const saveProfileInfo = async data => {
     //await setPassword(data.confirmPassword);
     let endpoint = "/api/Users/";
-    if (userType == "safewalker") {
+    if (userType === "safewalker") {
       endpoint = "/api/Safewalkers/";
     }
 
@@ -117,7 +115,6 @@ export default function LoginSettingsScreen({ navigation }) {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <View style={styles.containerTop}>
-          {/* TODO: Update avatar with user's name */}
           <Avatar
             rounded
             size={200}
@@ -196,10 +193,10 @@ export default function LoginSettingsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   containerTop: {
-    flex: 0.6,
+    flex: 0.8,
     backgroundColor: "#fff",
     alignItems: "center",
-    marginTop: 100
+    marginTop: 30
   },
   containerBottom: {
     flex: 1,

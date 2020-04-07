@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   SafeAreaView,
-  AsyncStorage
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
@@ -44,7 +43,7 @@ export default function EditProfileScreen() {
   const getProfileInfo = async () => {
     let user = true;
     let endpoint = "/api/Users/";
-    if (userType == "safewalker") {
+    if (userType === "safewalker") {
       endpoint = "/api/Safewalkers/";
       user = false;
     }
@@ -117,7 +116,7 @@ export default function EditProfileScreen() {
     await setPhoneNumber(data.phoneNumber);
 
     let endpoint = "/api/Users/";
-    if (userType == "safewalker") {
+    if (userType === "safewalker") {
       endpoint = "/api/Safewalkers/";
     }
     console.log("Phone number in saveProfileInfo:" + phoneNumber);
@@ -161,7 +160,7 @@ export default function EditProfileScreen() {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
         {!edit ? (
           <View style={styles.containerBottom}>
-            <View style={{ alignItems: "center", marginBottom: 80 }}>
+            <View style={{ alignItems: "center", marginBottom: 40 }}>
               {!image ? (
                 <Avatar
                   rounded
@@ -202,7 +201,6 @@ export default function EditProfileScreen() {
                   rounded
                   size={200}
                   title={firstName + " " + lastName}
-                  containerStyle={{ marginBottom: 30 }}
                   overlayContainerStyle={{ backgroundColor: colors.orange }}
                   titleStyle={{ fontSize: 20 }}
                   showEditButton
