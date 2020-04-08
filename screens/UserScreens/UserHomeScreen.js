@@ -6,249 +6,126 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
-  Platform,
-  Keyboard,
-  AsyncStorage
+  AsyncStorage,
 } from "react-native";
-import { Input, Icon, Button } from "react-native-elements";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import io from "socket.io-client";
+import { Input } from "react-native-elements";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { useForm } from "react-hook-form";
+
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
-  const [time, setTime] = useState(new Date());
-  const [request, setRequest] = useState(false);
-  const [show, setShow] = useState(false);
   const { userToken, email } = useContext(AuthContext);
+  // forms input handling
+  const { register, setValue, errors, triggerValidation } = useForm();
 
-  useEffect(() => {
-    // socket to listen to walker status change
-    socket.on('walker walk status', status => {
-      switch (status) {
-        case -1:
-          setRequest(false);
-          alert("Your request was denied.");
-          break;
-        case 1:
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserTab"
-              }
-            ]
-          });
-          alert("A SAFEwalker is on their way!");
-          setRequest(false);
-          break;
-      }
-    });
+  const changeLocation = (type, location) => {
+    if (type === 'start') {
+      setValue("startLocation", location, true);
+      setLocation(location);
+      console.log(location)
 
-    return () => socket.off("walker walk status", null);
-  }, []);
+    } else {
+      setValue("endLocation", location, true);
+      setDestination(location);
+      console.log(location)
+    }
+  };
 
   async function addRequest() {
-    // time out after 5 seconds
-    setTimeout(() => {
-      console.log("time expired");
-    }, 5000);
+    const startLocationNotEmpty = await triggerValidation('startLocation');
+    const destinationNotEmpty = await triggerValidation('endLocation');
 
-    // addWalk API call - create walk
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
-      method: 'POST',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        time: new Date(),
-        startText: location,
-        destText: destination,
-        userSocketId: socket.id
-      })
-    });
-
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      alert('Request failed');
-      console.log("add walk failed: status " + status);
-      return;
-    }
-
-    let data = await res.json();
-    await AsyncStorage.setItem("walkId", data["id"]);
-
-    setRequest(true);
-    socket.emit("walk status", true); // send notification to all Safewalkers
-  }
-
-  async function cancelRequest() {
-    setRequest(false);
-    alert("Request Canceled");
-
-    const id = await AsyncStorage.getItem("walkId");
-    // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
-      {
-        method: "DELETE",
+    if (startLocationNotEmpty && destinationNotEmpty) {
+      // addWalk API call - create walk
+      const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
+        method: 'POST',
         headers: {
-          token: userToken,
-          email: email,
-          isUser: true
-        }
+          'token': userToken,
+          'email': email,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          time: new Date(),
+          startText: location,
+          destText: destination,
+          userSocketId: socket.id
+        })
+      });
+
+      let status = res.status;
+      if (status !== 200 && status !== 201) {
+        console.log("add walk failed: status " + status);
+        return;
       }
-    );
 
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("delete walk failed: status " + status);
+      let data = await res.json();
+      await AsyncStorage.setItem("walkId", data["id"]);
+
+      socket.emit("walk status", true); // send notification to all Safewalkers
+
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "UserWait"
+          }
+        ]
+      });
     }
-
-    // remove walk-related info
-    await AsyncStorage.removeItem("WalkId");
-
-    socket.emit("walk status", true); // send notification to all Safewalkers
   }
-
-  // Function that handles changing time state
-  const onChange = (event, selectedDate) => {
-    setShow(false);
-    const currentDate = selectedDate || time;
-    setTime(currentDate);
-  };
-
-  // Function that handles android time picker
-  const showTimePicker = () => {
-    Keyboard.dismiss();
-    setShow(true);
-  };
-
-  // Function that formats dateTime objects for visual representation
-  const formatTime = () => {
-    let timeArray = time
-      .toString()
-      .split(" ")[4]
-      .split(":");
-    if (timeArray[0] >= 12) {
-      if (timeArray[0] === "12") timeArray[0] = "24";
-      return parseInt(timeArray[0]) - 12 + ":" + timeArray[1] + " PM";
-    } else {
-      if (timeArray[0] === "00") timeArray[0] = "12";
-      return timeArray[0] + ":" + timeArray[1] + " AM";
-    }
-  };
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Conditional Statement Based on if the User has made a Request */}
-      {!request ? (
-        <View style={styles.container}>
-          {/* User Start and End Location Input Fields */}
-          <Input
-            inputStyle={styles.input}
-            inputContainerStyle={styles.inputContainerTop}
-            placeholder="Start Location"
-            value={location}
-            onChangeText={setLocation}
-            leftIcon={{
-              type: "font-awesome",
-              name: "map-marker"
-            }}
-          />
-          <Input
-            inputStyle={styles.input}
-            inputContainerStyle={styles.inputContainer}
-            placeholder="Destination"
-            value={destination}
-            onChangeText={setDestination}
-            leftIcon={{
-              type: "font-awesome",
-              name: "map-marker"
-            }}
-          />
-
-          {/* Time Picker for Android and IOS */}
-          {Platform.OS === "android" ? (
-            <Input
-              inputStyle={styles.time}
-              inputContainerStyle={styles.inputContainer}
-              style={{ marginLeft: 50 }}
-              placeholder={"Time"}
-              value={formatTime()}
-              onFocus={showTimePicker}
-              leftIcon={{
-                type: "font-awesome",
-                name: "clock-o"
-              }}
-            />
-          ) : (
-            <View style={styles.timeInputIOS}>
-              <Icon
-                type="font-awesome"
-                name="clock-o"
-                iconStyle={{ marginLeft: 10, top: 8 }}
-              />
-              <DateTimePicker
-                style={styles.timePickerIOS}
-                testID="dateTimePicker"
-                mode={"time"}
-                value={time}
-                display="default"
-                onChange={onChange}
-              />
-            </View>
-          )}
-          {show && (
-            <DateTimePicker
-              style={styles.timePickerAndroid}
-              testID="dateTimePicker"
-              mode={"time"}
-              value={time}
-              display="spinner"
-              onChange={onChange}
-            />
-          )}
-
-          {/* Google Map */}
-          <Image
-            style={styles.image}
-            source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
-          />
-          <TouchableOpacity onPress={() => addRequest()}>
-            <Text style={styles.buttonRequest}> Request SAFEwalk </Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.container}>
-          {/* View When the User Submits a SAFEwalk Request */}
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 30,
-              color: colors.orange,
-              fontWeight: "bold"
-            }}
-          >
-            Searching for {"\n"} SAFEwalker...
+      <View style={styles.container}>
+        {/* User Start and End Location Input Fields */}
+        {errors.startLocation && (
+          <Text style={styles.textError}>
+            A start location is required to submit a request.
           </Text>
-          <Icon
-            type="font-awesome"
-            name="hourglass"
-            color={colors.orange}
-            size={80}
-            iconStyle={{ marginBottom: 100 }}
-          />
-          <TouchableOpacity onPress={() => cancelRequest()}>
-            <Text style={styles.buttonCancel}> Cancel </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        )}
+        <Input
+          inputStyle={styles.input}
+          inputContainerStyle={styles.inputContainerTop}
+          placeholder="Start Location"
+          ref={register({ name: "startLocation" }, { required: true })}
+          value={location}
+          onChangeText={text => { changeLocation('start', text) }}
+          leftIcon={{
+            type: "font-awesome",
+            name: "map-marker"
+          }}
+        />
+        {errors.endLocation && (
+          <Text style={styles.textError}>
+            A destination is required to submit a request.
+          </Text>
+        )}
+        <Input
+          inputStyle={styles.input}
+          inputContainerStyle={styles.inputContainer}
+          placeholder="Destination"
+          ref={register({ name: "endLocation" }, { required: true })}
+          value={destination}
+          onChangeText={text => { changeLocation('end', text) }}
+          leftIcon={{
+            type: "font-awesome",
+            name: "map-marker"
+          }}
+        />
+
+        {/* Google Map */}
+        <Image
+          style={styles.image}
+          source={{ uri: "https://i.stack.imgur.com/qs4Oo.png" }}
+        />
+        <TouchableOpacity onPress={() => addRequest()}>
+          <Text style={styles.buttonRequest}> Request SAFEwalk Now</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -258,10 +135,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     alignItems: "center",
-    justifyContent: "space-evenly"
   },
   buttonRequest: {
-    backgroundColor: "#77b01a",
+    backgroundColor: colors.orange,
     borderColor: colors.white,
     borderWidth: 1,
     borderRadius: 25,
@@ -288,49 +164,27 @@ const styles = StyleSheet.create({
   input: {
     marginLeft: 20
   },
-  time: {
-    marginLeft: 13
-  },
   inputContainer: {
     marginBottom: 20,
-    borderColor: colors.orange,
+    borderColor: "black",
     borderWidth: 2,
     borderRadius: 5
   },
   inputContainerTop: {
     marginBottom: 20,
-    marginTop: 20,
-    borderColor: colors.orange,
+    marginTop: 10,
+    borderColor: "black",
     borderWidth: 2,
     borderRadius: 5
-  },
-  timePickerAndroid: {
-    height: 40,
-    width: 305,
-    borderColor: colors.orange,
-    borderWidth: 2,
-    marginLeft: 18,
-    borderRadius: 5
-  },
-  timePickerIOS: {
-    height: 40,
-    width: 305,
-    marginLeft: 18
   },
   image: {
     width: Dimensions.get("window").width,
     height: 350,
-    marginBottom: 30,
-    borderColor: colors.orange,
-    borderWidth: 2
+    marginBottom: 40,
+    marginTop: 20
   },
-  timeInputIOS: {
-    flex: 0.5,
-    flexDirection: "row",
-    borderColor: colors.orange,
-    borderWidth: 2,
-    borderRadius: 5,
-    height: 20,
-    marginBottom: 45
+  textError: {
+    color: colors.red,
+    marginTop: 5
   }
 });

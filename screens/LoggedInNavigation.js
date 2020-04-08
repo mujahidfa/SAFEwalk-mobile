@@ -4,9 +4,9 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import DrawerContent from "./../components/DrawerContent";
 
 import UserStackNavigation from "./UserScreens/UserStackNavigation";
+import EditProfileNavigation from "./EditProfileNavigation";
+import LoginSettingsNavigation from "./LoginSettingsNavigation";
 import SafewalkerStackNavigation from "./SafewalkerScreens/SafewalkerStackNavigation";
-import EditProfileScreen from "./SharedScreens/EditProfileScreen";
-import LoginSettingsScreen from "./SharedScreens/LoginSettingsScreen";
 
 import { AuthContext } from "./../contexts/AuthProvider";
 
@@ -37,12 +37,12 @@ export default function LoggedInNavigation() {
       )}
       <Drawer.Screen
         name="EditProfile"
-        component={EditProfileScreen}
+        component={EditProfileNavigation}
         options={{ title: "Edit Profile" }}
       />
       <Drawer.Screen
         name="LoginSettings"
-        component={LoginSettingsScreen}
+        component={LoginSettingsNavigation}
         options={{ title: "Login Settings" }}
       />
     </Drawer.Navigator>
