@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,7 +13,6 @@ import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import {useForm} from "react-hook-form";
-import {useFocusEffect} from "@react-navigation/core";
 
 
 export default function UserHomeScreen({ navigation }) {
@@ -24,7 +23,7 @@ export default function UserHomeScreen({ navigation }) {
   const { register, setValue, errors, triggerValidation } = useForm();
 
 
-  let timeoutFunc = null;
+
   useEffect(() => {
     // socket to listen to walker status change
     socket.on('walker walk status', status => {
@@ -52,18 +51,6 @@ export default function UserHomeScreen({ navigation }) {
   }, []);
 
 
-// cancels timeout after component unmount
-  useFocusEffect(
-      React.useCallback(() => {
-        // Do something when the screen is focused
-
-        return () => {
-          clearTimeout(timeoutFunc);
-          console.log("timeout cleared!");
-        };
-      }, [])
-  );
-
 
   const changeLocation = (type, location) => {
     if (type === 'start') {
@@ -80,9 +67,6 @@ export default function UserHomeScreen({ navigation }) {
 
   async function addRequest() {
     // timeout after 30 seconds
-    timeoutFunc = setTimeout(() => {
-      console.log("time expired");
-    }, 30000);
 
 
     const startLocationNotEmpty = await triggerValidation('startLocation');
