@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -12,7 +12,7 @@ import { Input } from "react-native-elements";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
-import {useForm} from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 
 export default function UserHomeScreen({ navigation }) {
@@ -21,36 +21,6 @@ export default function UserHomeScreen({ navigation }) {
   const { userToken, email } = useContext(AuthContext);
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
-
-
-
-  useEffect(() => {
-    // socket to listen to walker status change
-    socket.on('walker walk status', status => {
-      switch (status) {
-        case -1:
-          setRequest(false);
-          alert("Your request was denied.");
-          break;
-        case 1:
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserTab"
-              }
-            ]
-          });
-          alert("A SAFEwalker is on their way!");
-          setRequest(false);
-          break;
-      }
-    });
-    console.log("screen mounted");
-    return () => socket.off("walker walk status", null);
-  }, []);
-
-
 
   const changeLocation = (type, location) => {
     if (type === 'start') {
@@ -67,30 +37,27 @@ export default function UserHomeScreen({ navigation }) {
 
   async function addRequest() {
     // timeout after 30 seconds
-
-
     const startLocationNotEmpty = await triggerValidation('startLocation');
     console.log(startLocationNotEmpty);
     const destinationNotEmpty = await triggerValidation('endLocation');
     console.log(destinationNotEmpty);
+
     if (startLocationNotEmpty && destinationNotEmpty) {
-      // addWalk API call
-      const res = await fetch(
-          "https://safewalkapplication.azurewebsites.net/api/Walks",
-          {
-            method: "POST",
-            headers: {
-              token: userToken,
-              email: email,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              time: new Date(),
-              startText: location,
-              destText: destination
-            })
-          }
-      );
+      // addWalk API call - create walk
+      const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
+        method: 'POST',
+        headers: {
+          'token': userToken,
+          'email': email,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          time: new Date(),
+          startText: location,
+          destText: destination,
+          userSocketId: socket.id
+        })
+      });
 
       let status = res.status;
       if (status !== 200 && status !== 201) {
@@ -98,7 +65,11 @@ export default function UserHomeScreen({ navigation }) {
         return;
       }
 
-      // TODO: FIX!!!
+      let data = await res.json();
+      await AsyncStorage.setItem("walkId", data["id"]);
+
+      socket.emit("walk status", true); // send notification to all Safewalkers
+
       navigation.reset({
         index: 0,
         routes: [
@@ -107,10 +78,6 @@ export default function UserHomeScreen({ navigation }) {
           }
         ]
       });
-      let data = await res.json();
-      await AsyncStorage.setItem("walkId", data["id"]);
-
-      socket.emit("walk status", true); // send notification to all Safewalkers
     }
   }
 
@@ -119,9 +86,9 @@ export default function UserHomeScreen({ navigation }) {
       <View style={styles.container}>
         {/* User Start and End Location Input Fields */}
         {errors.startLocation && (
-            <Text style={styles.textError}>
-              A start location is required to submit a request.
-            </Text>
+          <Text style={styles.textError}>
+            A start location is required to submit a request.
+          </Text>
         )}
         <Input
           inputStyle={styles.input}
@@ -129,16 +96,16 @@ export default function UserHomeScreen({ navigation }) {
           placeholder="Start Location"
           ref={register({ name: "startLocation" }, { required: true })}
           value={location}
-          onChangeText={text => {changeLocation('start', text)}}
+          onChangeText={text => { changeLocation('start', text) }}
           leftIcon={{
             type: "font-awesome",
             name: "map-marker"
           }}
         />
         {errors.endLocation && (
-            <Text style={styles.textError}>
-              A destination is required to submit a request.
-            </Text>
+          <Text style={styles.textError}>
+            A destination is required to submit a request.
+          </Text>
         )}
         <Input
           inputStyle={styles.input}
@@ -146,7 +113,7 @@ export default function UserHomeScreen({ navigation }) {
           placeholder="Destination"
           ref={register({ name: "endLocation" }, { required: true })}
           value={destination}
-          onChangeText={text => {changeLocation('end', text)}}
+          onChangeText={text => { changeLocation('end', text) }}
           leftIcon={{
             type: "font-awesome",
             name: "map-marker"

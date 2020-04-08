@@ -40,19 +40,40 @@ export default function UserProfileScreen({ navigation }) {
     }
 
     const data = await res.json();
-    setFirstname(data["firstName"]);
-    setLastname(data["lastName"]);
-    setPhoneNumber(data["phoneNumber"]);
+    setFirstname(data['firstName']);
+    setLastname(data['lastName']);
+    setPhoneNumber(data['phoneNumber']);
+  }
 
-    // set socketId in async storage
-    await AsyncStorage.setItem("userSocketId", data["socketId"]);
-
-    // Let user know request has been accepted
-    socket.emit("walker walk status", { userId: data["socketId"], status: 1 }); // send notification to user
+  async function cleanUpStorage() {
+    // remove all current walk-related information
+    await AsyncStorage.removeItem('walkId');
+    await AsyncStorage.removeItem('userEmail');
+    await AsyncStorage.removeItem('userSocketId');
   }
 
   useEffect(() => {
+    // socket to listen to user status change
+    socket.on('user walk status', status => {
+      switch (status) {
+        case -2:
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'SafewalkerHome'
+              }
+            ]
+          });
+          alert('The user canceled the walk.');
+          cleanUpStorage();
+          break;
+      }
+    });
+
     loadUserProfile();
+
+    return () => socket.off("user walk status", null);
   }, []);
 
   function handleCall() {
@@ -70,8 +91,7 @@ export default function UserProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
-    // get socketId from async storage
-    const userSocketId = await AsyncStorage.getItem("userSocketId");
+    const userSocketId = await AsyncStorage.getItem('userSocketId');
     if (userSocketId) {
       // notify user walk has been cancelled
       socket.emit("walker walk status", { userId: userSocketId, status: -2 });
@@ -94,24 +114,21 @@ export default function UserProfileScreen({ navigation }) {
     let status = res.status;
     if (status != 200 && status != 201) {
       console.log("delete walk failed: status " + status);
-      return;
+    } else {
+      alert('You canceled the walk.');
     }
 
-    // remove all current walk-related information
-    await AsyncStorage.removeItem("walkId");
-    await AsyncStorage.removeItem("userEmail");
-    await AsyncStorage.removeItem("userSocketId");
-
-    // navigation.navigate('SafewalkerHome');
     navigation.reset({
       index: 0,
       routes: [
         {
-          name: "SafewalkerHome"
+          name: 'SafewalkerHome'
         }
       ]
     });
-    alert("You canceled the walk.");
+
+    // remove all current walk-related information
+    cleanUpStorage();
   }
 
   return (

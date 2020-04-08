@@ -20,7 +20,6 @@ export default function SafewalkerHomeScreen({ navigation }) {
         }
       }
     );
-
     let status = res.status;
     if (status != 200 && status != 201) {
       console.log("get walks failed: status " + status);
@@ -42,33 +41,14 @@ export default function SafewalkerHomeScreen({ navigation }) {
     setItems(walks);
   }
 
-  async function setSocketId() {
-    // PutSafewalker API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Safewalkers/" + email,
-      {
-        method: "PUT",
-        headers: {
-          token: userToken,
-          email: email,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          socketId: socket.id
-        })
-      }
-    );
-
-    const status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("set socketId failed: status " + status);
-      return;
-    }
+  async function cleanUpStorage() {
+    // remove all current walk-related information
+    await AsyncStorage.removeItem('walkId');
+    await AsyncStorage.removeItem('userEmail');
+    await AsyncStorage.removeItem('userSocketId');
   }
 
   useEffect(() => {
-    setSocketId();
-
     LoadWalk();
 
     socket.on("walk status", status => {
@@ -76,45 +56,24 @@ export default function SafewalkerHomeScreen({ navigation }) {
       if (status) LoadWalk();
     });
 
-    // socket to listen to user status change
-    socket.on("user walk status", status => {
-      console.log(status);
-
-      switch (status) {
-        case -2:
-          // navigation.navigate('SafewalkerHome');
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "SafewalkerHome"
-              }
-            ]
-          });
-          alert("The user canceled the walk.");
-          break;
-      }
-    });
+    return () => socket.off("walk status", null);
   }, []);
 
   async function acceptRequest(id) {
     // putWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
-      {
-        method: "PUT",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status: 1
-        })
-      }
-    );
-
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
+      method: 'PUT',
+      headers: {
+        'token': userToken,
+        'email': email,
+        'isUser': false,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: 1,
+        walkerSocketId: socket.id
+      })
+    });
     let status = res.status;
     if (status != 200 && status != 201) {
       console.log("accept walk failed: status " + status);
@@ -122,15 +81,20 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     const data = await res.json();
-    let userEmail = data["userEmail"];
+    const userEmail = data['userEmail'];
+    const userSocketId = data['userSocketId'];
 
-    await AsyncStorage.setItem("userEmail", userEmail);
-    await AsyncStorage.setItem("walkId", id);
+    // Let user know request has been accepted
+    socket.emit("walker walk status", { userId: userSocketId, status: 1 }); // send notification to user
+    // let other Safewalker know walk has been assigned
+    socket.emit('walk status', true);
 
-    socket.emit("walk status", true);
+    // store data 
+    await AsyncStorage.setItem('walkId', id);
+    await AsyncStorage.setItem('userEmail', userEmail);
+    await AsyncStorage.setItem('userSocketId', userSocketId);
 
     //navigate to tab
-    // navigation.navigate("SafewalkerTab");
     navigation.reset({
       index: 0,
       routes: [
@@ -158,7 +122,6 @@ export default function SafewalkerHomeScreen({ navigation }) {
         }
       }
     );
-
     let status = res.status;
     if (status != 200 && status != 201) {
       console.log("delete walk failed: status " + status);
@@ -166,32 +129,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     const data = await res.json();
-    const userEmail = data["userEmail"];
+    const userSocketId = data['userSocketId'];
 
-    console.log(userEmail);
-
-    // GetUser API - to get socket id
-    const res1 = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Users/" + userEmail,
-      {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false
-        }
-      }
-    );
-
-    status = res1.status;
-    if (status != 200 && status != 201) {
-      console.log("get user failed: status " + status);
-      return;
-    }
-
-    const data1 = await res1.json();
-
-    const userSocketId = data1["socketId"];
     if (userSocketId) {
       // notify user request has been denied
       socket.emit("walker walk status", { userId: userSocketId, status: -1 });
