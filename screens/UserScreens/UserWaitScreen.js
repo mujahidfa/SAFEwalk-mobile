@@ -64,10 +64,11 @@ export default function UserHomeScreen({ navigation }) {
     let status = res.status;
     if (status !== 200 && status !== 201) {
       console.log("delete walk failed: status " + status);
+
     }
 
     // send notification to all Safewalkers
-    socket.emit("walk status", true); 
+    socket.emit("walk status", true);
 
     // remove walk-related info
     await AsyncStorage.removeItem("WalkId");
@@ -94,11 +95,11 @@ export default function UserHomeScreen({ navigation }) {
             fontSize: 30,
             color: colors.orange,
             fontWeight: "bold",
-            marginTop: 20
+            marginTop: 60
           }}
         >
           Searching for {"\n"} SAFEwalker...
-                </Text>
+        </Text>
         <LottieView
           source={require('./../../assets/17709-loading')}
           speed={1}

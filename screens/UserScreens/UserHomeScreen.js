@@ -36,11 +36,8 @@ export default function UserHomeScreen({ navigation }) {
   };
 
   async function addRequest() {
-    // timeout after 30 seconds
     const startLocationNotEmpty = await triggerValidation('startLocation');
-    console.log(startLocationNotEmpty);
     const destinationNotEmpty = await triggerValidation('endLocation');
-    console.log(destinationNotEmpty);
 
     if (startLocationNotEmpty && destinationNotEmpty) {
       // addWalk API call - create walk
