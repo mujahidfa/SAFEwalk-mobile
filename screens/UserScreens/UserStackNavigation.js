@@ -28,7 +28,7 @@ export default function UserStackNavigation() {
       <Stack.Screen
         name='UserWait'
         component={UserWaitScreen}
-        options={{ title: "Waiting for SAFEwalker"}}
+        options={{ title: "Waiting for SAFEwalker", headerShown: false}}
       />
       <Stack.Screen
         name="UserTab"

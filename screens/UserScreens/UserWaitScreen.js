@@ -11,7 +11,6 @@ import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
 
-// TODO: Get rid of the header and drawer access
 export default function UserHomeScreen({ navigation }) {
     const { userToken, email } = useContext(AuthContext);
 
@@ -144,7 +143,7 @@ export default function UserHomeScreen({ navigation }) {
                         fontSize: 30,
                         color: colors.orange,
                         fontWeight: "bold",
-                        marginTop: 20
+                        marginTop: 60
                     }}
                 >
                     Searching for {"\n"} SAFEwalker...

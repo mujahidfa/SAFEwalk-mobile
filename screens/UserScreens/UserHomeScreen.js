@@ -65,7 +65,6 @@ export default function UserHomeScreen({ navigation }) {
         return;
       }
 
-      // TODO: FIX!!!
       navigation.reset({
         index: 0,
         routes: [
