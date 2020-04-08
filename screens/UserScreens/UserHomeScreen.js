@@ -13,14 +13,57 @@ import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import {useForm} from "react-hook-form";
+import {useFocusEffect} from "@react-navigation/core";
+
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
   const { userToken, email } = useContext(AuthContext);
-
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
+
+
+  let timeoutFunc = null;
+  useEffect(() => {
+    // socket to listen to walker status change
+    socket.on('walker walk status', status => {
+      switch (status) {
+        case -1:
+          setRequest(false);
+          alert("Your request was denied.");
+          break;
+        case 1:
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserTab"
+              }
+            ]
+          });
+          alert("A SAFEwalker is on their way!");
+          setRequest(false);
+          break;
+      }
+    });
+    console.log("screen mounted");
+    return () => socket.off("walker walk status", null);
+  }, []);
+
+
+// cancels timeout after component unmount
+  useFocusEffect(
+      React.useCallback(() => {
+        // Do something when the screen is focused
+
+        return () => {
+          clearTimeout(timeoutFunc);
+          console.log("timeout cleared!");
+        };
+      }, [])
+  );
+
 
   const changeLocation = (type, location) => {
     if (type === 'start') {
@@ -36,6 +79,12 @@ export default function UserHomeScreen({ navigation }) {
   };
 
   async function addRequest() {
+    // timeout after 30 seconds
+    timeoutFunc = setTimeout(() => {
+      console.log("time expired");
+    }, 30000);
+
+
     const startLocationNotEmpty = await triggerValidation('startLocation');
     console.log(startLocationNotEmpty);
     const destinationNotEmpty = await triggerValidation('endLocation');
