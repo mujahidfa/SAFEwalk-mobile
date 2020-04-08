@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -14,13 +14,43 @@ import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import {useForm} from "react-hook-form";
 
+
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
   const { userToken, email } = useContext(AuthContext);
-
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
+
+
+
+  useEffect(() => {
+    // socket to listen to walker status change
+    socket.on('walker walk status', status => {
+      switch (status) {
+        case -1:
+          setRequest(false);
+          alert("Your request was denied.");
+          break;
+        case 1:
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserTab"
+              }
+            ]
+          });
+          alert("A SAFEwalker is on their way!");
+          setRequest(false);
+          break;
+      }
+    });
+    console.log("screen mounted");
+    return () => socket.off("walker walk status", null);
+  }, []);
+
+
 
   const changeLocation = (type, location) => {
     if (type === 'start') {
@@ -36,6 +66,9 @@ export default function UserHomeScreen({ navigation }) {
   };
 
   async function addRequest() {
+    // timeout after 30 seconds
+
+
     const startLocationNotEmpty = await triggerValidation('startLocation');
     console.log(startLocationNotEmpty);
     const destinationNotEmpty = await triggerValidation('endLocation');
