@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, FlatList, AsyncStorage } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import socket from "./../../contexts/socket";
+//import { moment} from "moment";
+import moment from 'moment/moment.js';
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout, userToken, email } = useContext(AuthContext);
@@ -165,7 +167,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
           <View style={styles.column}>
             <View style={styles.row}>
               <Text style={styles.name}>{item.username}</Text>
-              <Text style={styles.time}>{item.time}</Text>
+              <Text style={styles.time}>{moment.utc(item.time).format('MMMM Do, h:mm a')}</Text>
             </View>
             <View>
               <View style={{ flexDirection: "row" }}>
