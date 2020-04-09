@@ -11,9 +11,11 @@ import SafewalkerMapScreen from "./SafewalkerScreens/SafewalkerMapScreen";
 import SafewalkerProfileScreen from "./UserScreens/SafewalkerProfileScreen";
 import UserProfileScreen from "./SafewalkerScreens/UserProfileScreen";
 
-// Tab navigator
+// Navigators
+import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 // Context
 import { AuthContext } from "../contexts/AuthProvider";
@@ -44,6 +46,18 @@ export default function ActiveWalkNavigation() {
 }
 
 function UserActiveWalkNavigation() {
+  return (
+    <Stack.Navigator initialRouteName="CurrentWalk" headerMode="screen">
+      <Stack.Screen
+        name="CurrentWalk"
+        component={UserActiveWalkTabNav}
+        options={{ title: "Current Walk" }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function UserActiveWalkTabNav() {
   return (
     <Tab.Navigator
       initialRouteName="SafewalkerProfile"
@@ -76,6 +90,18 @@ function UserActiveWalkNavigation() {
 }
 
 function SafewalkerActiveWalkNavigation() {
+  return (
+    <Stack.Navigator initialRouteName="CurrentWalk" headerMode="screen">
+      <Stack.Screen
+        name="CurrentWalk"
+        component={SafewalkerActiveWalkTabNav}
+        options={{ title: "Current Walk" }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function SafewalkerActiveWalkTabNav() {
   return (
     <Tab.Navigator
       initialRouteName="UserProfile"
