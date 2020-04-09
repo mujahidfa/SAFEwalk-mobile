@@ -1,8 +1,8 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import Header from "./../components/Header";
-import LoginSettingsScreen from "./SharedScreens/LoginSettingsScreen";
+import Header from "../../components/Header";
+import LoginSettingsScreen from "./LoginSettingsScreen";
 
 const Stack = createStackNavigator();
 

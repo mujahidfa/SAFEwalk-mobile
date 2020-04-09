@@ -1,8 +1,8 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import Header from "./../components/Header";
-import EditProfileScreen from "./SharedScreens/EditProfileScreen";
+import Header from "../../components/Header";
+import EditProfileScreen from "./EditProfileScreen";
 
 const Stack = createStackNavigator();
 
