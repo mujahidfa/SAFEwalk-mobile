@@ -28,11 +28,11 @@ export default function UserHomeScreen({ navigation }) {
     if (type === "start") {
       setValue("startLocation", location, true);
       setLocation(location);
-      console.log("start location:" + location);
+      // console.log("start location:" + location);
     } else {
       setValue("endLocation", location, true);
       setDestination(location);
-      console.log("end location:" + location);
+      // console.log("end location:" + location);
     }
   };
 

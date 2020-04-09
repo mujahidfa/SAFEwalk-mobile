@@ -60,7 +60,6 @@ export default function SafewalkerLoginScreen({ navigation }) {
       .then((response) => response.json())
       .then((data) => {
         setIsLoading(false);
-        console.log("data: " + data);
 
         // The endpoint only returns a string upon success
         // and a full body response if there's an error.
@@ -79,8 +78,6 @@ export default function SafewalkerLoginScreen({ navigation }) {
         // The endpoint only returns a string upon success,
         // so because of that, if it's a success, data.status would be null.
         else {
-          console.log("data in else: " + data);
-          console.log("email: " + formData.email);
           login("safewalker", data, formData.email);
         }
       })

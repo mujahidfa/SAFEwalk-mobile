@@ -61,7 +61,6 @@ export default function UserLoginScreen({ navigation }) {
       .then((response) => response.json())
       .then((data) => {
         setIsLoading(false);
-        console.log("data: " + data);
 
         // The endpoint only returns a string upon success
         // and a full body response if there's an error.
@@ -79,8 +78,8 @@ export default function UserLoginScreen({ navigation }) {
         // The endpoint only returns a string upon success,
         // so because of that, if it's a success, data.status would be null.
         else {
-          console.log("data in else: " + data);
-          console.log("email: " + formData.email);
+          // console.log("data in else: " + data);
+          // console.log("email: " + formData.email);
           login("user", data, formData.email);
         }
       })

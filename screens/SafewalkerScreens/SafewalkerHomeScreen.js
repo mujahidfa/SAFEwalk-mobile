@@ -49,7 +49,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
       setRequests(walks);
     } catch (error) {
       if (error.name === "AbortError") {
-        console.log("In SafewalkerHomeScreen: Fetch " + error);
+        // console.log("In SafewalkerHomeScreen: Fetch " + error);
         return;
       }
 
@@ -65,7 +65,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     loadWalk(signal);
 
     socket.on("walk status", (status) => {
-      console.log("walk status:" + status);
+      // console.log("walk status:" + status);
       if (status) loadWalk(signal);
     });
 
