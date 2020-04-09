@@ -5,7 +5,7 @@ import { MaterialIcons, AntDesign } from "@expo/vector-icons";
 
 import colors from "./../../constants/colors";
 
-import MapScreen from "./MapScreen";
+import MapScreen from "./SafewalkerMapScreen";
 import UserProfileScreen from "./UserProfileScreen";
 
 const Tab = createBottomTabNavigator();
