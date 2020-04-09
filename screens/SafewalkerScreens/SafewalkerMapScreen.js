@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext } from "react";
 import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Button } from "react-native-elements";
-import colors from "./../../constants/colors";
-import socket from "./../../contexts/socket";
-import { AuthContext } from "./../../contexts/AuthProvider";
+import colors from "../../constants/colors";
+import socket from "../../contexts/socket";
+import { AuthContext } from "../../contexts/AuthProvider";
 
 export default function MapScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);

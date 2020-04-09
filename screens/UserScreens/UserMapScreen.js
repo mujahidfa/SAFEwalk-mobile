@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import socket from "./../../contexts/socket";
+import socket from "../../contexts/socket";
 
-export default function MapScreen({ navigation }) {
+export default function UserMapScreen({ navigation }) {
   useEffect(() => {
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
