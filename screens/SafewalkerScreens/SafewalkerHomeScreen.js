@@ -10,7 +10,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
   const { signout, userToken, email } = useContext(AuthContext);
   const [items, setItems] = React.useState([]);
 
-  async function LoadWalk() {
+  async function loadWalk(signal) {
     // GetWalks API, setItems
     const res = await fetch(
       "https://safewalkapplication.azurewebsites.net/api/Walks",
@@ -20,7 +20,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
           token: userToken,
           email: email,
         },
-      }
+      },
+      { signal: signal }
     );
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -51,14 +52,21 @@ export default function SafewalkerHomeScreen({ navigation }) {
   }
 
   useEffect(() => {
-    LoadWalk();
+    // this is to fix memory leak error: Promise cleanup
+    const loadWalkAbortController = new AbortController();
+    const signal = loadWalkAbortController.signal;
+
+    loadWalk(signal);
 
     socket.on("walk status", (status) => {
       console.log(status);
-      if (status) LoadWalk();
+      if (status) loadWalk(signal);
     });
 
-    return () => socket.off("walk status", null);
+    return () => {
+      socket.off("walk status", null);
+      loadWalkAbortController.abort();
+    };
   }, []);
 
   async function acceptRequest(id) {
