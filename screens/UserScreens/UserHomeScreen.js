@@ -12,48 +12,53 @@ import { Input } from "react-native-elements";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { WalkContext } from "./../../contexts/WalkProvider";
 import { useForm } from "react-hook-form";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
   const { userToken, email } = useContext(AuthContext);
+  const { setWalkId } = useContext(WalkContext);
+
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
 
   const changeLocation = (type, location) => {
-    if (type === 'start') {
+    if (type === "start") {
       setValue("startLocation", location, true);
       setLocation(location);
-      console.log(location)
-
+      // console.log("start location:" + location);
     } else {
       setValue("endLocation", location, true);
       setDestination(location);
-      console.log(location)
+      // console.log("end location:" + location);
     }
   };
 
   async function addRequest() {
-    const startLocationNotEmpty = await triggerValidation('startLocation');
-    const destinationNotEmpty = await triggerValidation('endLocation');
+    const startLocationNotEmpty = await triggerValidation("startLocation");
+    const destinationNotEmpty = await triggerValidation("endLocation");
 
     if (startLocationNotEmpty && destinationNotEmpty) {
       // addWalk API call - create walk
-      const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks', {
-        method: 'POST',
-        headers: {
-          'token': userToken,
-          'email': email,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          time: new Date(),
-          startText: location,
-          destText: destination,
-          userSocketId: socket.id
-        })
-      });
+      const res = await fetch(
+        "https://safewalkapplication.azurewebsites.net/api/Walks",
+        {
+          method: "POST",
+          headers: {
+            token: userToken,
+            email: email,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            time: new Date(),
+            startText: location,
+            destText: destination,
+            userSocketId: socket.id,
+          }),
+        }
+      );
 
       let status = res.status;
       if (status !== 200 && status !== 201) {
@@ -62,17 +67,20 @@ export default function UserHomeScreen({ navigation }) {
       }
 
       let data = await res.json();
-      await AsyncStorage.setItem("walkId", data["id"]);
+
+      // const { setWalkId } = useContext(WalkContext);
+      // await AsyncStorage.setItem("walkId", data["id"]);
+      setWalkId(data["id"]);
 
       socket.emit("walk status", true); // send notification to all Safewalkers
-
+      // keep this
       navigation.reset({
         index: 0,
         routes: [
           {
-            name: "UserWait"
-          }
-        ]
+            name: "UserWait",
+          },
+        ],
       });
     }
   }
@@ -92,10 +100,12 @@ export default function UserHomeScreen({ navigation }) {
           placeholder="Start Location"
           ref={register({ name: "startLocation" }, { required: true })}
           value={location}
-          onChangeText={text => { changeLocation('start', text) }}
+          onChangeText={(text) => {
+            changeLocation("start", text);
+          }}
           leftIcon={{
             type: "font-awesome",
-            name: "map-marker"
+            name: "map-marker",
           }}
         />
         {errors.endLocation && (
@@ -109,10 +119,12 @@ export default function UserHomeScreen({ navigation }) {
           placeholder="Destination"
           ref={register({ name: "endLocation" }, { required: true })}
           value={destination}
-          onChangeText={text => { changeLocation('end', text) }}
+          onChangeText={(text) => {
+            changeLocation("end", text);
+          }}
           leftIcon={{
             type: "font-awesome",
-            name: "map-marker"
+            name: "map-marker",
           }}
         />
 
@@ -145,7 +157,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     overflow: "hidden",
     padding: 12,
-    textAlign: "center"
+    textAlign: "center",
   },
   buttonCancel: {
     backgroundColor: colors.red,
@@ -158,32 +170,32 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 12,
     textAlign: "center",
-    width: 200
+    width: 200,
   },
   input: {
-    marginLeft: 20
+    marginLeft: 20,
   },
   inputContainer: {
     marginBottom: 20,
     borderColor: "black",
     borderWidth: 2,
-    borderRadius: 5
+    borderRadius: 5,
   },
   inputContainerTop: {
     marginBottom: 20,
     marginTop: 10,
     borderColor: "black",
     borderWidth: 2,
-    borderRadius: 5
+    borderRadius: 5,
   },
   image: {
     width: Dimensions.get("window").width,
     height: 350,
     marginBottom: 40,
-    marginTop: 20
+    marginTop: 20,
   },
   textError: {
     color: colors.red,
-    marginTop: 5
-  }
+    marginTop: 5,
+  },
 });

@@ -52,9 +52,9 @@ export default function LoginSettingsScreen({ navigation }) {
         "Content-Type": "application/json",
         email: email,
         token: userToken,
-        isUser: user
-      }
-    }).then(response => {
+        isUser: user,
+      },
+    }).then((response) => {
       if (!(response.status === 200)) {
         console.log("captured " + response.status + "! Try again.");
       } else {
@@ -73,7 +73,7 @@ export default function LoginSettingsScreen({ navigation }) {
    401 (unauthorized)
    200 (ok)
    */
-  const saveProfileInfo = async data => {
+  const saveProfileInfo = async (data) => {
     // first check old password
     let endpoint = "/api/Login/";
     //setOldPassword("fail");
@@ -85,9 +85,9 @@ export default function LoginSettingsScreen({ navigation }) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        "password": data.currentPassword
-      }
-    }).then(response1 => {
+        password: data.currentPassword,
+      },
+    }).then((response1) => {
       if (!(response1.status === 200)) {
         //setOldPassword("fail");
         oldPass = 0;
@@ -106,37 +106,37 @@ export default function LoginSettingsScreen({ navigation }) {
     }
 
     if (oldPass == 1) {
-    // send new info to the database
-    const response = await fetch(url + endpoint + email, {
-      method: "PUT",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        token: userToken
-      },
-      body: JSON.stringify({
-        Password: data.confirmPassword
+      // send new info to the database
+      const response = await fetch(url + endpoint + email, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          token: userToken,
+        },
+        body: JSON.stringify({
+          Password: data.confirmPassword,
+        }),
       })
-    })
-      .then(response => {
-        if (!(response.status === 200)) {
-          console.log("captured " + response.status + "! Try again.");
-        } else {
-          console.log("updated password" + data.confirmPassword);
-          alert("Updated Password!");
-        }
-      })
-      .catch(error => {
-        console.log(error.message);
-        console.log("Error in updating password. Please try again.");
-      });
+        .then((response) => {
+          if (!(response.status === 200)) {
+            console.log("captured " + response.status + "! Try again.");
+          } else {
+            console.log("updated password" + data.confirmPassword);
+            alert("Updated Password!");
+          }
+        })
+        .catch((error) => {
+          console.log(error.message);
+          console.log("Error in updating password. Please try again.");
+        });
     } else {
-      alert("Incorrect Password")
-    };
+      alert("Incorrect Password");
+    }
   };
 
   // upon pressing the update password button
-  const onSubmit = data => {
+  const onSubmit = (data) => {
     const response = saveProfileInfo(data);
   };
 
@@ -162,10 +162,10 @@ export default function LoginSettingsScreen({ navigation }) {
             label="Current Password"
             placeholder="Current Password"
             ref={register({ name: "currentPassword" }, { required: true })}
-            onChangeText={text => setValue("currentPassword", text, true)}
+            onChangeText={(text) => setValue("currentPassword", text, true)}
             mode="outlined"
             secureTextEntry
-            theme={{ colors: { primary: 'orange' } }}
+            theme={{ colors: { primary: "orange" } }}
             style={styles.textInput}
           />
 
@@ -176,7 +176,7 @@ export default function LoginSettingsScreen({ navigation }) {
             label="New Password"
             placeholder="New Password"
             ref={register({ name: "password" }, { required: true })}
-            onChangeText={text => setValue("password", text, true)}
+            onChangeText={(text) => setValue("password", text, true)}
             mode="outlined"
             secureTextEntry
             theme={{ colors: { primary: "orange" } }}
@@ -192,11 +192,11 @@ export default function LoginSettingsScreen({ navigation }) {
               { name: "confirmPassword" },
               {
                 required: true,
-                validate: value =>
-                  value === watch("password") || "The passwords do not match."
+                validate: (value) =>
+                  value === watch("password") || "The passwords do not match.",
               }
             )}
-            onChangeText={text => setValue("confirmPassword", text, true)}
+            onChangeText={(text) => setValue("confirmPassword", text, true)}
             mode="outlined"
             secureTextEntry
             theme={{ colors: { primary: colors.orange } }}
@@ -224,26 +224,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     marginTop: 100,
-    marginBottom: 100
+    marginBottom: 100,
   },
   containerBottom: {
     flex: 1,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
   },
   container: {
     flex: 1,
-    backgroundColor: colors.white
+    backgroundColor: colors.white,
   },
   innerContainer: {
     flex: 1,
     marginHorizontal: 50,
-    justifyContent: "center"
+    justifyContent: "center",
   },
   textError: {
-    color: colors.red
+    color: colors.red,
   },
   textInput: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   buttonNext: {
     backgroundColor: colors.orange,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 25,
     marginTop: 20,
-    marginHorizontal: 50
+    marginHorizontal: 50,
   },
   buttonNextText: {
     color: "white",
@@ -259,10 +259,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     overflow: "hidden",
     padding: 12,
-    textAlign: "center"
+    textAlign: "center",
   },
   imageContainer: {
     justifyContent: "center",
-    alignItems: "center"
-  }
+    alignItems: "center",
+  },
 });

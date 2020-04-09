@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import {
   DrawerItem,
   DrawerItemList,
-  DrawerContentScrollView
+  DrawerContentScrollView,
 } from "@react-navigation/drawer";
 
 import { AuthContext } from "./../contexts/AuthProvider";
@@ -26,6 +26,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     alignItems: "center",
-    justifyContent: "center"
-  }
+    justifyContent: "center",
+  },
 });

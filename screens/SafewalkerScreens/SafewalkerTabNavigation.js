@@ -5,7 +5,7 @@ import { MaterialIcons, AntDesign } from "@expo/vector-icons";
 
 import colors from "./../../constants/colors";
 
-import MapScreen from "./MapScreen";
+import MapScreen from "./SafewalkerMapScreen";
 import UserProfileScreen from "./UserProfileScreen";
 
 const Tab = createBottomTabNavigator();
@@ -15,7 +15,7 @@ export default function SafewalkerTabNavigation() {
     <Tab.Navigator
       initialRouteName="UserProfile"
       tabBarOptions={{
-        activeTintColor: colors.orange
+        activeTintColor: colors.orange,
       }}
     >
       <Tab.Screen
@@ -25,7 +25,7 @@ export default function SafewalkerTabNavigation() {
           tabBarLabel: "Map",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="directions" size={size} color={color} />
-          )
+          ),
         }}
       />
       <Tab.Screen
@@ -35,7 +35,7 @@ export default function SafewalkerTabNavigation() {
           tabBarLabel: "User profile",
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="user" size={size} color={color} />
-          )
+          ),
         }}
       />
     </Tab.Navigator>
