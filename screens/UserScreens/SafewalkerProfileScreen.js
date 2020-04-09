@@ -31,62 +31,72 @@ export default function SafewalkerProfileScreen({ navigation }) {
     console.log("walkerSocketId:" + walkerSocketId);
   }, [walkId, walkerSocketId]);
 
-  async function loadWalkerProfile() {
-    // const walkId = await AsyncStorage.getItem("walkId");
+  async function loadWalkerProfile(signal) {
+    try {
+      // const walkId = await AsyncStorage.getItem("walkId");
 
-    // GetWalk API call - get email
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
+      // GetWalk API call - get email
+      const res = await fetch(
+        "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
+        {
+          method: "GET",
+          headers: {
+            token: userToken,
+            email: email,
+            isUser: true,
+          },
+          signal: signal,
+        }
+      );
+
+      let status = res.status;
+      if (status != 200 && status != 201) {
+        console.log("get safewalker info failed: status " + status);
+        return;
       }
-    );
 
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("get safewalker info failed: status " + status);
-      return;
-    }
+      const data = await res.json();
+      const walkerEmail = data["walkerEmail"];
+      const walkerSocketId = data["walkerSocketId"];
 
-    const data = await res.json();
-    const walkerEmail = data["walkerEmail"];
-    const walkerSocketId = data["walkerSocketId"];
+      // store data
+      // await AsyncStorage.setItem("walkerEmail", walkerEmail);
+      // await AsyncStorage.setItem("walkerSocketId", walkerSocketId);
+      setWalkerInfo(walkerEmail, walkerSocketId);
 
-    // store data
-    // await AsyncStorage.setItem("walkerEmail", walkerEmail);
-    // await AsyncStorage.setItem("walkerSocketId", walkerSocketId);
-    setWalkerInfo(walkerEmail, walkerSocketId);
+      // GetWalker API call
+      const res1 = await fetch(
+        "https://safewalkapplication.azurewebsites.net/api/Safewalkers/" +
+          walkerEmail,
+        {
+          method: "GET",
+          headers: {
+            token: userToken,
+            email: email,
+            isUser: true,
+          },
+        }
+      );
 
-    // GetWalker API call
-    const res1 = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Safewalkers/" +
-        walkerEmail,
-      {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
+      status = res1.status;
+      if (status != 200 && status != 201) {
+        console.log("get user failed: status " + status);
+        return;
       }
-    );
 
-    status = res1.status;
-    if (status != 200 && status != 201) {
-      console.log("get user failed: status " + status);
-      return;
+      const data1 = await res1.json();
+      // set safewalker profile info
+      setFirstname(data1["firstName"]);
+      setLastname(data1["lastName"]);
+      setPhoneNumber(data1["phoneNumber"]);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("In SafewalkerHomeScreen: Fetch " + error);
+        return;
+      }
+
+      console.error("Error in loadWalk() in SafewalkerHomeScreen:" + error);
     }
-
-    const data1 = await res1.json();
-    // set safewalker profile info
-    setFirstname(data1["firstName"]);
-    setLastname(data1["lastName"]);
-    setPhoneNumber(data1["phoneNumber"]);
   }
 
   async function cleanUpStorage() {
@@ -97,7 +107,11 @@ export default function SafewalkerProfileScreen({ navigation }) {
   }
 
   useEffect(() => {
-    loadWalkerProfile();
+    // this is to fix memory leak error: Promise cleanup
+    const loadWalkAbortController = new AbortController();
+    const signal = loadWalkAbortController.signal;
+
+    loadWalkerProfile(signal);
 
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
@@ -131,7 +145,10 @@ export default function SafewalkerProfileScreen({ navigation }) {
       }
     });
 
-    return () => socket.off("walker walk status", null);
+    return () => {
+      socket.off("walker walk status", null);
+      loadWalkAbortController.abort();
+    };
   }, []);
 
   function handleCall() {
