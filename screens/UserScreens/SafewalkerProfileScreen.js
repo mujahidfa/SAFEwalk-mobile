@@ -25,12 +25,6 @@ export default function SafewalkerProfileScreen({ navigation }) {
     resetWalkContextState,
   } = useContext(WalkContext);
 
-  useEffect(() => {
-    console.log("In SafewalkerProfileScreen:");
-    console.log("walkId:" + walkId);
-    console.log("walkerSocketId:" + walkerSocketId);
-  }, [walkId, walkerSocketId]);
-
   async function loadWalkerProfile(signal) {
     try {
       // const walkId = await AsyncStorage.getItem("walkId");
@@ -75,6 +69,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
             email: email,
             isUser: true,
           },
+          signal: signal,
         }
       );
 
@@ -95,21 +90,23 @@ export default function SafewalkerProfileScreen({ navigation }) {
         return;
       }
 
-      console.error("Error in loadWalk() in SafewalkerHomeScreen:" + error);
+      console.error(
+        "Error in loadWalkerProfile() in SafewalkerProfileScreen:" + error
+      );
     }
   }
 
-  async function cleanUpStorage() {
-    // remove all current walk-related information
-    await AsyncStorage.removeItem("walkId");
-    await AsyncStorage.removeItem("walkerEmail");
-    await AsyncStorage.removeItem("walkerSocketId");
-  }
+  // async function cleanUpStorage() {
+  //   // remove all current walk-related information
+  //   await AsyncStorage.removeItem("walkId");
+  //   await AsyncStorage.removeItem("walkerEmail");
+  //   await AsyncStorage.removeItem("walkerSocketId");
+  // }
 
   useEffect(() => {
     // this is to fix memory leak error: Promise cleanup
-    const loadWalkAbortController = new AbortController();
-    const signal = loadWalkAbortController.signal;
+    const loadWalkerProfileController = new AbortController();
+    const signal = loadWalkerProfileController.signal;
 
     loadWalkerProfile(signal);
 
@@ -147,7 +144,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
     return () => {
       socket.off("walker walk status", null);
-      loadWalkAbortController.abort();
+      loadWalkerProfileController.abort();
     };
   }, []);
 

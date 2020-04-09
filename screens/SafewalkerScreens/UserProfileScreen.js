@@ -27,38 +27,48 @@ export default function UserProfileScreen({ navigation }) {
 
   useEffect(() => {
     console.log("In UserProfileScreen:");
-    console.log("walkId:" + walkId);
     console.log("userEmail:" + userEmail);
-    console.log("userSocketId:" + userSocketId);
-  }, [walkId, userEmail, userSocketId]);
+    console.log("walkerEmail:" + email);
+    console.log("userToken:" + userToken);
+  }, [email, userEmail, userToken]);
 
-  async function loadUserProfile() {
-    // get user email from async storage
-    // const userEmail = await AsyncStorage.getItem("userEmail");
+  async function loadUserProfile(signal) {
+    try {
+      // get user email from async storage
+      // const userEmail = await AsyncStorage.getItem("userEmail");
 
-    // GetUser API
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Users/" + userEmail,
-      {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
+      // GetUser API
+      const res = await fetch(
+        "https://safewalkapplication.azurewebsites.net/api/Users/" + userEmail,
+        {
+          method: "GET",
+          headers: {
+            token: userToken,
+            email: email,
+            isUser: false,
+          },
+          signal: signal,
+        }
+      );
+
+      const status = res.status;
+      if (status != 200 && status != 201) {
+        console.log("get user info failed: status " + status);
+        return;
       }
-    );
 
-    const status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("get user info failed: status " + status);
-      return;
+      const data = await res.json();
+      setFirstname(data["firstName"]);
+      setLastname(data["lastName"]);
+      setPhoneNumber(data["phoneNumber"]);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        // console.log("In SafewalkerHomeScreen: Fetch " + error);
+        return;
+      }
+
+      console.error("Error in loadUserProfile() in UserProfileScreen:" + error);
     }
-
-    const data = await res.json();
-    setFirstname(data["firstName"]);
-    setLastname(data["lastName"]);
-    setPhoneNumber(data["phoneNumber"]);
   }
 
   // async function cleanUpStorage() {
@@ -69,6 +79,12 @@ export default function UserProfileScreen({ navigation }) {
   // }
 
   useEffect(() => {
+    // this is to fix memory leak error: Promise cleanup
+    const loadUserProfileController = new AbortController();
+    const signal = loadUserProfileController.signal;
+
+    loadUserProfile(signal);
+
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       switch (status) {
@@ -88,9 +104,10 @@ export default function UserProfileScreen({ navigation }) {
       }
     });
 
-    loadUserProfile();
-
-    return () => socket.off("user walk status", null);
+    return () => {
+      socket.off("user walk status", null);
+      loadUserProfileController.abort();
+    };
   }, []);
 
   function handleCall() {

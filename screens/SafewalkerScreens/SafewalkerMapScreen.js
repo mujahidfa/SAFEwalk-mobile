@@ -18,12 +18,6 @@ export default function MapScreen({ navigation }) {
   );
 
   useEffect(() => {
-    console.log("In SafewalkerMapScreen:");
-    console.log("walkId:" + walkId);
-    console.log("userSocketId:" + userSocketId);
-  }, [walkId, userSocketId]);
-
-  useEffect(() => {
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       console.log("user walk status in SWMapScreen:" + status);
