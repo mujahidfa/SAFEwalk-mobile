@@ -156,6 +156,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
         }
       ]
     });
+    
     alert('Canceled Walk');
     cleanUpStorage();
   }

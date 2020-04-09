@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, FlatList, AsyncStorage } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import socket from "./../../contexts/socket";
+//import { moment} from "moment";
+import moment from 'moment/moment.js';
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout, userToken, email } = useContext(AuthContext);
@@ -60,8 +62,29 @@ export default function SafewalkerHomeScreen({ navigation }) {
   }, []);
 
   async function acceptRequest(id) {
-    // putWalk API call
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
+    // GetWalkStatus API call - check if request has been accepted
+    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id + '/status', {
+      method: 'GET',
+      headers: {
+        'token': userToken,
+        'email': email,
+        'isUser': false
+      }
+    });
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("get walk status failed: status " + status);
+      return;
+    }
+
+    const data = await res.json();
+    if (data != 0) {
+      alert("Unavailable");
+      return;
+    }
+
+    // PutWalk API call
+    const res1 = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
       method: 'PUT',
       headers: {
         'token': userToken,
@@ -74,15 +97,15 @@ export default function SafewalkerHomeScreen({ navigation }) {
         walkerSocketId: socket.id
       })
     });
-    let status = res.status;
+    status = res1.status;
     if (status != 200 && status != 201) {
       console.log("accept walk failed: status " + status);
       return;
     }
 
-    const data = await res.json();
-    const userEmail = data['userEmail'];
-    const userSocketId = data['userSocketId'];
+    const data1 = await res1.json();
+    const userEmail = data1['userEmail'];
+    const userSocketId = data1['userSocketId'];
 
     // Let user know request has been accepted
     socket.emit("walker walk status", { userId: userSocketId, status: 1 }); // send notification to user
@@ -165,7 +188,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
           <View style={styles.column}>
             <View style={styles.row}>
               <Text style={styles.name}>{item.username}</Text>
-              <Text style={styles.time}>{item.time}</Text>
+              <Text style={styles.time}>{moment.utc(item.time).format('MMMM Do, h:mm a')}</Text>
             </View>
             <View>
               <View style={{ flexDirection: "row" }}>
