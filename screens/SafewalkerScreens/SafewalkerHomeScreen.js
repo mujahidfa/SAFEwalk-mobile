@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { StyleSheet, Text, View, FlatList, AsyncStorage } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -8,10 +8,10 @@ import moment from "moment/moment.js";
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout, userToken, email } = useContext(AuthContext);
-  const [items, setItems] = React.useState([]);
+  const [requests, setRequests] = useState([]);
 
   async function loadWalk(signal) {
-    // GetWalks API, setItems
+    // GetWalks API, setRequests
     const res = await fetch(
       "https://safewalkapplication.azurewebsites.net/api/Walks",
       {
@@ -25,7 +25,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     );
     let status = res.status;
     if (status != 200 && status != 201) {
-      console.log("get walks failed: status " + status);
+      console.log("get walk requests failed: status " + status);
       return;
     }
 
@@ -41,7 +41,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
       });
     }
 
-    setItems(walks);
+    setRequests(walks);
   }
 
   async function cleanUpStorage() {
@@ -119,7 +119,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     );
     status = res1.status;
     if (status != 200 && status != 201) {
-      console.log("accept walk failed: status " + status);
+      console.error("accept walk failed: status " + status);
       return;
     }
 
@@ -148,9 +148,9 @@ export default function SafewalkerHomeScreen({ navigation }) {
     });
   }
 
-  async function deleteItem(id) {
-    setItems((prevItems) => {
-      return prevItems.filter((item) => item.id != id);
+  async function deleteRequest(id) {
+    setRequests((prevRequests) => {
+      return prevRequests.filter((request) => request.id != id);
     });
 
     // DeleteWalk API call
@@ -196,30 +196,30 @@ export default function SafewalkerHomeScreen({ navigation }) {
     );
   };
 
-  function Item({ item, onPress, deleteItem }) {
+  function Item({ request, deleteRequest }) {
     return (
       <View style={styles.swipeable}>
         <Swipeable
           renderLeftActions={LeftActions}
           renderRightActions={RightActions}
-          onSwipeableLeftOpen={() => acceptRequest(item.id)}
-          onSwipeableRightOpen={() => deleteItem(item.id)}
+          onSwipeableLeftOpen={() => acceptRequest(request.id)}
+          onSwipeableRightOpen={() => deleteRequest(request.id)}
         >
           <View style={styles.column}>
             <View style={styles.row}>
-              <Text style={styles.name}>{item.username}</Text>
+              <Text style={styles.name}>{request.username}</Text>
               <Text style={styles.time}>
-                {moment.utc(item.time).format("MMMM Do, h:mm a")}
+                {moment.utc(request.time).format("MMMM Do, h:mm a")}
               </Text>
             </View>
             <View>
               <View style={{ flexDirection: "row" }}>
                 <Text style={{ color: "green", fontWeight: "bold" }}>A: </Text>
-                <Text style={styles.location}>{item.startText}</Text>
+                <Text style={styles.location}>{request.startText}</Text>
               </View>
               <View style={{ flexDirection: "row" }}>
                 <Text style={{ color: "red", fontWeight: "bold" }}>B: </Text>
-                <Text style={styles.location}>{item.endText}</Text>
+                <Text style={styles.location}>{request.endText}</Text>
               </View>
             </View>
           </View>
@@ -231,9 +231,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <FlatList
-        data={items}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <Item item={item} deleteItem={deleteItem} />}
+        data={requests}
+        keyExtractor={(request, index) => index.toString()}
+        renderItem={({ item }) => (
+          <Item request={item} deleteRequest={deleteRequest} />
+        )}
       />
     </View>
   );
