@@ -1,10 +1,11 @@
 import React, { useContext, useEffect } from "react";
-import { StyleSheet, Text, View, FlatList, AsyncStorage } from "react-native";
+import { StyleSheet, Text, View, FlatList, AsyncStorage, Header, Footer, totalResults } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import socket from "./../../contexts/socket";
-//import { moment} from "moment";
 import moment from 'moment/moment.js';
+import colors from "./../../constants/colors";
+import LottieView from 'lottie-react-native';
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout, userToken, email } = useContext(AuthContext);
@@ -176,6 +177,45 @@ export default function SafewalkerHomeScreen({ navigation }) {
     );
   };
 
+  function trimEmail(userEmail) {
+    var s = userEmail;
+    s = s.substring(0, s.indexOf('@'));
+    return (s);
+  }
+
+  const listEmptyComponent = () => (
+    <View
+      style={{
+        //transform: [{scaleY: -1}],
+        height: '50%',
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+      <View style={{ flex: 3}}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontSize: 30,
+            color: colors.orange,
+            fontWeight: "bold",
+            marginTop: 60
+          }}
+        >
+          Zero Active {"\n"} SAFEwalk Requests
+        </Text>
+        <LottieView
+          source={require('./../../assets/17709-loading')}
+          speed={.7}
+          autoPlay={true}
+          loop
+          autoSize={true}
+        />
+      </View>
+      </View>
+  );
+
+
   function Item({ item, onPress, deleteItem }) {
     return (
       <View style={styles.swipeable}>
@@ -187,7 +227,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
         >
           <View style={styles.column}>
             <View style={styles.row}>
-              <Text style={styles.name}>{item.username}</Text>
+              <Text style={styles.name}>{trimEmail(item.username)}</Text>
               <Text style={styles.time}>{moment.utc(item.time).format('MMMM Do, h:mm a')}</Text>
             </View>
             <View>
@@ -206,11 +246,18 @@ export default function SafewalkerHomeScreen({ navigation }) {
     );
   }
 
+  // sort array of walk requests
   return (
     <View style={styles.container}>
       <FlatList
-        data={items}
+        data={items.sort(function(a, b) {
+          var dateA = new Date(a.time), dateB = new Date(b.time);
+          return dateA - dateB;
+        })}
         keyExtractor={(item, index) => index.toString()}
+        totalResults={totalResults}
+        ListEmptyComponent={() => listEmptyComponent()}
+        //inverted
         renderItem={({ item }) => <Item item={item} deleteItem={deleteItem} />}
       />
     </View>
@@ -227,8 +274,6 @@ const styles = StyleSheet.create({
     borderColor: "#e8e8e8",
     flex: 1,
     backgroundColor: "#fff"
-    //alignItems: "center",
-    //justifyContent: "center"
   },
   column: {
     flex: 1,
