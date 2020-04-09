@@ -6,13 +6,18 @@ import {
   AsyncStorage,
   StyleSheet,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/core";
 import LottieView from "lottie-react-native";
 import io from "socket.io-client";
+
+// Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import url from "./../../constants/api";
+
+// Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
-import { useFocusEffect } from "@react-navigation/core";
 
 export default function UserHomeScreen({ navigation }) {
   const { userToken, email } = useContext(AuthContext);
@@ -103,17 +108,14 @@ export default function UserHomeScreen({ navigation }) {
     // const id = await AsyncStorage.getItem("walkId");
 
     // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
-      }
-    );
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: true,
+      },
+    });
     let status = res.status;
     if (status !== 200 && status !== 201) {
       console.log("delete walk failed: status " + status);

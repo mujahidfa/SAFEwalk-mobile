@@ -7,6 +7,7 @@ import { Ionicons, FontAwesome } from "@expo/vector-icons";
 // Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import url from "./../../constants/api";
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -30,18 +31,15 @@ export default function SafewalkerProfileScreen({ navigation }) {
       // const walkId = await AsyncStorage.getItem("walkId");
 
       // GetWalk API call - get email
-      const res = await fetch(
-        "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-        {
-          method: "GET",
-          headers: {
-            token: userToken,
-            email: email,
-            isUser: true,
-          },
-          signal: signal,
-        }
-      );
+      const res = await fetch(url + "/api/Walks/" + walkId, {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true,
+        },
+        signal: signal,
+      });
 
       let status = res.status;
       if (status != 200 && status != 201) {
@@ -59,19 +57,15 @@ export default function SafewalkerProfileScreen({ navigation }) {
       setWalkerInfo(walkerEmail, walkerSocketId);
 
       // GetWalker API call
-      const res1 = await fetch(
-        "https://safewalkapplication.azurewebsites.net/api/Safewalkers/" +
-          walkerEmail,
-        {
-          method: "GET",
-          headers: {
-            token: userToken,
-            email: email,
-            isUser: true,
-          },
-          signal: signal,
-        }
-      );
+      const res1 = await fetch(url + "/api/Safewalkers/" + walkerEmail, {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true,
+        },
+        signal: signal,
+      });
 
       status = res1.status;
       if (status != 200 && status != 201) {
@@ -166,17 +160,14 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
     // const id = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
-      }
-    );
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: true,
+      },
+    });
 
     let status = res.status;
     if (status != 200 && status != 201) {

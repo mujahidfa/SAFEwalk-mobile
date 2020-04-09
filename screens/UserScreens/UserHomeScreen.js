@@ -9,11 +9,16 @@ import {
   AsyncStorage,
 } from "react-native";
 import { Input } from "react-native-elements";
+import { useForm } from "react-hook-form";
+
+// Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import url from "./../../constants/api";
+
+// Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
-import { useForm } from "react-hook-form";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
@@ -42,23 +47,20 @@ export default function UserHomeScreen({ navigation }) {
 
     if (startLocationNotEmpty && destinationNotEmpty) {
       // addWalk API call - create walk
-      const res = await fetch(
-        "https://safewalkapplication.azurewebsites.net/api/Walks",
-        {
-          method: "POST",
-          headers: {
-            token: userToken,
-            email: email,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            time: new Date(),
-            startText: location,
-            destText: destination,
-            userSocketId: socket.id,
-          }),
-        }
-      );
+      const res = await fetch(url + "/api/Walks", {
+        method: "POST",
+        headers: {
+          token: userToken,
+          email: email,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          time: new Date(),
+          startText: location,
+          destText: destination,
+          userSocketId: socket.id,
+        }),
+      });
 
       let status = res.status;
       if (status !== 200 && status !== 201) {

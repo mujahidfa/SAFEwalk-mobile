@@ -5,6 +5,7 @@ import { Button } from "react-native-elements";
 // Constants
 import colors from "../../constants/colors";
 import socket from "../../contexts/socket";
+import url from "./../../constants/api";
 
 // Contexts
 import { AuthContext } from "../../contexts/AuthProvider";
@@ -51,21 +52,18 @@ export default function MapScreen({ navigation }) {
 
     // const walkId = await AsyncStorage.getItem("walkId");
     // putWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "PUT",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: 2,
-        }),
-      }
-    );
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "PUT",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: 2,
+      }),
+    });
 
     let status = res.status;
     if (status != 200 && status != 201) {

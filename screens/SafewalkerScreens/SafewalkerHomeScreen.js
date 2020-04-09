@@ -18,6 +18,7 @@ import moment from "moment/moment.js";
 // Constants
 import socket from "./../../contexts/socket";
 import colors from "./../../constants/colors";
+import url from "./../../constants/api";
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -92,19 +93,14 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   async function acceptRequest(walkId) {
     // GetWalkStatus API call - check if request has been accepted
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" +
-        walkId +
-        "/status",
-      {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
-      }
-    );
+    const res = await fetch(url + "/api/Walks/" + walkId + "/status", {
+      method: "GET",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+    });
     let status = res.status;
     if (status != 200 && status != 201) {
       console.error("get walk status failed: status " + status);
@@ -118,22 +114,19 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     // PutWalk API call
-    const res1 = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "PUT",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: 1,
-          walkerSocketId: socket.id,
-        }),
-      }
-    );
+    const res1 = await fetch(url + "/api/Walks/" + walkId, {
+      method: "PUT",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: 1,
+        walkerSocketId: socket.id,
+      }),
+    });
     status = res1.status;
     if (status != 200 && status != 201) {
       console.error("accept walk failed: status " + status);
@@ -172,17 +165,14 @@ export default function SafewalkerHomeScreen({ navigation }) {
     });
 
     // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
-      }
-    );
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+    });
     let status = res.status;
     if (status != 200 && status != 201) {
       console.log("delete walk failed: status " + status);

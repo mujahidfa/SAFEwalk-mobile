@@ -11,10 +11,13 @@ import {
 import { Avatar } from "react-native-elements";
 import { TextInput } from "react-native-paper";
 import { useForm } from "react-hook-form";
-import { AuthContext } from "./../../contexts/AuthProvider";
 
+// Constants
 import url from "./../../constants/api";
 import colors from "./../../constants/colors";
+
+// Contexts
+import { AuthContext } from "./../../contexts/AuthProvider";
 
 export default function LoginSettingsScreen({ navigation }) {
   const [firstName, setFirstName] = useState("");
@@ -68,11 +71,6 @@ export default function LoginSettingsScreen({ navigation }) {
   };
 
   // upon clicking update password button
-  /*
-   Response codes:
-   401 (unauthorized)
-   200 (ok)
-   */
   const saveProfileInfo = async (data) => {
     // first check old password
     let endpoint = "/api/Login/";

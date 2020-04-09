@@ -12,10 +12,13 @@ import * as Permissions from "expo-permissions";
 import { Avatar, Divider } from "react-native-elements";
 import { TextInput } from "react-native-paper";
 import { useForm } from "react-hook-form";
-import { AuthContext } from "./../../contexts/AuthProvider";
 
+// Constants
 import url from "./../../constants/api";
 import colors from "../../constants/colors";
+
+// Contexts
+import { AuthContext } from "./../../contexts/AuthProvider";
 
 export default function EditProfileScreen() {
   const [image, setImage] = useState("");

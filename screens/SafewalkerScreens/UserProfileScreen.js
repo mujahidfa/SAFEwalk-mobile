@@ -7,6 +7,7 @@ import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
 // Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import url from "./../../constants/api";
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -38,18 +39,15 @@ export default function UserProfileScreen({ navigation }) {
       // const userEmail = await AsyncStorage.getItem("userEmail");
 
       // GetUser API
-      const res = await fetch(
-        "https://safewalkapplication.azurewebsites.net/api/Users/" + userEmail,
-        {
-          method: "GET",
-          headers: {
-            token: userToken,
-            email: email,
-            isUser: false,
-          },
-          signal: signal,
-        }
-      );
+      const res = await fetch(url + "/api/Users/" + userEmail, {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+        },
+        signal: signal,
+      });
 
       const status = res.status;
       if (status != 200 && status != 201) {
@@ -133,17 +131,14 @@ export default function UserProfileScreen({ navigation }) {
 
     // const walkId = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
-      }
-    );
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+    });
 
     let status = res.status;
     if (status != 200 && status != 201) {
