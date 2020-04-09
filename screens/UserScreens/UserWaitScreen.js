@@ -3,9 +3,10 @@ import {
   Text,
   View,
   TouchableOpacity,
-  AsyncStorage, StyleSheet,
+  AsyncStorage,
+  StyleSheet,
 } from "react-native";
-import LottieView from 'lottie-react-native';
+import LottieView from "lottie-react-native";
 import io from "socket.io-client";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
@@ -28,14 +29,14 @@ export default function UserHomeScreen({ navigation }) {
         index: 0,
         routes: [
           {
-            name: "UserHome"
-          }
-        ]
+            name: "UserHome",
+          },
+        ],
       });
     }, 30000);
 
     // socket to listen to walker status change
-    socket.on("walker walk status", status => {
+    socket.on("walker walk status", (status) => {
       console.log(status);
 
       switch (status) {
@@ -44,9 +45,9 @@ export default function UserHomeScreen({ navigation }) {
             index: 0,
             routes: [
               {
-                name: "UserHome"
-              }
-            ]
+                name: "UserHome",
+              },
+            ],
           });
           alert("Your request was denied.");
           break;
@@ -55,9 +56,9 @@ export default function UserHomeScreen({ navigation }) {
             index: 0,
             routes: [
               {
-                name: "UserTab"
-              }
-            ]
+                name: "UserTab",
+              },
+            ],
           });
           alert("A SAFEwalker is on their way!");
           break;
@@ -67,7 +68,7 @@ export default function UserHomeScreen({ navigation }) {
     return () => {
       socket.off("walker walk status", null);
       clearTimeout(timeoutFunc);
-    }
+    };
   }, []);
 
   useFocusEffect(
@@ -92,8 +93,8 @@ export default function UserHomeScreen({ navigation }) {
         headers: {
           token: userToken,
           email: email,
-          isUser: true
-        }
+          isUser: true,
+        },
       }
     );
     let status = res.status;
@@ -111,9 +112,9 @@ export default function UserHomeScreen({ navigation }) {
       index: 0,
       routes: [
         {
-          name: "UserHome"
-        }
-      ]
+          name: "UserHome",
+        },
+      ],
     });
 
     if (timeOut) {
@@ -134,13 +135,13 @@ export default function UserHomeScreen({ navigation }) {
             fontSize: 30,
             color: colors.orange,
             fontWeight: "bold",
-            marginTop: 60
+            marginTop: 60,
           }}
         >
           Searching for {"\n"} SAFEwalker...
         </Text>
         <LottieView
-          source={require('./../../assets/17709-loading')}
+          source={require("./../../assets/17709-loading")}
           speed={1}
           autoPlay={true}
           loop
@@ -153,7 +154,7 @@ export default function UserHomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({

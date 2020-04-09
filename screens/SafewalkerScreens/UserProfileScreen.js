@@ -28,8 +28,8 @@ export default function UserProfileScreen({ navigation }) {
         headers: {
           token: userToken,
           email: email,
-          isUser: false
-        }
+          isUser: false,
+        },
       }
     );
 
@@ -40,32 +40,32 @@ export default function UserProfileScreen({ navigation }) {
     }
 
     const data = await res.json();
-    setFirstname(data['firstName']);
-    setLastname(data['lastName']);
-    setPhoneNumber(data['phoneNumber']);
+    setFirstname(data["firstName"]);
+    setLastname(data["lastName"]);
+    setPhoneNumber(data["phoneNumber"]);
   }
 
   async function cleanUpStorage() {
     // remove all current walk-related information
-    await AsyncStorage.removeItem('walkId');
-    await AsyncStorage.removeItem('userEmail');
-    await AsyncStorage.removeItem('userSocketId');
+    await AsyncStorage.removeItem("walkId");
+    await AsyncStorage.removeItem("userEmail");
+    await AsyncStorage.removeItem("userSocketId");
   }
 
   useEffect(() => {
     // socket to listen to user status change
-    socket.on('user walk status', status => {
+    socket.on("user walk status", (status) => {
       switch (status) {
         case -2:
           navigation.reset({
             index: 0,
             routes: [
               {
-                name: 'SafewalkerHome'
-              }
-            ]
+                name: "SafewalkerHome",
+              },
+            ],
           });
-          alert('The user canceled the walk.');
+          alert("The user canceled the walk.");
           cleanUpStorage();
           break;
       }
@@ -91,7 +91,7 @@ export default function UserProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
-    const userSocketId = await AsyncStorage.getItem('userSocketId');
+    const userSocketId = await AsyncStorage.getItem("userSocketId");
     if (userSocketId) {
       // notify user walk has been cancelled
       socket.emit("walker walk status", { userId: userSocketId, status: -2 });
@@ -106,8 +106,8 @@ export default function UserProfileScreen({ navigation }) {
         headers: {
           token: userToken,
           email: email,
-          isUser: false
-        }
+          isUser: false,
+        },
       }
     );
 
@@ -115,16 +115,16 @@ export default function UserProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log("delete walk failed: status " + status);
     } else {
-      alert('You canceled the walk.');
+      alert("You canceled the walk.");
     }
 
     navigation.reset({
       index: 0,
       routes: [
         {
-          name: 'SafewalkerHome'
-        }
-      ]
+          name: "SafewalkerHome",
+        },
+      ],
     });
 
     // remove all current walk-related information
@@ -175,39 +175,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     alignItems: "stretch",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   profilePicture: {
     alignSelf: "center",
-    marginBottom: 30
+    marginBottom: 30,
   },
   textName: {
     alignSelf: "center",
     fontSize: 30,
-    marginBottom: 40
+    marginBottom: 40,
   },
   buttonContactContainer: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-    marginBottom: 100
+    marginBottom: 100,
   },
   buttonCall: {
     backgroundColor: colors.gray,
     borderRadius: 15,
     width: 80,
-    height: 80
+    height: 80,
   },
   buttonText: {
     backgroundColor: colors.gray,
     borderRadius: 15,
     width: 80,
-    height: 80
+    height: 80,
   },
   buttonCancel: {
     marginBottom: 40,
     height: 60,
     borderRadius: 50,
     backgroundColor: colors.red,
-    marginHorizontal: 40
-  }
+    marginHorizontal: 40,
+  },
 });

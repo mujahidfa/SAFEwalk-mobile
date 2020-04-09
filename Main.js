@@ -36,7 +36,7 @@ export default function Main() {
         type: "RESTORE_TOKEN",
         token: userToken,
         userType: userType,
-        email: email
+        email: email,
       });
     }
 

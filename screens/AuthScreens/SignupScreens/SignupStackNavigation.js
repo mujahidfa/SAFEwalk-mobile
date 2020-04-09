@@ -1,7 +1,7 @@
 import React from "react";
 import {
   createStackNavigator,
-  CardStyleInterpolators
+  CardStyleInterpolators,
 } from "@react-navigation/stack";
 
 import PersonalInfoScreen from "./PersonalInfoScreen";
@@ -16,7 +16,7 @@ export default function SignupStackNavigation() {
       initialRouteName="Credentials"
       screenOptions={{
         // left-to-right transition: standard iOS-style slide in from the right
-        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
       }}
     >
       <Stack.Screen

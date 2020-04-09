@@ -16,7 +16,7 @@ export default function SafewalkerStackNavigation() {
       screenOptions={{
         header: ({ scene, previous, navigation }) => (
           <Header scene={scene} previous={previous} navigation={navigation} />
-        )
+        ),
       }}
     >
       <Stack.Screen

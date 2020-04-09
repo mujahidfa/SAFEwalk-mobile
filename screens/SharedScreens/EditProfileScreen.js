@@ -56,9 +56,9 @@ export default function EditProfileScreen() {
         "Content-Type": "application/json",
         email: email,
         token: userToken,
-        isUser: user
-      }
-    }).then(response => {
+        isUser: user,
+      },
+    }).then((response) => {
       if (!(response.status === 200)) {
         console.log("captured " + response.status + "! Try again.");
       } else {
@@ -85,7 +85,7 @@ export default function EditProfileScreen() {
     // select the image and size appropriately
     let result = await ImagePicker.launchImageLibraryAsync({
       allowEditing: true,
-      aspect: [4, 3]
+      aspect: [4, 3],
     });
 
     // if process has not been canceled, set state image and send to database
@@ -112,7 +112,7 @@ export default function EditProfileScreen() {
    401 (unauthorized)
    200 (ok)
    */
-  const saveProfileInfo = async data => {
+  const saveProfileInfo = async (data) => {
     await setPhoneNumber(data.phoneNumber);
 
     let endpoint = "/api/Users/";
@@ -126,17 +126,17 @@ export default function EditProfileScreen() {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        token: userToken
+        token: userToken,
       },
       body: JSON.stringify({
         firstName: firstName,
         lastName: lastName,
         phoneNumber: data.phoneNumber,
         interest: interests,
-        photo: image
-      })
+        photo: image,
+      }),
     })
-      .then(response => {
+      .then((response) => {
         if (!(response.status === 200)) {
           console.log("captured " + response.status + "! Try again.");
         } else {
@@ -144,14 +144,14 @@ export default function EditProfileScreen() {
           setEdit(false);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error.message);
         console.log("Error in saving profile information. Please try again.");
       });
   };
 
   // function that is called after save profile information button is pushed
-  const onSubmit = data => {
+  const onSubmit = (data) => {
     const response = saveProfileInfo(data);
   };
 
@@ -253,10 +253,10 @@ export default function EditProfileScreen() {
                   required: false,
                   minLength: 10,
                   maxLength: 10,
-                  pattern: /^[0-9]+$/
+                  pattern: /^[0-9]+$/,
                 }
               )}
-              onChangeText={text => {
+              onChangeText={(text) => {
                 setValue("phoneNumber", text, true);
               }}
               mode="outlined"
@@ -287,14 +287,14 @@ const styles = StyleSheet.create({
   containerTop: {
     flex: 0.3,
     backgroundColor: colors.white,
-    alignItems: "center"
+    alignItems: "center",
   },
   containerBottom: {
     flex: 1,
     backgroundColor: colors.white,
     padding: 15,
     paddingBottom: 20,
-    justifyContent: "flex-end"
+    justifyContent: "flex-end",
   },
   buttonEdit: {
     backgroundColor: colors.orange,
@@ -307,24 +307,24 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 12,
     textAlign: "center",
-    marginTop: 40
+    marginTop: 40,
   },
   inputContainer: {
     borderBottomWidth: 0,
     margin: 10,
-    backgroundColor: colors.white
+    backgroundColor: colors.white,
   },
   text: {
     fontSize: 20,
     marginBottom: 20,
-    marginLeft: 20
+    marginLeft: 20,
   },
   divider: {
     backgroundColor: "black",
-    marginBottom: 26
+    marginBottom: 26,
   },
   textError: {
     color: colors.red,
-    marginLeft: 10
-  }
+    marginLeft: 10,
+  },
 });

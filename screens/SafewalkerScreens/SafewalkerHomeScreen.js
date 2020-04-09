@@ -4,7 +4,7 @@ import Swipeable from "react-native-gesture-handler/Swipeable";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import socket from "./../../contexts/socket";
 //import { moment} from "moment";
-import moment from 'moment/moment.js';
+import moment from "moment/moment.js";
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout, userToken, email } = useContext(AuthContext);
@@ -18,8 +18,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
         method: "GET",
         headers: {
           token: userToken,
-          email: email
-        }
+          email: email,
+        },
       }
     );
     let status = res.status;
@@ -36,7 +36,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
         username: walk[1]["userEmail"],
         time: walk[1]["time"],
         startText: walk[1]["startText"],
-        endText: walk[1]["destText"]
+        endText: walk[1]["destText"],
       });
     }
 
@@ -45,15 +45,15 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   async function cleanUpStorage() {
     // remove all current walk-related information
-    await AsyncStorage.removeItem('walkId');
-    await AsyncStorage.removeItem('userEmail');
-    await AsyncStorage.removeItem('userSocketId');
+    await AsyncStorage.removeItem("walkId");
+    await AsyncStorage.removeItem("userEmail");
+    await AsyncStorage.removeItem("userSocketId");
   }
 
   useEffect(() => {
     LoadWalk();
 
-    socket.on("walk status", status => {
+    socket.on("walk status", (status) => {
       console.log(status);
       if (status) LoadWalk();
     });
@@ -63,14 +63,19 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   async function acceptRequest(id) {
     // GetWalkStatus API call - check if request has been accepted
-    const res = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id + '/status', {
-      method: 'GET',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': false
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" +
+        id +
+        "/status",
+      {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+        },
       }
-    });
+    );
     let status = res.status;
     if (status != 200 && status != 201) {
       console.log("get walk status failed: status " + status);
@@ -84,19 +89,22 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     // PutWalk API call
-    const res1 = await fetch('https://safewalkapplication.azurewebsites.net/api/Walks/' + id, {
-      method: 'PUT',
-      headers: {
-        'token': userToken,
-        'email': email,
-        'isUser': false,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        status: 1,
-        walkerSocketId: socket.id
-      })
-    });
+    const res1 = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "PUT",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: 1,
+          walkerSocketId: socket.id,
+        }),
+      }
+    );
     status = res1.status;
     if (status != 200 && status != 201) {
       console.log("accept walk failed: status " + status);
@@ -104,33 +112,33 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     const data1 = await res1.json();
-    const userEmail = data1['userEmail'];
-    const userSocketId = data1['userSocketId'];
+    const userEmail = data1["userEmail"];
+    const userSocketId = data1["userSocketId"];
 
     // Let user know request has been accepted
     socket.emit("walker walk status", { userId: userSocketId, status: 1 }); // send notification to user
     // let other Safewalker know walk has been assigned
-    socket.emit('walk status', true);
+    socket.emit("walk status", true);
 
-    // store data 
-    await AsyncStorage.setItem('walkId', id);
-    await AsyncStorage.setItem('userEmail', userEmail);
-    await AsyncStorage.setItem('userSocketId', userSocketId);
+    // store data
+    await AsyncStorage.setItem("walkId", id);
+    await AsyncStorage.setItem("userEmail", userEmail);
+    await AsyncStorage.setItem("userSocketId", userSocketId);
 
     //navigate to tab
     navigation.reset({
       index: 0,
       routes: [
         {
-          name: "SafewalkerTab"
-        }
-      ]
+          name: "SafewalkerTab",
+        },
+      ],
     });
   }
 
   async function deleteItem(id) {
-    setItems(prevItems => {
-      return prevItems.filter(item => item.id != id);
+    setItems((prevItems) => {
+      return prevItems.filter((item) => item.id != id);
     });
 
     // DeleteWalk API call
@@ -141,8 +149,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
         headers: {
           token: userToken,
           email: email,
-          isUser: false
-        }
+          isUser: false,
+        },
       }
     );
     let status = res.status;
@@ -152,7 +160,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }
 
     const data = await res.json();
-    const userSocketId = data['userSocketId'];
+    const userSocketId = data["userSocketId"];
 
     if (userSocketId) {
       // notify user request has been denied
@@ -188,7 +196,9 @@ export default function SafewalkerHomeScreen({ navigation }) {
           <View style={styles.column}>
             <View style={styles.row}>
               <Text style={styles.name}>{item.username}</Text>
-              <Text style={styles.time}>{moment.utc(item.time).format('MMMM Do, h:mm a')}</Text>
+              <Text style={styles.time}>
+                {moment.utc(item.time).format("MMMM Do, h:mm a")}
+              </Text>
             </View>
             <View>
               <View style={{ flexDirection: "row" }}>
@@ -220,13 +230,13 @@ export default function SafewalkerHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   swipeable: {
     borderBottomWidth: 3,
-    borderColor: "#e8e8e8"
+    borderColor: "#e8e8e8",
   },
   container: {
     borderTopWidth: 2,
     borderColor: "#e8e8e8",
     flex: 1,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
     //alignItems: "center",
     //justifyContent: "center"
   },
@@ -236,40 +246,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     flexDirection: "column",
     backgroundColor: "#fff",
-    justifyContent: "flex-start"
+    justifyContent: "flex-start",
   },
   row: {
     flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingBottom: 6
+    paddingBottom: 6,
   },
   name: {
     fontSize: 17,
-    fontWeight: "600"
+    fontWeight: "600",
   },
   location: {
     fontSize: 15,
-    color: "grey"
+    color: "grey",
   },
   time: {
     fontSize: 13,
-    color: "grey"
+    color: "grey",
   },
   LeftAction: {
     backgroundColor: "#388e3c",
     justifyContent: "center",
-    width: "100%"
+    width: "100%",
   },
   RightAction: {
     backgroundColor: "#dd2c00",
     justifyContent: "center",
     alignItems: "flex-end",
-    width: "100%"
+    width: "100%",
   },
   actionText: {
     color: "#fff",
     fontWeight: "600",
-    padding: 20
-  }
+    padding: 20,
+  },
 });

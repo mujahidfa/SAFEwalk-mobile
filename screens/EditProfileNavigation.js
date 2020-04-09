@@ -7,21 +7,21 @@ import EditProfileScreen from "./SharedScreens/EditProfileScreen";
 const Stack = createStackNavigator();
 
 export default function EditProfileNavigation() {
-    return (
-        <Stack.Navigator
-            initialRouteName="EditProfile"
-            headerMode="screen"
-            screenOptions={{
-                header: ({ scene, previous, navigation }) => (
-                    <Header scene={scene} previous={previous} navigation={navigation} />
-                )
-            }}
-        >
-            <Stack.Screen
-                name="EditProfile"
-                component={EditProfileScreen}
-                options={{ title: "Edit Profile" }}
-            />
-        </Stack.Navigator>
-    );
+  return (
+    <Stack.Navigator
+      initialRouteName="EditProfile"
+      headerMode="screen"
+      screenOptions={{
+        header: ({ scene, previous, navigation }) => (
+          <Header scene={scene} previous={previous} navigation={navigation} />
+        ),
+      }}
+    >
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ title: "Edit Profile" }}
+      />
+    </Stack.Navigator>
+  );
 }

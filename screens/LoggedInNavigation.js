@@ -16,7 +16,7 @@ export default function LoggedInNavigation() {
   const { userType } = useContext(AuthContext);
 
   return (
-    <Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
+    <Drawer.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
       {/* 
         Switch between user type (user or safewalker).
         If user or safewalker logs in, direct them to their associated screens.

@@ -17,7 +17,7 @@ export default function UserStackNavigation() {
       screenOptions={{
         header: ({ scene, previous, navigation }) => (
           <Header scene={scene} previous={previous} navigation={navigation} />
-        )
+        ),
       }}
     >
       <Stack.Screen
@@ -26,9 +26,9 @@ export default function UserStackNavigation() {
         options={{ title: "Home" }}
       />
       <Stack.Screen
-        name='UserWait'
+        name="UserWait"
         component={UserWaitScreen}
-        options={{ title: "Waiting for SAFEwalker", headerShown: false}}
+        options={{ title: "Waiting for SAFEwalker", headerShown: false }}
       />
       <Stack.Screen
         name="UserTab"

@@ -15,7 +15,7 @@ export default function UserTabNavigation() {
     <Tab.Navigator
       initialRouteName="SafewalkerProfile"
       tabBarOptions={{
-        activeTintColor: colors.orange
+        activeTintColor: colors.orange,
       }}
     >
       <Tab.Screen
@@ -25,7 +25,7 @@ export default function UserTabNavigation() {
           tabBarLabel: "Map",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="directions" size={size} color={color} />
-          )
+          ),
         }}
       />
       <Tab.Screen
@@ -35,7 +35,7 @@ export default function UserTabNavigation() {
           tabBarLabel: "SAFEwalker profile",
           tabBarIcon: ({ color, size }) => (
             <AntDesign name="user" size={size} color={color} />
-          )
+          ),
         }}
       />
     </Tab.Navigator>
