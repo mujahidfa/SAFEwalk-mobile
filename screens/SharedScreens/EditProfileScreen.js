@@ -107,11 +107,6 @@ export default function EditProfileScreen() {
   };
 
   // upon clicking save profile information button
-  /*
-   Response codes:
-   401 (unauthorized)
-   200 (ok)
-   */
   const saveProfileInfo = async (data) => {
     await setPhoneNumber(data.phoneNumber);
 

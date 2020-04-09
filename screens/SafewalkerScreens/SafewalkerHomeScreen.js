@@ -1,10 +1,19 @@
 import React, { useContext, useEffect } from "react";
-import { StyleSheet, Text, View, FlatList, AsyncStorage, Header, Footer, totalResults } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  AsyncStorage,
+  Header,
+  Footer,
+  totalResults,
+} from "react-native";
 
 // 3rd party libraries
 import Swipeable from "react-native-gesture-handler/Swipeable";
-import LottieView from 'lottie-react-native';
-import moment from 'moment/moment.js';
+import LottieView from "lottie-react-native";
+import moment from "moment/moment.js";
 
 // Constants
 import socket from "./../../contexts/socket";
@@ -208,40 +217,41 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   function trimEmail(userEmail) {
     var s = userEmail;
-    s = s.substring(0, s.indexOf('@'));
-    return (s);
+    s = s.substring(0, s.indexOf("@"));
+    return s;
   }
 
   const listEmptyComponent = () => (
     <View
       style={{
         //transform: [{scaleY: -1}],
-        height: '50%',
+        height: "50%",
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
-      <View style={{ flex: 3}}>
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <View style={{ flex: 3 }}>
         <Text
           style={{
             textAlign: "center",
             fontSize: 30,
             color: colors.orange,
             fontWeight: "bold",
-            marginTop: 60
+            marginTop: 60,
           }}
         >
           Zero Active {"\n"} SAFEwalk Requests
         </Text>
         <LottieView
-          source={require('./../../assets/17709-loading')}
-          speed={.7}
+          source={require("./../../assets/17709-loading")}
+          speed={0.7}
           autoPlay={true}
           loop
           autoSize={true}
         />
       </View>
-      </View>
+    </View>
   );
 
   function Item({ request, deleteRequest }) {
@@ -281,7 +291,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
     <View style={styles.container}>
       <FlatList
         data={requests.sort(function(a, b) {
-          var dateA = new Date(a.time), dateB = new Date(b.time);
+          var dateA = new Date(a.time),
+            dateB = new Date(b.time);
           return dateA - dateB;
         })}
         keyExtractor={(request, index) => index.toString()}
@@ -305,7 +316,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 2,
     borderColor: "#e8e8e8",
     flex: 1,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
   },
   column: {
     flex: 1,
