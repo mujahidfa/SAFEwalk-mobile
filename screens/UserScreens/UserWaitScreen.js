@@ -10,12 +10,30 @@ import io from "socket.io-client";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { useFocusEffect } from "@react-navigation/core";
 
 // TODO: Get rid of the header and drawer access
 export default function UserHomeScreen({ navigation }) {
   const { userToken, email } = useContext(AuthContext);
 
+  let timeoutFunc = null;
+  let timeOut = false;
+
   useEffect(() => {
+    // Set timeout to 30 seconds
+    timeoutFunc = setTimeout(() => {
+      timeOut = true;
+      cancelRequest().then();
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "UserHome"
+          }
+        ]
+      });
+    }, 30000);
+
     // socket to listen to walker status change
     socket.on("walker walk status", status => {
       console.log(status);
@@ -45,7 +63,24 @@ export default function UserHomeScreen({ navigation }) {
           break;
       }
     });
+
+    return () => {
+      socket.off("walker walk status", null);
+      clearTimeout(timeoutFunc);
+    }
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Do something when the screen is focused
+
+      return () => {
+        // clears out timer once component is unloaded
+        clearTimeout(timeoutFunc);
+        console.log("timeout cleared!");
+      };
+    }, [])
+  );
 
   async function cancelRequest() {
     const id = await AsyncStorage.getItem("walkId");
@@ -64,7 +99,6 @@ export default function UserHomeScreen({ navigation }) {
     let status = res.status;
     if (status !== 200 && status !== 201) {
       console.log("delete walk failed: status " + status);
-
     }
 
     // send notification to all Safewalkers
@@ -82,7 +116,12 @@ export default function UserHomeScreen({ navigation }) {
       ]
     });
 
-    alert("Request Canceled");
+    if (timeOut) {
+      timeOut = false;
+      alert("Your request was timed out.");
+    } else {
+      alert("Request Canceled");
+    }
   }
 
   return (

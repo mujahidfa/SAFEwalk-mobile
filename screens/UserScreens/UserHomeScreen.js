@@ -14,7 +14,6 @@ import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { useForm } from "react-hook-form";
 
-
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
