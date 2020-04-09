@@ -1,54 +1,60 @@
 import React, { useState, useContext, useEffect } from "react";
 import { StyleSheet, Text, View, FlatList, AsyncStorage } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
-import { AuthContext } from "./../../contexts/AuthProvider";
 import socket from "./../../contexts/socket";
 //import { moment} from "moment";
 import moment from "moment/moment.js";
 
+import { AuthContext } from "./../../contexts/AuthProvider";
+import { WalkContext } from "./../../contexts/WalkProvider";
+
 export default function SafewalkerHomeScreen({ navigation }) {
-  const { signout, userToken, email } = useContext(AuthContext);
   const [requests, setRequests] = useState([]);
 
+  const { userToken, email } = useContext(AuthContext);
+  const { setUserInfo, setWalkAsActive } = useContext(WalkContext);
+
   async function loadWalk(signal) {
-    // GetWalks API, setRequests
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks",
-      {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-        },
-        signal: signal,
+    try {
+      // GetWalks API, setRequests
+      const res = await fetch(
+        "https://safewalkapplication.azurewebsites.net/api/Walks",
+        {
+          method: "GET",
+          headers: {
+            token: userToken,
+            email: email,
+          },
+          signal: signal,
+        }
+      );
+      let status = res.status;
+      if (status != 200 && status != 201) {
+        console.log("get walk requests failed: status " + status);
+        return;
       }
-    );
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("get walk requests failed: status " + status);
-      return;
+
+      const data = await res.json();
+      let walks = [];
+      for (const walk of Object.entries(data)) {
+        walks.push({
+          id: walk[1]["id"],
+          username: walk[1]["userEmail"],
+          time: walk[1]["time"],
+          startText: walk[1]["startText"],
+          endText: walk[1]["destText"],
+        });
+      }
+
+      setRequests(walks);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("In SafewalkerHomeScreen: Fetch " + error);
+        return;
+      }
+
+      console.error("Error in loadWalk() in SafewalkerHomeScreen:" + error);
     }
-
-    const data = await res.json();
-    let walks = [];
-    for (const walk of Object.entries(data)) {
-      walks.push({
-        id: walk[1]["id"],
-        username: walk[1]["userEmail"],
-        time: walk[1]["time"],
-        startText: walk[1]["startText"],
-        endText: walk[1]["destText"],
-      });
-    }
-
-    setRequests(walks);
-  }
-
-  async function cleanUpStorage() {
-    // remove all current walk-related information
-    await AsyncStorage.removeItem("walkId");
-    await AsyncStorage.removeItem("userEmail");
-    await AsyncStorage.removeItem("userSocketId");
   }
 
   useEffect(() => {
@@ -56,14 +62,10 @@ export default function SafewalkerHomeScreen({ navigation }) {
     const loadWalkAbortController = new AbortController();
     const signal = loadWalkAbortController.signal;
 
-    loadWalk(signal).catch((error) => {
-      if (error.name === "AbortError") return;
-
-      console.error("Error in loadWalk() in SafewalkerHomeScreen:" + error);
-    });
+    loadWalk(signal);
 
     socket.on("walk status", (status) => {
-      console.log(status);
+      console.log("walk status:" + status);
       if (status) loadWalk(signal);
     });
 
@@ -73,11 +75,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
     };
   }, []);
 
-  async function acceptRequest(id) {
+  async function acceptRequest(walkId) {
     // GetWalkStatus API call - check if request has been accepted
     const res = await fetch(
       "https://safewalkapplication.azurewebsites.net/api/Walks/" +
-        id +
+        walkId +
         "/status",
       {
         method: "GET",
@@ -90,7 +92,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     );
     let status = res.status;
     if (status != 200 && status != 201) {
-      console.log("get walk status failed: status " + status);
+      console.error("get walk status failed: status " + status);
       return;
     }
 
@@ -102,7 +104,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
     // PutWalk API call
     const res1 = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
       {
         method: "PUT",
         headers: {
@@ -133,29 +135,30 @@ export default function SafewalkerHomeScreen({ navigation }) {
     socket.emit("walk status", true);
 
     // store data
-    await AsyncStorage.setItem("walkId", id);
-    await AsyncStorage.setItem("userEmail", userEmail);
-    await AsyncStorage.setItem("userSocketId", userSocketId);
-
+    // await AsyncStorage.setItem("walkId", walkId);
+    // await AsyncStorage.setItem("userEmail", userEmail);
+    // await AsyncStorage.setItem("userSocketId", userSocketId);
+    setUserInfo(walkId, userEmail, userSocketId);
+    setWalkAsActive();
     //navigate to tab
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: "SafewalkerTab",
-        },
-      ],
-    });
+    // navigation.reset({
+    //   index: 0,
+    //   routes: [
+    //     {
+    //       name: "SafewalkerTab",
+    //     },
+    //   ],
+    // });
   }
 
-  async function deleteRequest(id) {
+  async function deleteRequest(walkId) {
     setRequests((prevRequests) => {
-      return prevRequests.filter((request) => request.id != id);
+      return prevRequests.filter((request) => request.id != walkId);
     });
 
     // DeleteWalk API call
     const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
       {
         method: "DELETE",
         headers: {
@@ -176,6 +179,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
     if (userSocketId) {
       // notify user request has been denied
+      // console.log("In deleteRequest of SWHomeScreen in if statement");
       socket.emit("walker walk status", { userId: userSocketId, status: -1 });
     }
   }

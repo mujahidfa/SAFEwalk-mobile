@@ -12,12 +12,15 @@ import { Input } from "react-native-elements";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { WalkContext } from "./../../contexts/WalkProvider";
 import { useForm } from "react-hook-form";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
   const [destination, setDestination] = useState("");
   const { userToken, email } = useContext(AuthContext);
+  const { setWalkId } = useContext(WalkContext);
+
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
 
@@ -25,11 +28,11 @@ export default function UserHomeScreen({ navigation }) {
     if (type === "start") {
       setValue("startLocation", location, true);
       setLocation(location);
-      console.log(location);
+      console.log("start location:" + location);
     } else {
       setValue("endLocation", location, true);
       setDestination(location);
-      console.log(location);
+      console.log("end location:" + location);
     }
   };
 
@@ -64,10 +67,13 @@ export default function UserHomeScreen({ navigation }) {
       }
 
       let data = await res.json();
-      await AsyncStorage.setItem("walkId", data["id"]);
+
+      // const { setWalkId } = useContext(WalkContext);
+      // await AsyncStorage.setItem("walkId", data["id"]);
+      setWalkId(data["id"]);
 
       socket.emit("walk status", true); // send notification to all Safewalkers
-
+      // keep this
       navigation.reset({
         index: 0,
         routes: [

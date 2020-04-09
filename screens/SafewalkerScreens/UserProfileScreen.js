@@ -3,9 +3,14 @@ import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
 import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
+
+// Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+
+// Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { WalkContext } from "./../../contexts/WalkProvider";
 
 export default function UserProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
@@ -14,11 +19,22 @@ export default function UserProfileScreen({ navigation }) {
   const [address, setAddress] = useState("728 State St");
   const [postalCode, setPostalCode] = useState("53715");
   const [city, setCity] = useState("Madison");
+
   const { userToken, email } = useContext(AuthContext);
+  const { walkId, userEmail, userSocketId, resetWalkContextState } = useContext(
+    WalkContext
+  );
+
+  useEffect(() => {
+    console.log("In UserProfileScreen:");
+    console.log("walkId:" + walkId);
+    console.log("userEmail:" + userEmail);
+    console.log("userSocketId:" + userSocketId);
+  }, [walkId, userEmail, userSocketId]);
 
   async function loadUserProfile() {
     // get user email from async storage
-    const userEmail = await AsyncStorage.getItem("userEmail");
+    // const userEmail = await AsyncStorage.getItem("userEmail");
 
     // GetUser API
     const res = await fetch(
@@ -35,7 +51,7 @@ export default function UserProfileScreen({ navigation }) {
 
     const status = res.status;
     if (status != 200 && status != 201) {
-      console.log("get user failed: status " + status);
+      console.log("get user info failed: status " + status);
       return;
     }
 
@@ -45,28 +61,29 @@ export default function UserProfileScreen({ navigation }) {
     setPhoneNumber(data["phoneNumber"]);
   }
 
-  async function cleanUpStorage() {
-    // remove all current walk-related information
-    await AsyncStorage.removeItem("walkId");
-    await AsyncStorage.removeItem("userEmail");
-    await AsyncStorage.removeItem("userSocketId");
-  }
+  // async function cleanUpStorage() {
+  //   // remove all current walk-related information
+  //   await AsyncStorage.removeItem("walkId");
+  //   await AsyncStorage.removeItem("userEmail");
+  //   await AsyncStorage.removeItem("userSocketId");
+  // }
 
   useEffect(() => {
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       switch (status) {
         case -2:
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "SafewalkerHome",
-              },
-            ],
-          });
+          resetWalkContextState();
+          // navigation.reset({
+          //   index: 0,
+          //   routes: [
+          //     {
+          //       name: "SafewalkerHome",
+          //     },
+          //   ],
+          // });
           alert("The user canceled the walk.");
-          cleanUpStorage();
+          // cleanUpStorage();
           break;
       }
     });
@@ -91,16 +108,16 @@ export default function UserProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
-    const userSocketId = await AsyncStorage.getItem("userSocketId");
+    // const userSocketId = await AsyncStorage.getItem("userSocketId");
     if (userSocketId) {
       // notify user walk has been cancelled
       socket.emit("walker walk status", { userId: userSocketId, status: -2 });
     }
 
-    const id = await AsyncStorage.getItem("walkId");
+    // const walkId = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
     const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
       {
         method: "DELETE",
         headers: {
@@ -118,17 +135,18 @@ export default function UserProfileScreen({ navigation }) {
       alert("You canceled the walk.");
     }
 
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: "SafewalkerHome",
-        },
-      ],
-    });
+    resetWalkContextState();
+    // navigation.reset({
+    //   index: 0,
+    //   routes: [
+    //     {
+    //       name: "SafewalkerHome",
+    //     },
+    //   ],
+    // });
 
     // remove all current walk-related information
-    cleanUpStorage();
+    // cleanUpStorage();
   }
 
   return (

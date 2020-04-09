@@ -6,6 +6,7 @@ import LoggedOutNavigation from "./screens/LoggedOutNavigation";
 import LoggedInNavigation from "./screens/LoggedInNavigation";
 
 import { AuthContext } from "./contexts/AuthProvider";
+import { WalkProvider } from "./contexts/WalkProvider";
 
 export default function Main() {
   const { isLoading, userToken, dispatch } = useContext(AuthContext);
@@ -50,7 +51,13 @@ export default function Main() {
   return (
     <NavigationContainer>
       {/* If user has logged in, navigate to LoggedIn Navigation. Else, LoggedOut Navigation. */}
-      {userToken == null ? <LoggedOutNavigation /> : <LoggedInNavigation />}
+      {userToken == null ? (
+        <LoggedOutNavigation />
+      ) : (
+        <WalkProvider>
+          <LoggedInNavigation />
+        </WalkProvider>
+      )}
     </NavigationContainer>
   );
 }

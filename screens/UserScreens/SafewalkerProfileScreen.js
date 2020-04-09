@@ -3,18 +3,36 @@ import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+
+// Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+
+// Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { WalkContext } from "./../../contexts/WalkProvider";
 
 export default function SafewalkerProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+
   const { userToken, email } = useContext(AuthContext);
+  const {
+    walkId,
+    walkerSocketId,
+    setWalkerInfo,
+    resetWalkContextState,
+  } = useContext(WalkContext);
+
+  useEffect(() => {
+    console.log("In SafewalkerProfileScreen:");
+    console.log("walkId:" + walkId);
+    console.log("walkerSocketId:" + walkerSocketId);
+  }, [walkId, walkerSocketId]);
 
   async function loadWalkerProfile() {
-    const walkId = await AsyncStorage.getItem("walkId");
+    // const walkId = await AsyncStorage.getItem("walkId");
 
     // GetWalk API call - get email
     const res = await fetch(
@@ -31,7 +49,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
     let status = res.status;
     if (status != 200 && status != 201) {
-      console.log("get walk failed: status " + status);
+      console.log("get safewalker info failed: status " + status);
       return;
     }
 
@@ -40,8 +58,9 @@ export default function SafewalkerProfileScreen({ navigation }) {
     const walkerSocketId = data["walkerSocketId"];
 
     // store data
-    await AsyncStorage.setItem("walkerEmail", walkerEmail);
-    await AsyncStorage.setItem("walkerSocketId", walkerSocketId);
+    // await AsyncStorage.setItem("walkerEmail", walkerEmail);
+    // await AsyncStorage.setItem("walkerSocketId", walkerSocketId);
+    setWalkerInfo(walkerEmail, walkerSocketId);
 
     // GetWalker API call
     const res1 = await fetch(
@@ -84,28 +103,30 @@ export default function SafewalkerProfileScreen({ navigation }) {
     socket.on("walker walk status", (status) => {
       switch (status) {
         case -2:
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserHome",
-              },
-            ],
-          });
+          resetWalkContextState();
+          // navigation.reset({
+          //   index: 0,
+          //   routes: [
+          //     {
+          //       name: "UserHome",
+          //     },
+          //   ],
+          // });
           alert("The SAFEwalker has canceled the walk.");
-          cleanUpStorage();
+          // cleanUpStorage();
           break;
         case 2:
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserHome",
-              },
-            ],
-          });
+          resetWalkContextState();
+          // navigation.reset({
+          //   index: 0,
+          //   routes: [
+          //     {
+          //       name: "UserHome",
+          //     },
+          //   ],
+          // });
           alert("The walk has been completed!");
-          cleanUpStorage();
+          // cleanUpStorage();
           break;
       }
     });
@@ -123,16 +144,16 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
   async function cancelWalk() {
     // get socketId from async storage
-    const walkerSocketId = await AsyncStorage.getItem("walkerSocketId");
+    // const walkerSocketId = await AsyncStorage.getItem("walkerSocketId");
     if (walkerSocketId) {
       // notify user walk has been cancelled
       socket.emit("user walk status", { walkerId: walkerSocketId, status: -2 });
     }
 
-    const id = await AsyncStorage.getItem("walkId");
+    // const id = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
     const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
       {
         method: "DELETE",
         headers: {
@@ -148,17 +169,18 @@ export default function SafewalkerProfileScreen({ navigation }) {
       console.log("delete walk failed: status " + status);
     }
 
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: "UserHome",
-        },
-      ],
-    });
+    resetWalkContextState();
+    // navigation.reset({
+    //   index: 0,
+    //   routes: [
+    //     {
+    //       name: "UserHome",
+    //     },
+    //   ],
+    // });
 
     alert("Canceled Walk");
-    cleanUpStorage();
+    // cleanUpStorage();
   }
 
   return (

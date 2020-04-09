@@ -11,36 +11,48 @@ import io from "socket.io-client";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { WalkContext } from "./../../contexts/WalkProvider";
 import { useFocusEffect } from "@react-navigation/core";
 
-// TODO: Get rid of the header and drawer access
 export default function UserHomeScreen({ navigation }) {
   const { userToken, email } = useContext(AuthContext);
+  const {
+    setWalkAsActive,
+    walkId,
+    removeWalkId,
+    resetWalkContextState,
+  } = useContext(WalkContext);
 
   let timeoutFunc = null;
   let timeOut = false;
 
   useEffect(() => {
-    // Set timeout to 30 seconds
+    // cancel request after 30 seconds
     timeoutFunc = setTimeout(() => {
       timeOut = true;
-      cancelRequest().then();
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: "UserHome",
-          },
-        ],
-      });
-    }, 30000);
 
+      // add await and remove then()
+      cancelRequest();
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [
+      //     {
+      //       name: "UserHome",
+      //     },
+      //   ],
+      // });
+    }, 30000);
+    // socket.open();
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
-      console.log(status);
+      console.log("walk status in UserWaitScreen:" + status);
 
       switch (status) {
-        case -1:
+        case -1: // Request rejected by SAFEwalker
+          // Reset walk info in context. Then, go back to home screen
+          resetWalkContextState();
+          // removeWalkId();
+          alert("Your request was denied.");
           navigation.reset({
             index: 0,
             routes: [
@@ -49,17 +61,20 @@ export default function UserHomeScreen({ navigation }) {
               },
             ],
           });
-          alert("Your request was denied.");
+
           break;
-        case 1:
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserTab",
-              },
-            ],
-          });
+        case 1: // Request accepted by SAFEwalker
+          // set isActiveWalk = true
+          // don't use navigation.reset cos the boolean in LoggedIn will auto change the router to the UserTab
+          setWalkAsActive();
+          // navigation.reset({
+          //   index: 0,
+          //   routes: [
+          //     {
+          //       name: "UserTab",
+          //     },
+          //   ],
+          // });
           alert("A SAFEwalker is on their way!");
           break;
       }
@@ -84,10 +99,12 @@ export default function UserHomeScreen({ navigation }) {
   );
 
   async function cancelRequest() {
-    const id = await AsyncStorage.getItem("walkId");
+    // change to const {walkId}= useContext(WalkContext);
+    // const id = await AsyncStorage.getItem("walkId");
+
     // DeleteWalk API call
     const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
       {
         method: "DELETE",
         headers: {
@@ -105,9 +122,11 @@ export default function UserHomeScreen({ navigation }) {
     // send notification to all Safewalkers
     socket.emit("walk status", true);
 
+    // change to const {cancelPendingWalk}= useContext(WalkContext);
     // remove walk-related info
-    await AsyncStorage.removeItem("WalkId");
-
+    // await AsyncStorage.removeItem("WalkId");
+    removeWalkId();
+    // keep this
     navigation.reset({
       index: 0,
       routes: [
@@ -117,11 +136,13 @@ export default function UserHomeScreen({ navigation }) {
       ],
     });
 
-    if (timeOut) {
+    // show different alerts according to whether
+    // the user cancels the walk or 30 seconds has passed
+    if (timeOut === true) {
       timeOut = false;
       alert("Your request was timed out.");
     } else {
-      alert("Request Canceled");
+      alert("Request canceled.");
     }
   }
 
