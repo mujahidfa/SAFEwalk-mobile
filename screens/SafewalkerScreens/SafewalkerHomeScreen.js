@@ -1,11 +1,12 @@
 import React, { useContext, useEffect } from "react";
-import { StyleSheet, Text, View, FlatList, AsyncStorage, Header, Footer, totalResults } from "react-native";
+import { StyleSheet, Text, View, FlatList, AsyncStorage, Alert, totalResults } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { AuthContext } from "./../../contexts/AuthProvider";
 import socket from "./../../contexts/socket";
 import moment from 'moment/moment.js';
 import colors from "./../../constants/colors";
 import LottieView from 'lottie-react-native';
+
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const { signout, userToken, email } = useContext(AuthContext);
@@ -129,9 +130,23 @@ export default function SafewalkerHomeScreen({ navigation }) {
     });
   }
 
+  function deleteItem2(item) {
+    Alert.alert(
+      'Deny SAFEwalk Request',
+      '',
+      [
+        {text: 'Cancel', onPress: () => item.close()},
+        {text: 'Deny', onPress: () => deleteItem(item.id)},
+      ],
+      { cancelable: false }
+    )
+  }
+
+
+
   async function deleteItem(id) {
     setItems(prevItems => {
-      return prevItems.filter(item => item.id != id);
+      return prevItems.filter(item => item.id != id)
     });
 
     // DeleteWalk API call
@@ -223,7 +238,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
           renderLeftActions={LeftActions}
           renderRightActions={RightActions}
           onSwipeableLeftOpen={() => acceptRequest(item.id)}
-          onSwipeableRightOpen={() => deleteItem(item.id)}
+          onSwipeableRightOpen={() => deleteItem2(item)}
         >
           <View style={styles.column}>
             <View style={styles.row}>

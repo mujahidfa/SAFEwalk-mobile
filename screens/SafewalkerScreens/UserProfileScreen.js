@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { StyleSheet, Text, View, AsyncStorage } from "react-native";
+import { StyleSheet, Text, View, AsyncStorage, Alert } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
 import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
@@ -65,7 +65,14 @@ export default function UserProfileScreen({ navigation }) {
               }
             ]
           });
-          alert('The user canceled the walk.');
+          Alert.alert(
+            'The user canceled the walk.',
+            '',
+            [
+              {text: 'OK'},
+            ],
+            { cancelable: false }
+          );
           cleanUpStorage();
           break;
       }
@@ -115,7 +122,14 @@ export default function UserProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log("delete walk failed: status " + status);
     } else {
-      alert('You canceled the walk.');
+      Alert.alert(
+        'You canceled the walk.',
+        '',
+        [
+          {text: 'OK'},
+        ],
+        { cancelable: false }
+      )
     }
 
     navigation.reset({

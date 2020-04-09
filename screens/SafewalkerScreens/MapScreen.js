@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { StyleSheet, Text, View, AsyncStorage } from "react-native";
+import { StyleSheet, Text, View, AsyncStorage, Alert } from "react-native";
 import { Button } from "react-native-elements";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
@@ -24,7 +24,14 @@ export default function MapScreen({ navigation }) {
               }
             ]
           });
-          alert('The user canceled the walk.');
+          Alert.alert(
+            'The user canceled the walk',
+            '',
+            [
+              {text: 'OK'},
+            ],
+            { cancelable: false }
+          )
           break;
       }
     });

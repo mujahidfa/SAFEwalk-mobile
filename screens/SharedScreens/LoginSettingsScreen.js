@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import { Avatar } from "react-native-elements";
 import { TextInput } from "react-native-paper";
@@ -123,7 +124,14 @@ export default function LoginSettingsScreen({ navigation }) {
           console.log("captured " + response.status + "! Try again.");
         } else {
           console.log("updated password" + data.confirmPassword);
-          alert("Updated Password!");
+          Alert.alert(
+            'Successfully Updated Password',
+            '',
+            [
+              {text: 'OK'},
+            ],
+            { cancelable: false }
+          )
         }
       })
       .catch(error => {
@@ -131,7 +139,14 @@ export default function LoginSettingsScreen({ navigation }) {
         console.log("Error in updating password. Please try again.");
       });
     } else {
-      alert("Incorrect Password")
+      Alert.alert(
+        'Incorrect Password',
+        'Please confirm current password',
+        [
+          {text: 'OK'},
+        ],
+        { cancelable: false }
+      )
     };
   };
 
@@ -142,6 +157,7 @@ export default function LoginSettingsScreen({ navigation }) {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={"padding"}>
       <View style={styles.container}>
         <View style={styles.containerTop}>
           <Avatar
@@ -154,7 +170,7 @@ export default function LoginSettingsScreen({ navigation }) {
         </View>
 
         {/* Middle View */}
-        <KeyboardAvoidingView style={styles.innerContainer}>
+        <View style={styles.innerContainer}>
           {errors.currentPassword && (
             <Text style={styles.textError}>Current password is required.</Text>
           )}
@@ -202,7 +218,9 @@ export default function LoginSettingsScreen({ navigation }) {
             theme={{ colors: { primary: colors.orange } }}
             style={styles.textInput}
           />
-        </KeyboardAvoidingView>
+          </View>
+
+        
 
         {/* Bottom */}
         <View style={styles.containerBottom}>
@@ -214,16 +232,17 @@ export default function LoginSettingsScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
   containerTop: {
-    flex: 0.8,
+    flex: 0.6,
     backgroundColor: "#fff",
     alignItems: "center",
-    marginTop: 100,
+    marginTop: 70,
     marginBottom: 100
   },
   containerBottom: {
@@ -235,7 +254,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white
   },
   innerContainer: {
-    flex: 1,
+    flex: 2.3,
     marginHorizontal: 50,
     justifyContent: "center"
   },
