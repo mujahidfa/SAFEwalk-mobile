@@ -130,7 +130,7 @@ export function WalkProvider({ children }) {
       setUserInfo,
       setWalkerInfo,
       resetWalkContextState,
-      dispatchWalk: dispatch,
+      dispatch,
     };
   }, [state]);
 
@@ -143,7 +143,7 @@ export function WalkProvider({ children }) {
 
 function walkReducer(prevState, action) {
   switch (action.type) {
-    case "RESTORE_TOKEN":
+    case "RESTORE_STATE":
       return {
         ...prevState,
         isWalkLoading: false,

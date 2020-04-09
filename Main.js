@@ -28,11 +28,11 @@ export default function Main() {
         userType = await AsyncStorage.getItem("userType");
         email = await AsyncStorage.getItem("email");
       } catch (error) {
-        throw new Error("Error in restoring user token: " + error);
+        console.error("Error in restoring user token: " + error);
       }
 
-      // This will switch to the App screen or Auth screen and the loading
-      // screen will be unmounted and thrown away.
+      // This will switch to the LoggedIn screen or LoggedOut screen
+      // and the loading screen will be unmounted and thrown away.
       dispatch({
         type: "RESTORE_TOKEN",
         token: userToken,
