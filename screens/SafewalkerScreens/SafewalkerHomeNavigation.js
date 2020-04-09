@@ -2,9 +2,8 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import SafewalkerHomeScreen from "./SafewalkerHomeScreen";
-import SafewalkerTabNavigation from "./SafewalkerTabNavigation";
 
-import Header from "./../../components/Header";
+import Header from "../../components/Header";
 
 const Stack = createStackNavigator();
 
@@ -23,11 +22,6 @@ export default function SafewalkerStackNavigation() {
         name="SafewalkerHome"
         component={SafewalkerHomeScreen}
         options={{ title: "SAFEwalker Home" }}
-      />
-      <Stack.Screen
-        name="SafewalkerTab"
-        component={SafewalkerTabNavigation}
-        options={{ title: "Safewalker Current Walk" }}
       />
     </Stack.Navigator>
   );

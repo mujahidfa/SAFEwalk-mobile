@@ -2,8 +2,8 @@ import React, { useContext } from "react";
 import { Button, Text, View } from "react-native";
 
 // Screens
-import UserStackNavigation from "./UserScreens/UserStackNavigation";
-import SafewalkerStackNavigation from "./SafewalkerScreens/SafewalkerStackNavigation";
+import UserHomeNavigation from "./UserScreens/UserHomeNavigation";
+import SafewalkerHomeNavigation from "./SafewalkerScreens/SafewalkerHomeNavigation";
 import EditProfileNavigation from "./SharedScreens/EditProfileNavigation";
 import LoginSettingsNavigation from "./SharedScreens/LoginSettingsNavigation";
 
@@ -15,7 +15,8 @@ const Drawer = createDrawerNavigator();
 // Context
 import { AuthContext } from "../contexts/AuthProvider";
 
-// Entry point for the Inactive Walk Navigation
+// Entry point for the Inactive Walk Navigation.
+// Checks for user type (User or Safewalker) to determine appropriate navigation.
 export default function InactiveWalkNavigation() {
   const { userType, signout } = useContext(AuthContext);
 
@@ -44,8 +45,8 @@ function UserInactiveWalkNavigation() {
   return (
     <Drawer.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
       <Drawer.Screen
-        name="UserStack"
-        component={UserStackNavigation}
+        name="UserHomeNavigation"
+        component={UserHomeNavigation}
         options={{ title: "Home" }}
       />
       <Drawer.Screen
@@ -66,8 +67,8 @@ function SafewalkerInactiveWalkNavigation() {
   return (
     <Drawer.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
       <Drawer.Screen
-        name="SafewalkerHome"
-        component={SafewalkerStackNavigation}
+        name="SafewalkerHomeNavigation"
+        component={SafewalkerHomeNavigation}
         options={{ title: "Safewalker Home" }}
       />
       <Drawer.Screen

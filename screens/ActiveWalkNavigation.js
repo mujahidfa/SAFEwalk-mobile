@@ -17,10 +17,11 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Context
+// Contexts
 import { AuthContext } from "../contexts/AuthProvider";
 
-// Entry point for the Active Walk Navigation
+// Entry point for the Active Walk Navigation.
+// Checks for user type (User or Safewalker) to determine appropriate navigation.
 export default function ActiveWalkNavigation() {
   const { userType, signout } = useContext(AuthContext);
 
@@ -45,6 +46,8 @@ export default function ActiveWalkNavigation() {
   );
 }
 
+// Wrapper to the actual User navigation.
+// The reason to wrap the Tabs nav with a parent Stack nav is to allow auto-named headers
 function UserActiveWalkNavigation() {
   return (
     <Stack.Navigator initialRouteName="CurrentWalk" headerMode="screen">
@@ -57,6 +60,7 @@ function UserActiveWalkNavigation() {
   );
 }
 
+// The actual navigation for user view on an active walk
 function UserActiveWalkTabNav() {
   return (
     <Tab.Navigator
@@ -89,6 +93,8 @@ function UserActiveWalkTabNav() {
   );
 }
 
+// Wrapper to the actual SAFEwalker navigation
+// The reason to wrap the Tabs nav with a parent Stack nav is to allow auto-named headers
 function SafewalkerActiveWalkNavigation() {
   return (
     <Stack.Navigator initialRouteName="CurrentWalk" headerMode="screen">
@@ -101,6 +107,7 @@ function SafewalkerActiveWalkNavigation() {
   );
 }
 
+// The actual navigation for SAFEwalker view on an active walk
 function SafewalkerActiveWalkTabNav() {
   return (
     <Tab.Navigator

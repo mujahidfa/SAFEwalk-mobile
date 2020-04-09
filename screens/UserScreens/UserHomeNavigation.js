@@ -3,9 +3,8 @@ import { createStackNavigator } from "@react-navigation/stack";
 
 import UserHomeScreen from "./UserHomeScreen";
 import UserWaitScreen from "./UserWaitScreen";
-import UserTabNavigation from "./UserTabNavigation";
 
-import Header from "./../../components/Header";
+import Header from "../../components/Header";
 
 const Stack = createStackNavigator();
 
@@ -29,11 +28,6 @@ export default function UserStackNavigation() {
         name="UserWait"
         component={UserWaitScreen}
         options={{ title: "Waiting for SAFEwalker", headerShown: false }}
-      />
-      <Stack.Screen
-        name="UserTab"
-        component={UserTabNavigation}
-        options={{ title: "User Current Walk" }}
       />
     </Stack.Navigator>
   );
