@@ -20,8 +20,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
           token: userToken,
           email: email,
         },
-      },
-      { signal: signal }
+        signal: signal,
+      }
     );
     let status = res.status;
     if (status != 200 && status != 201) {
@@ -56,7 +56,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
     const loadWalkAbortController = new AbortController();
     const signal = loadWalkAbortController.signal;
 
-    loadWalk(signal);
+    loadWalk(signal).catch((error) => {
+      if (error.name === "AbortError") return;
+
+      console.error("Error in loadWalk() in SafewalkerHomeScreen:" + error);
+    });
 
     socket.on("walk status", (status) => {
       console.log(status);
