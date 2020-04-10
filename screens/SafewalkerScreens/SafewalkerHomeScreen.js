@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { StyleSheet, Text, View, FlatList, AsyncStorage, Header, Footer, totalResults } from "react-native";
 
 // 3rd party libraries
