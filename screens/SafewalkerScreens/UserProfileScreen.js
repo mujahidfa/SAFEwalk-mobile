@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { StyleSheet, Text, View, AsyncStorage } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
 import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
@@ -22,17 +22,72 @@ export default function UserProfileScreen({ navigation }) {
   const [city, setCity] = useState("Madison");
 
   const { userToken, email } = useContext(AuthContext);
-  const {
-    walkId,
-    userEmail,
-    userSocketId,
-    walkerSocketId,
-    resetWalkContextState,
-  } = useContext(WalkContext);
+  const { walkId, userEmail, userSocketId, resetWalkContextState } = useContext(
+    WalkContext
+  );
 
+  /**
+   * This effect sets up the socket connection to the User.
+   * This effect is run once upon component mount.
+   */
+  useEffect(() => {
+    // socket to listen to user status change
+    socket.on("user walk status", (status) => {
+      switch (status) {
+        // user canceled the walk
+        case -2:
+          resetWalkContextState();
+          alert("The user canceled the walk.");
+          break;
+
+        default:
+          console.log(
+            "Unexpected socket status received in UserProfileScreen: status " +
+              status
+          );
+      }
+    });
+
+    // socket cleanup
+    return () => {
+      socket.off("user walk status", null);
+    };
+  }, []);
+
+  /**
+   * This effect retrieves the User information associated with the walk.
+   * This effect is only run when userEmail value changes to ensure data retrieved is not stale.
+   */
+  useEffect(() => {
+    // this is to fix memory leak error
+    const loadUserProfileController = new AbortController();
+    const signal = loadUserProfileController.signal;
+
+    loadUserProfile(signal);
+
+    // API call cleanup
+    return () => {
+      loadUserProfileController.abort();
+    };
+
+    /**
+     * Since the User's email is how the API call knows which User data to fetch,
+     * putting userEmail as 2nd argument is necessary because
+     * this ensures that the API call is made with the latest, updated value of UserEmail,
+     * therefore ensures that the API call is made for the correct User.
+     */
+  }, [userEmail]);
+
+  /**
+   * Loads the user profile from the database based on the user's email
+   * and fills it up in the local state.
+   *
+   * @param signal cancels the fetch request when component is unmounted.
+   */
   async function loadUserProfile(signal) {
     try {
       // Get User API
+      // Retrieve the User's personal information such as name & phone number
       const res = await fetch(url + "/api/Users/" + userEmail, {
         method: "GET",
         headers: {
@@ -44,67 +99,98 @@ export default function UserProfileScreen({ navigation }) {
       });
 
       const status = res.status;
+
+      // Upon fetch failure/bad status
       if (status != 200 && status != 201) {
-        console.log("get user info failed: status " + status);
+        console.log(
+          "retrieving user info in loadUserProfile() in UserProfileScreen failed: status " +
+            status
+        );
         return;
       }
 
-      const data = await res.json();
-      setFirstname(data["firstName"]);
-      setLastname(data["lastName"]);
-      setPhoneNumber(data["phoneNumber"]);
+      // Upon fetch success
+      else {
+        // We update the local state with retrieved data
+        const data = await res.json();
+        setFirstname(data["firstName"]);
+        setLastname(data["lastName"]);
+        setPhoneNumber(data["phoneNumber"]);
+      }
     } catch (error) {
-      if (error.name === "AbortError") {
+      /**
+       * When the component unmounts, the AbortController will cancel any recurring fetch requests.
+       * When that happens (i.e. fetch cancel), it throws an AbortError error.
+       * So we catch this error to differentiate it from other errors.
+       * This is the same as if (error.name === "AbortError")
+       */
+      if (signal.aborted) {
         return;
       }
 
-      console.error("Error in loadUserProfile() in UserProfileScreen:" + error);
+      console.error(
+        "Error in fetching data from loadUserProfile() in UserProfileScreen:" +
+          error
+      );
     }
   }
 
-  // We put userEmail as the 2nd argument to tell React
-  // we only retrieve the user profile when userEmail is not undefined.
-  useEffect(() => {
-    // this is to fix memory leak error: Promise cleanup
-    const loadUserProfileController = new AbortController();
-    const signal = loadUserProfileController.signal;
+  /**
+   * Upon cancel button press, we delete the walk in the database using a DELETE request to the API.
+   * If successful,
+   *  - we emit a message to the User that walk has been cancelled,
+   *  - we remove all walk data from Context, and
+   *  - we navigate back to home screen.
+   */
+  async function cancelWalk() {
+    try {
+      // Delete Walk API call
+      // Delete the current walk in the database
+      const res = await fetch(url + "/api/Walks/" + walkId, {
+        method: "DELETE",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+        },
+      });
 
-    loadUserProfile(signal);
+      let status = res.status;
 
-    // cleanup
-    return () => {
-      loadUserProfileController.abort();
-    };
+      // Upon fetch failure/bad status
+      if (status != 200 && status != 201) {
+        console.log(
+          "deleting walk failed in cancelWalk() in UserProfileScreen: status " +
+            status
+        );
 
-    // Having userEmail as 2nd argument is necessary because
-    // it lets React run loadUserProfile again when userEmail has a non-undefined value.
-    // Otherwise, the value of userEmail used in loadUserProfile will stay undefined even after subsequent rerenders
-  }, [userEmail]);
-
-  // set up socket
-  useEffect(() => {
-    // this is to fix memory leak error: Promise cleanup
-    const loadUserProfileController = new AbortController();
-    const signal = loadUserProfileController.signal;
-
-    loadUserProfile(signal);
-    console.log("in useEffect User Profile Screen");
-    // socket to listen to user status change
-    socket.on("user walk status", (status) => {
-      switch (status) {
-        // user canceled the walk
-        case -2:
-          resetWalkContextState();
-          alert("The user canceled the walk.");
-          break;
+        return;
       }
-    });
 
-    // socket cleanup
-    return () => {
-      socket.off("user walk status", null);
-    };
-  }, []);
+      // Upon fetch success
+      else {
+        // if userSocketId is not null
+        if (userSocketId) {
+          // notify the user that walk has been cancelled
+          socket.emit("walker walk status", {
+            userId: userSocketId,
+            status: -2,
+          });
+        }
+
+        // Remove all current walk-related information
+        // and bring navigation back to InactiveWalk screens
+        resetWalkContextState();
+
+        alert("You canceled the walk.");
+      }
+    } catch (error) {
+      console.error(
+        "Error in cancelling walk from cancelWalk() in UserProfileScreen:" +
+          error
+      );
+    }
+  }
 
   function handleCall() {
     Linking.openURL("tel:+1" + phoneNumber);
@@ -118,34 +204,6 @@ export default function UserProfileScreen({ navigation }) {
     let daddr = encodeURIComponent(`${address} ${postalCode}, ${city}`);
 
     Linking.openURL(`https://maps.google.com/?daddr=${daddr}`);
-  }
-
-  async function cancelWalk() {
-    if (userSocketId) {
-      // notify user walk has been cancelled
-      socket.emit("walker walk status", { userId: userSocketId, status: -2 });
-    }
-
-    // DeleteWalk API call
-    const res = await fetch(url + "/api/Walks/" + walkId, {
-      method: "DELETE",
-      headers: {
-        token: userToken,
-        email: email,
-        isUser: false,
-      },
-    });
-
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("delete walk failed: status " + status);
-    } else {
-      alert("You canceled the walk.");
-    }
-
-    // remove all current walk-related information
-    // and bring navigation back to InactiveWalk screens
-    resetWalkContextState();
   }
 
   return (
