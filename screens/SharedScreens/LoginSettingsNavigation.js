@@ -6,7 +6,14 @@ import LoginSettingsScreen from "./LoginSettingsScreen";
 
 const Stack = createStackNavigator();
 
-export default function EditProfileNavigation() {
+/**
+ * Wrapper to the LoginSettingsScreen.
+ *
+ * This wrapper is to ease header naming/customaization
+ * as editing the header straight from the Drawer navigation is tedious
+ * and not straightforward.
+ */
+export default function LoginSettingsNavigation() {
   return (
     <Stack.Navigator
       initialRouteName="LoginSettings"

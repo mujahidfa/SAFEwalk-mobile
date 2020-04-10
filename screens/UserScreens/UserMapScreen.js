@@ -7,25 +7,38 @@ import { WalkContext } from "./../../contexts/WalkProvider";
 export default function UserMapScreen({ navigation }) {
   const { resetWalkContextState } = useContext(WalkContext);
 
+  /**
+   * This effect sets up the socket connection to the User.
+   * This effect is run once upon component mount.
+   */
   useEffect(() => {
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
       switch (status) {
+        // SAFEwalker has canceled the walk
         case -2:
-          // reset walk state to change navigation
+          // reset walk state to change navigation to InactiveWalk Screens
           resetWalkContextState();
           alert("The SAFEwalker has canceled the walk.");
           break;
-
+        // walk has been marked as completed by the SAFEwalker
         case 2:
           resetWalkContextState();
           alert("The walk has been completed!");
           break;
+
+        default:
+          console.log(
+            "Unexpected socket status received in UserMapScreen: status " +
+              status
+          );
       }
     });
 
     // cleanup socket
-    return () => socket.off("walker walk status", null);
+    return () => {
+      socket.off("walker walk status", null);
+    };
   }, []);
 
   return (

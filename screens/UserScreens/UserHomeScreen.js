@@ -28,6 +28,76 @@ export default function UserHomeScreen({ navigation }) {
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
 
+  /**
+   * Make a walk request.
+   *
+   * First, do input checking on the location inputs
+   * Next, create a new walk in the database
+   * Finally, notify the SAFEwalkers that a new walk request is made, and move into
+   */
+  async function addRequest() {
+    const startLocationNotEmpty = await triggerValidation("startLocation");
+    const destinationNotEmpty = await triggerValidation("endLocation");
+
+    if (startLocationNotEmpty && destinationNotEmpty) {
+      try {
+        // Add Walk API call
+        // Create a walk in the database
+        const res = await fetch(url + "/api/Walks", {
+          method: "POST",
+          headers: {
+            token: userToken,
+            email: email,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            time: new Date(),
+            startText: location,
+            destText: destination,
+            userSocketId: socket.id,
+          }),
+        });
+
+        let status = res.status;
+
+        // Upon fetch failure/bad status
+        if (status !== 200 && status !== 201) {
+          console.log(
+            "creating a walk request in addRequest() in UserHomeScreen failed: status " +
+              status
+          );
+          return;
+        }
+
+        // Upon fetch success
+        else {
+          let data = await res.json();
+
+          // store walkId in the WalkContext
+          setWalkId(data["id"]);
+
+          // send notification to all Safewalkers
+          socket.emit("walk status", true);
+
+          // navigate to the wait screen (keep this)
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserWait",
+              },
+            ],
+          });
+        }
+      } catch (error) {
+        console.error(
+          "Error in creating a new walk in addRequest() in UserHomeScreen:" +
+            error
+        );
+      }
+    }
+  }
+
   const changeLocation = (type, location) => {
     if (type === "start") {
       setValue("startLocation", location, true);
@@ -38,55 +108,10 @@ export default function UserHomeScreen({ navigation }) {
     }
   };
 
-  async function addRequest() {
-    const startLocationNotEmpty = await triggerValidation("startLocation");
-    const destinationNotEmpty = await triggerValidation("endLocation");
-
-    if (startLocationNotEmpty && destinationNotEmpty) {
-      // addWalk API call - create walk
-      const res = await fetch(url + "/api/Walks", {
-        method: "POST",
-        headers: {
-          token: userToken,
-          email: email,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          time: new Date(),
-          startText: location,
-          destText: destination,
-          userSocketId: socket.id,
-        }),
-      });
-
-      let status = res.status;
-      if (status !== 200 && status !== 201) {
-        console.log("UserHome: add walk failed: status " + status);
-        return;
-      }
-
-      let data = await res.json();
-
-      // store walkId in Context and AsyncStorage
-      setWalkId(data["id"]);
-
-      socket.emit("walk status", true); // send notification to all Safewalkers
-      // keep this
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: "UserWait",
-          },
-        ],
-      });
-    }
-  }
-
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
-        {/* User Start and End Location Input Fields */}
+        {/* User Start and End Location input fields */}
         {errors.startLocation && (
           <Text style={styles.textError}>
             A start location is required to submit a request.
