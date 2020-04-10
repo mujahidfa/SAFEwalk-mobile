@@ -89,7 +89,6 @@ export default function LoginSettingsScreen({ navigation }) {
       if (!(response1.status === 200)) {
         //setOldPassword("fail");
         oldPass = 0;
-        // console.log("Current " + data.currentPassword + " ");
         console.log("captured " + response1.status + "! Try again.");
       } else {
         oldPass = 1;

@@ -185,7 +185,7 @@ function walkReducer(prevState, action) {
     case "RESET":
       return {
         ...prevState,
-        isWalkLoading: true,
+        isWalkLoading: false,
         isWalkActive: "false",
         walkId: null,
         userEmail: null,

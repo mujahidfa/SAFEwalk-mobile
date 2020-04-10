@@ -28,8 +28,6 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
   async function loadWalkerProfile(signal) {
     try {
-      // const walkId = await AsyncStorage.getItem("walkId");
-
       // GetWalk API call - get email
       const res = await fetch(url + "/api/Walks/" + walkId, {
         method: "GET",
@@ -51,9 +49,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
       const walkerEmail = data["walkerEmail"];
       const walkerSocketId = data["walkerSocketId"];
 
-      // store data
-      // await AsyncStorage.setItem("walkerEmail", walkerEmail);
-      // await AsyncStorage.setItem("walkerSocketId", walkerSocketId);
+      // store walker data
       setWalkerInfo(walkerEmail, walkerSocketId);
 
       // GetWalker API call
@@ -69,11 +65,12 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
       status = res1.status;
       if (status != 200 && status != 201) {
-        console.log("get user failed: status " + status);
+        console.log("get safewalker info failed: status " + status);
         return;
       }
 
       const data1 = await res1.json();
+
       // set safewalker profile info
       setFirstname(data1["firstName"]);
       setLastname(data1["lastName"]);
@@ -90,13 +87,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
     }
   }
 
-  // async function cleanUpStorage() {
-  //   // remove all current walk-related information
-  //   await AsyncStorage.removeItem("walkId");
-  //   await AsyncStorage.removeItem("walkerEmail");
-  //   await AsyncStorage.removeItem("walkerSocketId");
-  // }
-
+  // set up the socket
   useEffect(() => {
     // this is to fix memory leak error: Promise cleanup
     const loadWalkerProfileController = new AbortController();
@@ -107,35 +98,21 @@ export default function SafewalkerProfileScreen({ navigation }) {
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
       switch (status) {
+        // SAFEwalker has canceled the walk.
         case -2:
           resetWalkContextState();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "UserHome",
-          //     },
-          //   ],
-          // });
           alert("The SAFEwalker has canceled the walk.");
-          // cleanUpStorage();
           break;
+
+        // SAFEwalker has marked the walk as completed
         case 2:
           resetWalkContextState();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "UserHome",
-          //     },
-          //   ],
-          // });
           alert("The walk has been completed!");
-          // cleanUpStorage();
           break;
       }
     });
 
+    // cleanup
     return () => {
       socket.off("walker walk status", null);
       loadWalkerProfileController.abort();
@@ -151,14 +128,11 @@ export default function SafewalkerProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
-    // get socketId from async storage
-    // const walkerSocketId = await AsyncStorage.getItem("walkerSocketId");
     if (walkerSocketId) {
       // notify user walk has been cancelled
       socket.emit("user walk status", { walkerId: walkerSocketId, status: -2 });
     }
 
-    // const id = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
     const res = await fetch(url + "/api/Walks/" + walkId, {
       method: "DELETE",
@@ -174,18 +148,10 @@ export default function SafewalkerProfileScreen({ navigation }) {
       console.log("delete walk failed: status " + status);
     }
 
+    // Since delete walk is successful, we exit the ActiveWalk screens.
+    // This will bring navigation to InactiveWalk screens
     resetWalkContextState();
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [
-    //     {
-    //       name: "UserHome",
-    //     },
-    //   ],
-    // });
-
     alert("Canceled Walk");
-    // cleanUpStorage();
   }
 
   return (

@@ -14,31 +14,17 @@ export default function UserMapScreen({ navigation }) {
         case -2:
           // reset walk state to change navigation
           resetWalkContextState();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "UserHome",
-          //     },
-          //   ],
-          // });
           alert("The SAFEwalker has canceled the walk.");
           break;
+
         case 2:
           resetWalkContextState();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "UserHome",
-          //     },
-          //   ],
-          // });
           alert("The walk has been completed!");
           break;
       }
     });
 
+    // cleanup socket
     return () => socket.off("walker walk status", null);
   }, []);
 

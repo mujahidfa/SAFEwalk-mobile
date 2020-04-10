@@ -65,7 +65,6 @@ export default function SafewalkerHomeScreen({ navigation }) {
       setRequests(walks);
     } catch (error) {
       if (error.name === "AbortError") {
-        // console.log("In SafewalkerHomeScreen: Fetch " + error);
         return;
       }
 
@@ -80,11 +79,14 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
     loadWalk(signal);
 
+    // listen for new requests (status will be true upon new requests)
     socket.on("walk status", (status) => {
-      // console.log("walk status:" + status);
-      if (status) loadWalk(signal);
+      if (status) {
+        loadWalk(signal);
+      }
     });
 
+    // cleanup
     return () => {
       socket.off("walk status", null);
       loadWalkAbortController.abort();
@@ -142,21 +144,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
     // let other Safewalker know walk has been assigned
     socket.emit("walk status", true);
 
-    // store data
-    // await AsyncStorage.setItem("walkId", walkId);
-    // await AsyncStorage.setItem("userEmail", userEmail);
-    // await AsyncStorage.setItem("userSocketId", userSocketId);
     setUserInfo(walkId, userEmail, userSocketId);
-    setWalkAsActive();
-    //navigate to tab
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [
-    //     {
-    //       name: "SafewalkerTab",
-    //     },
-    //   ],
-    // });
+    setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
   }
 
   async function deleteRequest(walkId) {
@@ -175,7 +164,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     });
     let status = res.status;
     if (status != 200 && status != 201) {
-      console.log("delete walk failed: status " + status);
+      console.log("SWHome: delete walk failed: status " + status);
       return;
     }
 
@@ -184,7 +173,6 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
     if (userSocketId) {
       // notify user request has been denied
-      // console.log("In deleteRequest of SWHomeScreen in if statement");
       socket.emit("walker walk status", { userId: userSocketId, status: -1 });
     }
   }

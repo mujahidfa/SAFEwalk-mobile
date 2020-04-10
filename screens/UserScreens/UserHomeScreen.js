@@ -6,7 +6,6 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
-  AsyncStorage,
 } from "react-native";
 import { Input } from "react-native-elements";
 import { useForm } from "react-hook-form";
@@ -33,11 +32,9 @@ export default function UserHomeScreen({ navigation }) {
     if (type === "start") {
       setValue("startLocation", location, true);
       setLocation(location);
-      // console.log("start location:" + location);
     } else {
       setValue("endLocation", location, true);
       setDestination(location);
-      // console.log("end location:" + location);
     }
   };
 
@@ -64,14 +61,13 @@ export default function UserHomeScreen({ navigation }) {
 
       let status = res.status;
       if (status !== 200 && status !== 201) {
-        console.log("add walk failed: status " + status);
+        console.log("UserHome: add walk failed: status " + status);
         return;
       }
 
       let data = await res.json();
 
-      // const { setWalkId } = useContext(WalkContext);
-      // await AsyncStorage.setItem("walkId", data["id"]);
+      // store walkId in Context and AsyncStorage
       setWalkId(data["id"]);
 
       socket.emit("walk status", true); // send notification to all Safewalkers

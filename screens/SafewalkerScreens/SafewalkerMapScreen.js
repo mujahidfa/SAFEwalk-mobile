@@ -24,33 +24,24 @@ export default function MapScreen({ navigation }) {
       console.log("user walk status in SWMapScreen:" + status);
 
       switch (status) {
+        // SAFEwalker cancelled the walk
         case -2:
           resetWalkContextState();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "SafewalkerHome",
-          //     },
-          //   ],
-          // });
-          alert("The user canceled the walk.");
+          alert("The SAFEwalker canceled the walk.");
           break;
       }
     });
 
+    // cleanup
     return () => socket.off("user walk status", null);
   }, []);
 
   async function handleSubmit() {
-    // get socketId from async storage
-    // const userSocketId = await AsyncStorage.getItem("userSocketId");
     if (userSocketId) {
       // Let user know walk has been completed
       socket.emit("walker walk status", { userId: userSocketId, status: 2 }); // send notification to user
     }
 
-    // const walkId = await AsyncStorage.getItem("walkId");
     // putWalk API call
     const res = await fetch(url + "/api/Walks/" + walkId, {
       method: "PUT",
@@ -72,14 +63,6 @@ export default function MapScreen({ navigation }) {
     }
 
     resetWalkContextState();
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [
-    //     {
-    //       name: "SafewalkerHome",
-    //     },
-    //   ],
-    // });
   }
 
   return (

@@ -22,23 +22,17 @@ export default function UserProfileScreen({ navigation }) {
   const [city, setCity] = useState("Madison");
 
   const { userToken, email } = useContext(AuthContext);
-  const { walkId, userEmail, userSocketId, resetWalkContextState } = useContext(
-    WalkContext
-  );
-
-  useEffect(() => {
-    console.log("In UserProfileScreen:");
-    console.log("userEmail:" + userEmail);
-    console.log("walkerEmail:" + email);
-    console.log("userToken:" + userToken);
-  }, [email, userEmail, userToken]);
+  const {
+    walkId,
+    userEmail,
+    userSocketId,
+    walkerSocketId,
+    resetWalkContextState,
+  } = useContext(WalkContext);
 
   async function loadUserProfile(signal) {
     try {
-      // get user email from async storage
-      // const userEmail = await AsyncStorage.getItem("userEmail");
-
-      // GetUser API
+      // Get User API
       const res = await fetch(url + "/api/Users/" + userEmail, {
         method: "GET",
         headers: {
@@ -61,7 +55,6 @@ export default function UserProfileScreen({ navigation }) {
       setPhoneNumber(data["phoneNumber"]);
     } catch (error) {
       if (error.name === "AbortError") {
-        // console.log("In SafewalkerHomeScreen: Fetch " + error);
         return;
       }
 
@@ -69,13 +62,8 @@ export default function UserProfileScreen({ navigation }) {
     }
   }
 
-  // async function cleanUpStorage() {
-  //   // remove all current walk-related information
-  //   await AsyncStorage.removeItem("walkId");
-  //   await AsyncStorage.removeItem("userEmail");
-  //   await AsyncStorage.removeItem("userSocketId");
-  // }
-
+  // We put userEmail as the 2nd argument to tell React
+  // we only retrieve the user profile when userEmail is not undefined.
   useEffect(() => {
     // this is to fix memory leak error: Promise cleanup
     const loadUserProfileController = new AbortController();
@@ -83,28 +71,38 @@ export default function UserProfileScreen({ navigation }) {
 
     loadUserProfile(signal);
 
+    // cleanup
+    return () => {
+      loadUserProfileController.abort();
+    };
+
+    // Having userEmail as 2nd argument is necessary because
+    // it lets React run loadUserProfile again when userEmail has a non-undefined value.
+    // Otherwise, the value of userEmail used in loadUserProfile will stay undefined even after subsequent rerenders
+  }, [userEmail]);
+
+  // set up socket
+  useEffect(() => {
+    // this is to fix memory leak error: Promise cleanup
+    const loadUserProfileController = new AbortController();
+    const signal = loadUserProfileController.signal;
+
+    loadUserProfile(signal);
+    console.log("in useEffect User Profile Screen");
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       switch (status) {
+        // user canceled the walk
         case -2:
           resetWalkContextState();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "SafewalkerHome",
-          //     },
-          //   ],
-          // });
           alert("The user canceled the walk.");
-          // cleanUpStorage();
           break;
       }
     });
 
+    // socket cleanup
     return () => {
       socket.off("user walk status", null);
-      loadUserProfileController.abort();
     };
   }, []);
 
@@ -123,13 +121,11 @@ export default function UserProfileScreen({ navigation }) {
   }
 
   async function cancelWalk() {
-    // const userSocketId = await AsyncStorage.getItem("userSocketId");
     if (userSocketId) {
       // notify user walk has been cancelled
       socket.emit("walker walk status", { userId: userSocketId, status: -2 });
     }
 
-    // const walkId = await AsyncStorage.getItem("walkId");
     // DeleteWalk API call
     const res = await fetch(url + "/api/Walks/" + walkId, {
       method: "DELETE",
@@ -147,18 +143,9 @@ export default function UserProfileScreen({ navigation }) {
       alert("You canceled the walk.");
     }
 
-    resetWalkContextState();
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [
-    //     {
-    //       name: "SafewalkerHome",
-    //     },
-    //   ],
-    // });
-
     // remove all current walk-related information
-    // cleanUpStorage();
+    // and bring navigation back to InactiveWalk screens
+    resetWalkContextState();
   }
 
   return (

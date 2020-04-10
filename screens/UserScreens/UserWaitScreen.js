@@ -36,18 +36,17 @@ export default function UserHomeScreen({ navigation }) {
     timeoutFunc = setTimeout(() => {
       timeOut = true;
 
-      // add await and remove then()
+      // after 30 seconds, cancel the current request
       cancelRequest();
-      // navigation.reset({
-      //   index: 0,
-      //   routes: [
-      //     {
-      //       name: "UserHome",
-      //     },
-      //   ],
-      // });
     }, 30000);
-    // socket.open();
+
+    // timeout cleanup
+    return () => {
+      clearTimeout(timeoutFunc);
+    };
+  }, [walkId]);
+
+  useEffect(() => {
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
       console.log("walk status in UserWaitScreen:" + status);
@@ -56,8 +55,7 @@ export default function UserHomeScreen({ navigation }) {
         case -1: // Request rejected by SAFEwalker
           // Reset walk info in context. Then, go back to home screen
           resetWalkContextState();
-          // removeWalkId();
-          alert("Your request was denied.");
+          // keep this
           navigation.reset({
             index: 0,
             routes: [
@@ -66,47 +64,33 @@ export default function UserHomeScreen({ navigation }) {
               },
             ],
           });
-
+          alert("Your request was denied.");
           break;
+
         case 1: // Request accepted by SAFEwalker
-          // set isActiveWalk = true
-          // don't use navigation.reset cos the boolean in LoggedIn will auto change the router to the UserTab
           setWalkAsActive();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "UserTab",
-          //     },
-          //   ],
-          // });
           alert("A SAFEwalker is on their way!");
           break;
       }
     });
 
+    // socket cleanup
     return () => {
       socket.off("walker walk status", null);
-      clearTimeout(timeoutFunc);
     };
   }, []);
 
+  // Do something when the screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      // Do something when the screen is focused
-
+      // clears out timer once component is unloaded
       return () => {
-        // clears out timer once component is unloaded
         clearTimeout(timeoutFunc);
-        console.log("timeout cleared!");
       };
     }, [])
   );
 
   async function cancelRequest() {
-    // change to const {walkId}= useContext(WalkContext);
-    // const id = await AsyncStorage.getItem("walkId");
-
     // DeleteWalk API call
     const res = await fetch(url + "/api/Walks/" + walkId, {
       method: "DELETE",
@@ -118,16 +102,15 @@ export default function UserHomeScreen({ navigation }) {
     });
     let status = res.status;
     if (status !== 200 && status !== 201) {
-      console.log("delete walk failed: status " + status);
+      console.log("UserWait: delete walk failed: status " + status);
     }
 
     // send notification to all Safewalkers
     socket.emit("walk status", true);
 
-    // change to const {cancelPendingWalk}= useContext(WalkContext);
-    // remove walk-related info
-    // await AsyncStorage.removeItem("WalkId");
-    removeWalkId();
+    // reset all walk state
+    resetWalkContextState();
+
     // keep this
     navigation.reset({
       index: 0,
