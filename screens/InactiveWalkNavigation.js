@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
-import { Button, Text, View } from "react-native";
 
 // Screens
 import UserHomeNavigation from "./UserScreens/UserHomeNavigation";
 import SafewalkerHomeNavigation from "./SafewalkerScreens/SafewalkerHomeNavigation";
 import EditProfileNavigation from "./SharedScreens/EditProfileNavigation";
 import LoginSettingsNavigation from "./SharedScreens/LoginSettingsNavigation";
+import WalkErrorScreen from "./SharedScreens/WalkErrorScreen";
 
 // Drawer navigation
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -18,7 +18,7 @@ import { AuthContext } from "../contexts/AuthProvider";
 // Entry point for the Inactive Walk Navigation.
 // Checks for user type (User or Safewalker) to determine appropriate navigation.
 export default function InactiveWalkNavigation() {
-  const { userType, signout } = useContext(AuthContext);
+  const { userType } = useContext(AuthContext);
 
   return (
     <>
@@ -28,14 +28,8 @@ export default function InactiveWalkNavigation() {
       ) : userType === "safewalker" ? (
         <SafewalkerInactiveWalkNavigation />
       ) : (
-        <View>
-          {/* If userType is neither "user" nor "safewalker", there's something wrong */}
-          <Text>
-            userType is neither "user" nor "safewalker" in
-            InactiveWalkNavigation.js. Please sign out.
-          </Text>
-          <Button title="Sign out" onPress={signout()} />
-        </View>
+        // If userType is neither "user" nor "safewalker", there's something wrong
+        <WalkErrorScreen />
       )}
     </>
   );

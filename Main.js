@@ -1,13 +1,11 @@
 import React, { useEffect, useContext } from "react";
 import { AsyncStorage } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import LoadingScreen from "./components/LoadingScreen";
+import LoadingScreen from "./screens/SharedScreens/LoadingScreen";
 
 // Navigations
 import LoggedOutNavigation from "./screens/LoggedOutNavigation";
 import LoggedInNavigation from "./screens/LoggedInNavigation";
-
-import colors from "./constants/colors";
 
 // Contexts
 import { AuthContext } from "./contexts/AuthProvider";

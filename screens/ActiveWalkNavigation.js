@@ -11,6 +11,9 @@ import SafewalkerMapScreen from "./SafewalkerScreens/SafewalkerMapScreen";
 import SafewalkerProfileScreen from "./UserScreens/SafewalkerProfileScreen";
 import UserProfileScreen from "./SafewalkerScreens/UserProfileScreen";
 
+// Other screens
+import WalkErrorScreen from "./SharedScreens/WalkErrorScreen";
+
 // Navigators
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -23,7 +26,7 @@ import { AuthContext } from "../contexts/AuthProvider";
 // Entry point for the Active Walk Navigation.
 // Checks for user type (User or Safewalker) to determine appropriate navigation.
 export default function ActiveWalkNavigation() {
-  const { userType, signout } = useContext(AuthContext);
+  const { userType } = useContext(AuthContext);
 
   return (
     <>
@@ -33,14 +36,8 @@ export default function ActiveWalkNavigation() {
       ) : userType === "safewalker" ? (
         <SafewalkerActiveWalkNavigation />
       ) : (
-        <View>
-          {/* If userType is neither "user" nor "safewalker", there's something wrong */}
-          <Text>
-            userType is neither "user" nor "safewalker" in
-            ActiveWalkNavigation.js. Please sign out.
-          </Text>
-          <Button title="Sign out" onPress={signout()} />
-        </View>
+        // If userType is neither "user" nor "safewalker", there's something wrong
+        <WalkErrorScreen />
       )}
     </>
   );
