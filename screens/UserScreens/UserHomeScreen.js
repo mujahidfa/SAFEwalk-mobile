@@ -6,14 +6,18 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
-  AsyncStorage,
 } from "react-native";
 import { Input } from "react-native-elements";
+import { useForm } from "react-hook-form";
+
+// Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import url from "./../../constants/api";
+
+// Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
-import { useForm } from "react-hook-form";
 
 export default function UserHomeScreen({ navigation }) {
   const [location, setLocation] = useState("");
@@ -24,27 +28,22 @@ export default function UserHomeScreen({ navigation }) {
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
 
-  const changeLocation = (type, location) => {
-    if (type === "start") {
-      setValue("startLocation", location, true);
-      setLocation(location);
-      // console.log("start location:" + location);
-    } else {
-      setValue("endLocation", location, true);
-      setDestination(location);
-      // console.log("end location:" + location);
-    }
-  };
-
+  /**
+   * Make a walk request.
+   *
+   * First, do input checking on the location inputs
+   * Next, create a new walk in the database
+   * Finally, notify the SAFEwalkers that a new walk request is made, and move into
+   */
   async function addRequest() {
     const startLocationNotEmpty = await triggerValidation("startLocation");
     const destinationNotEmpty = await triggerValidation("endLocation");
 
     if (startLocationNotEmpty && destinationNotEmpty) {
-      // addWalk API call - create walk
-      const res = await fetch(
-        "https://safewalkapplication.azurewebsites.net/api/Walks",
-        {
+      try {
+        // Add Walk API call
+        // Create a walk in the database
+        const res = await fetch(url + "/api/Walks", {
           method: "POST",
           headers: {
             token: userToken,
@@ -57,38 +56,62 @@ export default function UserHomeScreen({ navigation }) {
             destText: destination,
             userSocketId: socket.id,
           }),
+        });
+
+        let status = res.status;
+
+        // Upon fetch failure/bad status
+        if (status !== 200 && status !== 201) {
+          console.log(
+            "creating a walk request in addRequest() in UserHomeScreen failed: status " +
+              status
+          );
+          return;
         }
-      );
 
-      let status = res.status;
-      if (status !== 200 && status !== 201) {
-        console.log("add walk failed: status " + status);
-        return;
+        // Upon fetch success
+        else {
+          let data = await res.json();
+
+          // store walkId in the WalkContext
+          setWalkId(data["id"]);
+
+          // send notification to all Safewalkers
+          socket.emit("walk status", true);
+
+          // navigate to the wait screen (keep this)
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserWait",
+              },
+            ],
+          });
+        }
+      } catch (error) {
+        console.error(
+          "Error in creating a new walk in addRequest() in UserHomeScreen:" +
+            error
+        );
       }
-
-      let data = await res.json();
-
-      // const { setWalkId } = useContext(WalkContext);
-      // await AsyncStorage.setItem("walkId", data["id"]);
-      setWalkId(data["id"]);
-
-      socket.emit("walk status", true); // send notification to all Safewalkers
-      // keep this
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: "UserWait",
-          },
-        ],
-      });
     }
   }
+
+  const changeLocation = (type, location) => {
+    if (type === "start") {
+      setValue("startLocation", location, true);
+      setLocation(location);
+    } else {
+      setValue("endLocation", location, true);
+      setDestination(location);
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
-        {/* User Start and End Location Input Fields */}
+        {/* User Start and End Location input fields */}
         {errors.startLocation && (
           <Text style={styles.textError}>
             A start location is required to submit a request.
