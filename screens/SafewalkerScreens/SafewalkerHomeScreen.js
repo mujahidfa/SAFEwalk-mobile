@@ -1,14 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  AsyncStorage,
-  Header,
-  Footer,
-  totalResults,
-} from "react-native";
+import { StyleSheet, Text, View, FlatList, totalResults } from "react-native";
 
 // 3rd party libraries
 import Swipeable from "react-native-gesture-handler/Swipeable";
@@ -26,52 +17,13 @@ import { WalkContext } from "./../../contexts/WalkProvider";
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const [requests, setRequests] = useState([]);
-
   const { userToken, email } = useContext(AuthContext);
   const { setUserInfo, setWalkAsActive } = useContext(WalkContext);
 
-  async function loadWalk(signal) {
-    try {
-      // GetWalks API, setRequests
-      const res = await fetch(
-        "https://safewalkapplication.azurewebsites.net/api/Walks",
-        {
-          method: "GET",
-          headers: {
-            token: userToken,
-            email: email,
-          },
-          signal: signal,
-        }
-      );
-      let status = res.status;
-      if (status != 200 && status != 201) {
-        console.log("get walk requests failed: status " + status);
-        return;
-      }
-
-      const data = await res.json();
-      let walks = [];
-      for (const walk of Object.entries(data)) {
-        walks.push({
-          id: walk[1]["id"],
-          username: walk[1]["userEmail"],
-          time: walk[1]["time"],
-          startText: walk[1]["startText"],
-          endText: walk[1]["destText"],
-        });
-      }
-
-      setRequests(walks);
-    } catch (error) {
-      if (error.name === "AbortError") {
-        return;
-      }
-
-      console.error("Error in loadWalk() in SafewalkerHomeScreen:" + error);
-    }
-  }
-
+  /**
+   * This effect sets up the socket connection to the User to listen to new walk requests.
+   * This effect is run once upon component mount.
+   */
   useEffect(() => {
     // this is to fix memory leak error: Promise cleanup
     const loadWalkAbortController = new AbortController();
@@ -79,7 +31,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
     loadWalk(signal);
 
-    // listen for new requests (status will be true upon new requests)
+    /**
+     * Listen for new walk request signals (status will be true upon new requests)
+     * Every time a new walk request signal is received,
+     * we retrieve the latest walk requests from the database.
+     */
     socket.on("walk status", (status) => {
       if (status) {
         loadWalk(signal);
@@ -93,87 +49,221 @@ export default function SafewalkerHomeScreen({ navigation }) {
     };
   }, []);
 
-  async function acceptRequest(walkId) {
-    // GetWalkStatus API call - check if request has been accepted
-    const res = await fetch(url + "/api/Walks/" + walkId + "/status", {
-      method: "GET",
-      headers: {
-        token: userToken,
-        email: email,
-        isUser: false,
-      },
-    });
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.error("get walk status failed: status " + status);
-      return;
+  /**
+   * Loads the walk requests from the database and fills them in local state (i.e. in "requests")
+   *
+   * @param signal cancels the fetch request when component is unmounted.
+   */
+  async function loadWalk(signal) {
+    try {
+      // Get Walks API
+      // Retrieve the walk requests from the database
+      const res = await fetch(url + "/api/Walks", {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+        },
+        signal: signal,
+      });
+
+      let status = res.status;
+
+      // Upon fetch failure/bad status
+      if (status != 200 && status != 201) {
+        console.log(
+          "get walk requests in loadWalk() in SafewalkerHomeScreen failed: status " +
+            status
+        );
+        return;
+      }
+
+      // Upon fetch success
+      else {
+        // We fill up local state with formatted data
+        const data = await res.json();
+        let walks = [];
+        for (const walk of Object.entries(data)) {
+          walks.push({
+            id: walk[1]["id"],
+            username: walk[1]["userEmail"],
+            time: walk[1]["time"],
+            startText: walk[1]["startText"],
+            endText: walk[1]["destText"],
+          });
+        }
+        setRequests(walks);
+      }
+    } catch (error) {
+      /**
+       * When the component unmounts, the AbortController will cancel any recurring fetch requests.
+       * When that happens (i.e. fetch cancel), it throws an AbortError error.
+       * So we catch this error to differentiate it from other errors.
+       * This is the same as if (error.name === "AbortError")
+       */
+      if (signal.aborted) {
+        return;
+      }
+
+      console.error(
+        "Error in fetching walk requests from loadWalk() in SafewalkerHomeScreen:" +
+          error
+      );
     }
-
-    const data = await res.json();
-    if (data != 0) {
-      alert("Unavailable");
-      return;
-    }
-
-    // PutWalk API call
-    const res1 = await fetch(url + "/api/Walks/" + walkId, {
-      method: "PUT",
-      headers: {
-        token: userToken,
-        email: email,
-        isUser: false,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status: 1,
-        walkerSocketId: socket.id,
-      }),
-    });
-    status = res1.status;
-    if (status != 200 && status != 201) {
-      console.error("accept walk failed: status " + status);
-      return;
-    }
-
-    const data1 = await res1.json();
-    const userEmail = data1["userEmail"];
-    const userSocketId = data1["userSocketId"];
-
-    // Let user know request has been accepted
-    socket.emit("walker walk status", { userId: userSocketId, status: 1 }); // send notification to user
-    // let other Safewalker know walk has been assigned
-    socket.emit("walk status", true);
-
-    setUserInfo(walkId, userEmail, userSocketId);
-    setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
   }
 
-  async function deleteRequest(walkId) {
-    setRequests((prevRequests) => {
-      return prevRequests.filter((request) => request.id != walkId);
-    });
+  /**
+   * Upon swipe, the SAFEwalker accept the walk request.
+   *
+   * @param walkId the id of the walk to be accepted
+   */
+  async function acceptRequest(walkId) {
+    try {
+      // Get Walk Status API call
+      // Check if walk request specified by walkId has been accepted
+      const res = await fetch(url + "/api/Walks/" + walkId + "/status", {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+        },
+      });
 
-    // DeleteWalk API call
-    const res = await fetch(url + "/api/Walks/" + walkId, {
-      method: "DELETE",
-      headers: {
-        token: userToken,
-        email: email,
-        isUser: false,
-      },
-    });
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("SWHome: delete walk failed: status " + status);
-      return;
+      let status = res.status;
+
+      // Upon fetch failure/bad status
+      if (status != 200 && status != 201) {
+        console.log(
+          "get walk status in acceptRequest() in SafewalkerHomeScreen failed: status " +
+            status
+        );
+        return;
+      }
+
+      // Upon fetch success
+      else {
+        const data = await res.json();
+        if (data !== 0) {
+          alert("Unavailable");
+          return;
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Error in getting walk request status in acceptRequest() in SafewalkerHomeScreen:" +
+          error
+      );
     }
 
-    const data = await res.json();
-    const userSocketId = data["userSocketId"];
+    try {
+      // Put Walk API call
+      const res = await fetch(url + "/api/Walks/" + walkId, {
+        method: "PUT",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: 1,
+          walkerSocketId: socket.id,
+        }),
+      });
 
-    if (userSocketId) {
-      // notify user request has been denied
-      socket.emit("walker walk status", { userId: userSocketId, status: -1 });
+      let status = res.status;
+
+      // Upon fetch failure/bad status
+      if (status != 200 && status != 201) {
+        console.log(
+          "accept walk in acceptRequest() in SafewalkerHomeScreen failed: status " +
+            status
+        );
+        return;
+      }
+
+      // Upon fetch success
+      else {
+        // Retrieve the user email and socket ID and store it in WalkContext
+        // Then, set walk as active, and navigate to ActiveWalk screens
+        const data = await res.json();
+        const userEmail = data["userEmail"];
+        const userSocketId = data["userSocketId"];
+
+        // Let user know request has been accepted
+        socket.emit("walker walk status", { userId: userSocketId, status: 1 });
+        // let other Safewalkers know walk has been assigned to the current SAFEwalker
+        socket.emit("walk status", true);
+
+        setUserInfo(walkId, userEmail, userSocketId); // save walk info in WalkContext
+        setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
+      }
+    } catch (error) {
+      console.error(
+        "Error in blablabla from acceptRequest() in SafewalkerHomeScreen:" +
+          error
+      );
+    }
+  }
+
+  /**
+   * Upon swipe, deletes the walk request.
+   *
+   * First, we delete the walk request in the database.
+   * Next, we remove the walk request from the local walk request array.
+   * Finally, we notify the User that their walk request has been rejected (using sockets).
+   *
+   * @param walkId the id of the walk to be deleted
+   */
+  async function deleteRequest(walkId) {
+    try {
+      // Delete Walk API call
+      // Deletes the walk request in the database
+      const res = await fetch(url + "/api/Walks/" + walkId, {
+        method: "DELETE",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: false,
+        },
+      });
+
+      let status = res.status;
+
+      // Upon fetch failure/bad status
+      if (status != 200 && status != 201) {
+        console.log(
+          "delete walk request in deleteRequest() in SafewalkerHomeScreen failed: status " +
+            status
+        );
+        return;
+      }
+
+      // Upon fetch success
+      else {
+        const data = await res.json();
+        const userSocketId = data["userSocketId"];
+
+        // Remove the walk request with the corresponding walkId from local state
+        setRequests((prevRequests) => {
+          return prevRequests.filter((request) => request.id != walkId);
+        });
+
+        if (userSocketId) {
+          // notify user that their walk request has been denied
+          console.log("in socket in SW home screen");
+          socket.emit("walker walk status", {
+            userId: userSocketId,
+            status: -1,
+          });
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Error in deleting walk request in deleteRequest() in SafewalkerHomeScreen:" +
+          error
+      );
     }
   }
 
