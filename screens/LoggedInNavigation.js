@@ -1,11 +1,6 @@
 import React, { useEffect, useContext } from "react";
-import {
-  ActivityIndicator,
-  AsyncStorage,
-  View,
-  Text,
-  Button,
-} from "react-native";
+import { AsyncStorage } from "react-native";
+import LoadingScreen from "./../components/LoadingScreen";
 
 // Navigation
 import InactiveWalkNavigation from "./InactiveWalkNavigation";
@@ -13,6 +8,7 @@ import ActiveWalkNavigation from "./ActiveWalkNavigation";
 
 // Constants
 import url from "./../constants/api";
+import colors from "./../constants/colors";
 
 // Contexts
 import { AuthContext } from "./../contexts/AuthProvider";
@@ -27,18 +23,18 @@ export default function LoggedInNavigation() {
     resetWalkContextState,
   } = useContext(WalkContext);
 
-  // This effect checks whether there's an active walk,
-  // then restores the Walk states to the WalkContext store.
-  // - If there's an active walk, navigate to ActiveWalk Navigation.
-  // - Else, navigate to InactiveWalk Navigation.
+  /**
+   * This effect checks whether there's an active walk,
+   * then restores the Walk states to the WalkContext store.
+   *
+   * If there's an active walk, navigate to ActiveWalk Navigation.
+   * Else, navigate to InactiveWalk Navigation.
+   */
   useEffect(() => {
     async function checkForWalkStatus() {
-      let isWalkActive;
-      let walkId;
-
       try {
-        isWalkActive = await AsyncStorage.getItem("isWalkActive");
-        walkId = await AsyncStorage.getItem("walkId");
+        let isWalkActive = await AsyncStorage.getItem("isWalkActive");
+        let walkId = await AsyncStorage.getItem("walkId");
 
         // if walkId and isWalkActive was stored in async storage
         if (walkId !== null && isWalkActive !== null) {
@@ -105,7 +101,7 @@ export default function LoggedInNavigation() {
         }
         // if walkId and isWalkActive could not be found in async storage, reset the state
         else {
-          // this will change the navigation to InactiveWalk screens
+          // Clear all data in the WalkContext.
           resetWalkContextState();
           return;
         }
@@ -120,15 +116,13 @@ export default function LoggedInNavigation() {
   }, []);
 
   if (isWalkLoading === true) {
-    return <ActivityIndicator size="large" color="#00ff00" />;
+    return <LoadingScreen />;
   }
 
   return (
     <>
-      {/* Check what state did the user left the app at, and retrieve that back */}
-      {isWalkActive === "false" ? (
-        <InactiveWalkNavigation />
-      ) : isWalkActive === "true" ? (
+      {/* Navigate to appropriate screens according to walk status */}
+      {isWalkActive === "true" ? (
         <ActiveWalkNavigation />
       ) : (
         <InactiveWalkNavigation />
