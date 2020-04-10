@@ -1,58 +1,45 @@
-import React, { useEffect, useContext } from "react";
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  AsyncStorage,
-  StyleSheet,
-} from "react-native";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import { useFocusEffect } from "@react-navigation/core";
 import LottieView from "lottie-react-native";
-import io from "socket.io-client";
+
+// Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import url from "./../../constants/api";
+
+// Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
-import { useFocusEffect } from "@react-navigation/core";
 
 export default function UserHomeScreen({ navigation }) {
+  const [isTimeout, setIsTimeout] = useState(false);
+
+  // Use a ref to access the current value in an async callback
+  const isTimeoutRef = useRef(isTimeout);
+  isTimeoutRef.current = isTimeout;
+
   const { userToken, email } = useContext(AuthContext);
-  const {
-    setWalkAsActive,
-    walkId,
-    removeWalkId,
-    resetWalkContextState,
-  } = useContext(WalkContext);
+  const { setWalkAsActive, walkId, resetWalkContextState } = useContext(
+    WalkContext
+  );
 
-  let timeoutFunc = null;
-  let timeOut = false;
-
+  /**
+   * This effect sets up the socket connection to the SAFEwalker to listen to walk request responses.
+   * This effect is run once upon component mount.
+   */
   useEffect(() => {
-    // cancel request after 30 seconds
-    timeoutFunc = setTimeout(() => {
-      timeOut = true;
-
-      // add await and remove then()
-      cancelRequest();
-      // navigation.reset({
-      //   index: 0,
-      //   routes: [
-      //     {
-      //       name: "UserHome",
-      //     },
-      //   ],
-      // });
-    }, 30000);
-    // socket.open();
+    console.log("in useEffect socket of UserWaitScreen");
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
       console.log("walk status in UserWaitScreen:" + status);
 
       switch (status) {
-        case -1: // Request rejected by SAFEwalker
-          // Reset walk info in context. Then, go back to home screen
+        // Request rejected by SAFEwalker
+        case -1:
+          // Reset walk info in context.
           resetWalkContextState();
-          // removeWalkId();
-          alert("Your request was denied.");
+          // Then, go back to home screen. Keep this.
           navigation.reset({
             index: 0,
             routes: [
@@ -61,72 +48,95 @@ export default function UserHomeScreen({ navigation }) {
               },
             ],
           });
-
+          alert("Your request was denied.");
           break;
-        case 1: // Request accepted by SAFEwalker
-          // set isActiveWalk = true
-          // don't use navigation.reset cos the boolean in LoggedIn will auto change the router to the UserTab
+
+        // Request accepted by SAFEwalker
+        case 1:
           setWalkAsActive();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "UserTab",
-          //     },
-          //   ],
-          // });
           alert("A SAFEwalker is on their way!");
           break;
+
+        default:
+          console.log(
+            "Unexpected socket status received in UserWaitScreen: status " +
+            status
+          );
       }
     });
 
+    // socket cleanup
     return () => {
       socket.off("walker walk status", null);
-      clearTimeout(timeoutFunc);
     };
   }, []);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      // Do something when the screen is focused
+  /**
+   * This effect sets up a timeout of 30 seconds before cancelling a walk request.
+   *
+   * This effect is only run every time a new request was made.
+   */
+  useEffect(() => {
+    // cancel request after 30 seconds
+    let timeoutFunc = setTimeout(() => {
+      setIsTimeout(true);
 
-      return () => {
-        // clears out timer once component is unloaded
-        clearTimeout(timeoutFunc);
-        console.log("timeout cleared!");
-      };
-    }, [])
-  );
+      // after 30 seconds, cancel the current request
+      cancelRequest();
+    }, 30000);
 
+    // timeout cleanup
+    return () => {
+      clearTimeout(timeoutFunc);
+    };
+
+    /**
+     * walkId is used as 2nd argument to tell the effect
+     * to run only when there's a new walkId value.
+     * This allows the effect to run every time a new request was made.
+     */
+  }, [walkId, isTimeout]);
+
+  /**
+   * Delete the requested walk in the database using a DELETE request to the API.
+   * If successful,
+   *  - we emit a message to the SAFEwalker that walk has been cancelled,
+   *  - we remove all walk data from Context, and
+   *  - we navigate back to home screen.
+   */
   async function cancelRequest() {
-    // change to const {walkId}= useContext(WalkContext);
-    // const id = await AsyncStorage.getItem("walkId");
+    // Delete Walk API call
+    // Delete the requested walk in the database
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: true,
+      },
+    }).catch((error) => {
+      console.error(
+        "Error in DELETE walk from cancelRequest() in UserWaitScreen:" +
+        error
+      )
+    });
 
-    // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
-      }
-    );
     let status = res.status;
+    // Upon fetch failure/bad status
     if (status !== 200 && status !== 201) {
-      console.log("delete walk failed: status " + status);
+      console.log(
+        "deleting requested walk failed in cancelRequest() in UserWaitScreen: status " +
+        status
+      );
     }
 
-    // send notification to all Safewalkers
+    // send notification to all Safewalkers that the walk request is cancelled
     socket.emit("walk status", true);
 
-    // change to const {cancelPendingWalk}= useContext(WalkContext);
-    // remove walk-related info
-    // await AsyncStorage.removeItem("WalkId");
-    removeWalkId();
-    // keep this
+    // reset all walk state
+    resetWalkContextState();
+
+    // navigate to user home screen
     navigation.reset({
       index: 0,
       routes: [
@@ -136,10 +146,10 @@ export default function UserHomeScreen({ navigation }) {
       ],
     });
 
-    // show different alerts according to whether
+    // Show different alerts according to whether
     // the user cancels the walk or 30 seconds has passed
-    if (timeOut === true) {
-      timeOut = false;
+    if (isTimeoutRef.current === true) {
+      setIsTimeout(false);
       alert("Your request was timed out.");
     } else {
       alert("Request canceled.");
@@ -148,7 +158,7 @@ export default function UserHomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* View When the User Submits a SAFEwalk Request */}
+      {/* View when the User submits a SAFEwalk request */}
       <View style={{ flex: 3 }}>
         <Text
           style={{

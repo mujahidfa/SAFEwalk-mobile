@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { StyleSheet, Text, View, AsyncStorage } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
 import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
@@ -7,6 +7,7 @@ import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
 // Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import url from "./../../constants/api";
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -25,90 +26,156 @@ export default function UserProfileScreen({ navigation }) {
     WalkContext
   );
 
+  /**
+   * This effect sets up the socket connection to the User.
+   * This effect is run once upon component mount.
+   */
   useEffect(() => {
-    console.log("In UserProfileScreen:");
-    console.log("userEmail:" + userEmail);
-    console.log("walkerEmail:" + email);
-    console.log("userToken:" + userToken);
-  }, [email, userEmail, userToken]);
+    // socket to listen to user status change
+    socket.on("user walk status", (status) => {
+      switch (status) {
+        // user canceled the walk
+        case -2:
+          resetWalkContextState();
+          alert("The user canceled the walk.");
+          console.log("listened to user walk - cancelled request");
+          break;
 
-  async function loadUserProfile(signal) {
-    try {
-      // get user email from async storage
-      // const userEmail = await AsyncStorage.getItem("userEmail");
-
-      // GetUser API
-      const res = await fetch(
-        "https://safewalkapplication.azurewebsites.net/api/Users/" + userEmail,
-        {
-          method: "GET",
-          headers: {
-            token: userToken,
-            email: email,
-            isUser: false,
-          },
-          signal: signal,
-        }
-      );
-
-      const status = res.status;
-      if (status != 200 && status != 201) {
-        console.log("get user info failed: status " + status);
-        return;
+        default:
+          console.log(
+            "Unexpected socket status received in UserProfileScreen: status " +
+            status
+          );
       }
+    });
 
-      const data = await res.json();
-      setFirstname(data["firstName"]);
-      setLastname(data["lastName"]);
-      setPhoneNumber(data["phoneNumber"]);
-    } catch (error) {
-      if (error.name === "AbortError") {
-        // console.log("In SafewalkerHomeScreen: Fetch " + error);
-        return;
-      }
+    // socket cleanup
+    return () => {
+      socket.off("user walk status", null);
+    };
+  }, []);
 
-      console.error("Error in loadUserProfile() in UserProfileScreen:" + error);
-    }
-  }
-
-  // async function cleanUpStorage() {
-  //   // remove all current walk-related information
-  //   await AsyncStorage.removeItem("walkId");
-  //   await AsyncStorage.removeItem("userEmail");
-  //   await AsyncStorage.removeItem("userSocketId");
-  // }
-
+  /**
+   * This effect retrieves the User information associated with the walk.
+   * This effect is only run when userEmail value changes to ensure data retrieved is not stale.
+   */
   useEffect(() => {
-    // this is to fix memory leak error: Promise cleanup
+    // this is to fix memory leak error
     const loadUserProfileController = new AbortController();
     const signal = loadUserProfileController.signal;
 
     loadUserProfile(signal);
 
-    // socket to listen to user status change
-    socket.on("user walk status", (status) => {
-      switch (status) {
-        case -2:
-          resetWalkContextState();
-          // navigation.reset({
-          //   index: 0,
-          //   routes: [
-          //     {
-          //       name: "SafewalkerHome",
-          //     },
-          //   ],
-          // });
-          alert("The user canceled the walk.");
-          // cleanUpStorage();
-          break;
-      }
-    });
-
+    // API call cleanup
     return () => {
-      socket.off("user walk status", null);
       loadUserProfileController.abort();
     };
-  }, []);
+
+    /**
+     * Since the User's email is how the API call knows which User data to fetch,
+     * putting userEmail as 2nd argument is necessary because
+     * this ensures that the API call is made with the latest, updated value of UserEmail,
+     * therefore ensures that the API call is made for the correct User.
+     */
+  }, [userEmail]);
+
+  /**
+   * Loads the user profile from the database based on the user's email
+   * and fills it up in the local state.
+   *
+   * @param signal cancels the fetch request when component is unmounted.
+   */
+  async function loadUserProfile(signal) {
+    // Get User API
+    // Retrieve the User's personal information such as name & phone number
+    const res = await fetch(url + "/api/Users/" + userEmail, {
+      method: "GET",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+      signal: signal,
+    }).catch((error) => {
+      // cancel fetch upon component unmount
+      if (signal.aborted) {
+        return; // exit
+      }
+      console.error(
+        "Error in fetching data from loadUserProfile() in UserProfileScreen:" +
+        error
+      );
+    });
+
+    if (res == null) {
+      return; // exit
+    }
+
+    const status = res.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "retrieving user info in loadUserProfile() in UserProfileScreen failed: status " +
+        status
+      );
+      return; // exit
+    }
+
+    // We update the local state with retrieved data
+    const data = await res.json();
+    setFirstname(data["firstName"]);
+    setLastname(data["lastName"]);
+    setPhoneNumber(data["phoneNumber"]);
+  }
+
+  /**
+   * Upon cancel button press, we delete the walk in the database using a DELETE request to the API.
+   * If successful,
+   *  - we emit a message to the User that walk has been cancelled,
+   *  - we remove all walk data from Context, and
+   *  - we navigate back to home screen.
+   */
+  async function cancelWalk() {
+    // Delete Walk API call
+    // Delete the current walk in the database
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+    }).catch((error) => {
+      console.error(
+        "Error in DELETE walk from cancelWalk() in UserProfileScreen:" +
+        error
+      )
+    });
+
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "deleting walk failed in cancelWalk() in UserProfileScreen: status " +
+        status
+      );
+    }
+
+    // if userSocketId is not null
+    if (userSocketId) {
+      // notify the user that walk has been cancelled
+      socket.emit("walker walk status", {
+        userId: userSocketId,
+        status: -2,
+      });
+    }
+
+    // Remove all current walk-related information
+    // and bring navigation back to InactiveWalk screens
+    resetWalkContextState();
+
+    alert("You canceled the walk.");
+  }
 
   function handleCall() {
     Linking.openURL("tel:+1" + phoneNumber);
@@ -122,48 +189,6 @@ export default function UserProfileScreen({ navigation }) {
     let daddr = encodeURIComponent(`${address} ${postalCode}, ${city}`);
 
     Linking.openURL(`https://maps.google.com/?daddr=${daddr}`);
-  }
-
-  async function cancelWalk() {
-    // const userSocketId = await AsyncStorage.getItem("userSocketId");
-    if (userSocketId) {
-      // notify user walk has been cancelled
-      socket.emit("walker walk status", { userId: userSocketId, status: -2 });
-    }
-
-    // const walkId = await AsyncStorage.getItem("walkId");
-    // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + walkId,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
-      }
-    );
-
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("delete walk failed: status " + status);
-    } else {
-      alert("You canceled the walk.");
-    }
-
-    resetWalkContextState();
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [
-    //     {
-    //       name: "SafewalkerHome",
-    //     },
-    //   ],
-    // });
-
-    // remove all current walk-related information
-    // cleanUpStorage();
   }
 
   return (
