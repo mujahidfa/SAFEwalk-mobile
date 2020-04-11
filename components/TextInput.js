@@ -9,10 +9,13 @@ export default function WrapperTextInput(props) {
   return (
     <TextInput
       label={props.label}
+      value={props.defaultValue}
       placeholder={props.placeholder}
       onChangeText={props.onChangeText}
       ref={props.ref}
       mode="outlined"
+      multiline={props.multiline}
+      numberOfLines={props.numberOfLines}
       theme={{ colors: { primary: colors.orange } }}
       style={[styles.input, props.style]}
       keyboardType={props.keyboardType}
