@@ -47,7 +47,7 @@ export default function UserMapScreen({ navigation }) {
     // cleanup socket
     return () => {
       socket.off("walker walk status", null);
-      socket.ogg("connection lost", null);
+      socket.off("connection lost", null);
     };
   }, []);
 
