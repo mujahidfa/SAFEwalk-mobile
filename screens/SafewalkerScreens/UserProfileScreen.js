@@ -38,12 +38,13 @@ export default function UserProfileScreen({ navigation }) {
         case -2:
           resetWalkContextState();
           alert("The user canceled the walk.");
+          console.log("listened to user walk - cancelled request");
           break;
 
         default:
           console.log(
             "Unexpected socket status received in UserProfileScreen: status " +
-              status
+            status
           );
       }
     });
@@ -85,54 +86,46 @@ export default function UserProfileScreen({ navigation }) {
    * @param signal cancels the fetch request when component is unmounted.
    */
   async function loadUserProfile(signal) {
-    try {
-      // Get User API
-      // Retrieve the User's personal information such as name & phone number
-      const res = await fetch(url + "/api/Users/" + userEmail, {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
-        signal: signal,
-      });
-
-      const status = res.status;
-
-      // Upon fetch failure/bad status
-      if (status != 200 && status != 201) {
-        console.log(
-          "retrieving user info in loadUserProfile() in UserProfileScreen failed: status " +
-            status
-        );
-        return;
-      }
-
-      // Upon fetch success
-      else {
-        // We update the local state with retrieved data
-        const data = await res.json();
-        setFirstname(data["firstName"]);
-        setLastname(data["lastName"]);
-        setPhoneNumber(data["phoneNumber"]);
-      }
-    } catch (error) {
-      /**
-       * When the component unmounts, the AbortController will cancel any recurring fetch requests.
-       * When that happens (i.e. fetch cancel), it throws an AbortError error.
-       * So we catch this error to differentiate it from other errors.
-       * This is the same as if (error.name === "AbortError")
-       */
+    // Get User API
+    // Retrieve the User's personal information such as name & phone number
+    const res = await fetch(url + "/api/Users/" + userEmail, {
+      method: "GET",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+      signal: signal,
+    }).catch((error) => {
+      // cancel fetch upon component unmount
       if (signal.aborted) {
-        return;
+        return; // exit
       }
-
       console.error(
         "Error in fetching data from loadUserProfile() in UserProfileScreen:" +
-          error
+        error
       );
+    });
+
+    if (res == null) {
+      return; // exit
     }
+
+    const status = res.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "retrieving user info in loadUserProfile() in UserProfileScreen failed: status " +
+        status
+      );
+      return; // exit
+    }
+
+    // We update the local state with retrieved data
+    const data = await res.json();
+    setFirstname(data["firstName"]);
+    setLastname(data["lastName"]);
+    setPhoneNumber(data["phoneNumber"]);
   }
 
   /**
@@ -143,53 +136,45 @@ export default function UserProfileScreen({ navigation }) {
    *  - we navigate back to home screen.
    */
   async function cancelWalk() {
-    try {
-      // Delete Walk API call
-      // Delete the current walk in the database
-      const res = await fetch(url + "/api/Walks/" + walkId, {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
-      });
-
-      let status = res.status;
-
-      // Upon fetch failure/bad status
-      if (status != 200 && status != 201) {
-        console.log(
-          "deleting walk failed in cancelWalk() in UserProfileScreen: status " +
-            status
-        );
-
-        return;
-      }
-
-      // Upon fetch success
-      else {
-        // if userSocketId is not null
-        if (userSocketId) {
-          // notify the user that walk has been cancelled
-          socket.emit("walker walk status", {
-            userId: userSocketId,
-            status: -2,
-          });
-        }
-
-        // Remove all current walk-related information
-        // and bring navigation back to InactiveWalk screens
-        resetWalkContextState();
-
-        alert("You canceled the walk.");
-      }
-    } catch (error) {
+    // Delete Walk API call
+    // Delete the current walk in the database
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+    }).catch((error) => {
       console.error(
-        "Error in cancelling walk from cancelWalk() in UserProfileScreen:" +
-          error
+        "Error in DELETE walk from cancelWalk() in UserProfileScreen:" +
+        error
+      )
+    });
+
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "deleting walk failed in cancelWalk() in UserProfileScreen: status " +
+        status
       );
     }
+
+    // if userSocketId is not null
+    if (userSocketId) {
+      // notify the user that walk has been cancelled
+      socket.emit("walker walk status", {
+        userId: userSocketId,
+        status: -2,
+      });
+    }
+
+    // Remove all current walk-related information
+    // and bring navigation back to InactiveWalk screens
+    resetWalkContextState();
+
+    alert("You canceled the walk.");
   }
 
   function handleCall() {

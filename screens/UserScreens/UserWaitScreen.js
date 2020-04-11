@@ -60,7 +60,7 @@ export default function UserHomeScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in UserWaitScreen: status " +
-              status
+            status
           );
       }
     });
@@ -105,60 +105,54 @@ export default function UserHomeScreen({ navigation }) {
    *  - we navigate back to home screen.
    */
   async function cancelRequest() {
-    try {
-      // Delete Walk API call
-      // Delete the requested walk in the database
-      const res = await fetch(url + "/api/Walks/" + walkId, {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
-      });
-      let status = res.status;
-
-      // Upon fetch failure/bad status
-      if (status !== 200 && status !== 201) {
-        console.log(
-          "deleting requested walk failed in cancelRequest() in UserWaitScreen: status " +
-            status
-        );
-        return;
-      }
-
-      // Upon fetch success
-      else {
-        // send notification to all Safewalkers that the walk request is cancelled
-        socket.emit("walk status", true);
-
-        // reset all walk state
-        resetWalkContextState();
-
-        // keep this
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: "UserHome",
-            },
-          ],
-        });
-
-        // Show different alerts according to whether
-        // the user cancels the walk or 30 seconds has passed
-        if (isTimeoutRef.current === true) {
-          setIsTimeout(false);
-          alert("Your request was timed out.");
-        } else {
-          alert("Request canceled.");
-        }
-      }
-    } catch (error) {
+    // Delete Walk API call
+    // Delete the requested walk in the database
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: true,
+      },
+    }).catch((error) => {
       console.error(
-        "Error in cancelling walk from cancelRequest() in UserWaitScreen:" +
-          error
+        "Error in DELETE walk from cancelRequest() in UserWaitScreen:" +
+        error
+      )
+    });
+
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status !== 200 && status !== 201) {
+      console.log(
+        "deleting requested walk failed in cancelRequest() in UserWaitScreen: status " +
+        status
       );
+    }
+
+    // send notification to all Safewalkers that the walk request is cancelled
+    socket.emit("walk status", true);
+
+    // reset all walk state
+    resetWalkContextState();
+
+    // navigate to user home screen
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "UserHome",
+        },
+      ],
+    });
+
+    // Show different alerts according to whether
+    // the user cancels the walk or 30 seconds has passed
+    if (isTimeoutRef.current === true) {
+      setIsTimeout(false);
+      alert("Your request was timed out.");
+    } else {
+      alert("Request canceled.");
     }
   }
 

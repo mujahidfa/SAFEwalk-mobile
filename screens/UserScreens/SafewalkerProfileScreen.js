@@ -58,7 +58,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in SafewalkerProfileScreen: status " +
-              status
+            status
           );
       }
     });
@@ -78,154 +78,130 @@ export default function SafewalkerProfileScreen({ navigation }) {
    * @param signalTwo cancels the second fetch request when component is unmounted.
    */
   async function loadWalkerProfile(signalOne, signalTwo) {
-    let walkerEmail; // retrieved in first API call, used in the second API call below
-
-    try {
-      // Get Walk API call
-      // retrieve the SAFEwalker email and socket ID
-      const res = await fetch(url + "/api/Walks/" + walkId, {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
-        signal: signalOne,
-      });
-
-      let status = res.status;
-
-      // Upon fetch failure/bad status
-      if (status != 200 && status != 201) {
-        console.log(
-          "get SAFEwalker email & socket ID in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
-            status
-        );
-        return;
-      }
-
-      // Upon fetch success, store walker data in Context
-      else {
-        const data = await res.json();
-        walkerEmail = data["walkerEmail"];
-        const walkerSocketId = data["walkerSocketId"];
-
-        // store walker data in Context
-        setWalkerInfo(walkerEmail, walkerSocketId);
-      }
-    } catch (error) {
-      /**
-       * When the component unmounts, the AbortController will cancel any recurring fetch requests.
-       * When that happens (i.e. fetch cancel), it throws an AbortError error.
-       * So we catch this error to differentiate it from other errors.
-       * This is the same as if (error.name === "AbortError")
-       */
+    // Get Walk API call
+    // retrieve the SAFEwalker email and socket ID
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "GET",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: true,
+      },
+      signal: signalOne,
+    }).catch((error) => {
+      // cancel fetch upon component unmount
       if (signalOne.aborted) {
-        return;
+        return; // exit
       }
-
       console.error(
-        "Error in retrieving SAFEwalker email and walker ID in loadWalkerProfile() in SafewalkerProfileScreen:" +
-          error
+        "Error in GET SAFEwalker email and walker ID in loadWalkerProfile() in SafewalkerProfileScreen:" +
+        error
       );
+    });
+
+    if (res == null) {
+      return; // exit
     }
 
-    try {
-      // Get Walker API call
-      // Get the SAFEwalker's name and phone number
-      const res = await fetch(url + "/api/Safewalkers/" + walkerEmail, {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
-        signal: signalTwo,
-      });
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "get SAFEwalker email & socket ID in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
+        status
+      );
+      return; // exit
+    }
 
-      let status = res.status;
+    // Store walker data in Context
+    const data = await res.json();
+    const walkerEmail = data["walkerEmail"];
+    const walkerSocketId = data["walkerSocketId"];
 
-      // Upon fetch failure/bad status
-      if (status != 200 && status != 201) {
-        console.log(
-          "get SAFEwalker name & phone number in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
-            status
-        );
-        return;
-      }
+    // store walker data in Context
+    setWalkerInfo(walkerEmail, walkerSocketId);
 
-      // Upon fetch success
-      else {
-        const data = await res.json();
-
-        // update retrieved SAFEwalker profile info in local state
-        setFirstname(data["firstName"]);
-        setLastname(data["lastName"]);
-        setPhoneNumber(data["phoneNumber"]);
-      }
-    } catch (error) {
-      /**
-       * When the component unmounts, the AbortController will cancel any recurring fetch requests.
-       * When that happens (i.e. fetch cancel), it throws an AbortError error.
-       * So we catch this error to differentiate it from other errors.
-       * This is the same as if (error.name === "AbortError")
-       */
+    // Get Walker API call
+    // Get the SAFEwalker's name and phone number
+    const res1 = await fetch(url + "/api/Safewalkers/" + walkerEmail, {
+      method: "GET",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: true,
+      },
+      signal: signalTwo,
+    }).catch((error) => {
+      // cancel fetch upon component unmount
       if (signalTwo.aborted) {
-        return;
+        return; // exit
       }
-
       console.error(
         "Error in retrieving SAFEwalker name and phone number in loadWalkerProfile() in SafewalkerProfileScreen:" +
-          error
+        error
       );
+    });
+
+    if (res1 == null) {
+      return; // exit
     }
+
+    status = res1.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "get SAFEwalker name & phone number in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
+        status
+      );
+      return; // exit
+    }
+
+    const data1 = await res1.json();
+    // update retrieved SAFEwalker profile info in local state
+    setFirstname(data1["firstName"]);
+    setLastname(data1["lastName"]);
+    setPhoneNumber(data1["phoneNumber"]);
   }
 
   /**
    * Upon button press, User cancels the walk.
    */
   async function cancelWalk() {
-    try {
-      // Delete Walk API call
-      // Delete the cancelled walk in the database
-      const res = await fetch(url + "/api/Walks/" + walkId, {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
-      });
-
-      let status = res.status;
-
-      // Upon delete failure/bad status
-      if (status != 200 && status != 201) {
-        console.log("delete walk failed: status " + status);
-        return;
-      }
-
-      // Upon successful delete
-      else {
-        if (walkerSocketId) {
-          // notify the SAFEwalker that the walk has been cancelled
-          socket.emit("user walk status", {
-            walkerId: walkerSocketId,
-            status: -2,
-          });
-        }
-
-        // reset the Walk states
-        // This will bring navigation to InactiveWalk screens
-        resetWalkContextState();
-        alert("Canceled Walk");
-      }
-    } catch (error) {
+    // Delete Walk API call
+    // Delete the cancelled walk in the database
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: true,
+      },
+    }).catch((error) => {
       console.error(
         "Error in deleting a walk in cancelWalk() in SafewalkerProfileScreen:" +
-          error
+        error
       );
+    });
+
+    let status = res.status;
+    // Upon delete failure/bad status
+    if (status != 200 && status != 201) {
+      console.log("delete walk failed: status " + status);
     }
+
+    if (walkerSocketId) {
+      // notify the SAFEwalker that the walk has been cancelled
+      socket.emit("user walk status", {
+        walkerId: walkerSocketId,
+        status: -2,
+      });
+    }
+    console.log("emit to walker - cancel request");
+
+    // reset the Walk states
+    // This will bring navigation to InactiveWalk screens
+    resetWalkContextState();
+    alert("Canceled Walk");
   }
 
   function handleCall() {
