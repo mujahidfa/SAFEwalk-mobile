@@ -40,6 +40,8 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
     loadWalkerProfile(signalFirstFetch, signalSecondFetch);
 
+    socket.removeAllListeners();
+
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
       switch (status) {
@@ -63,9 +65,17 @@ export default function SafewalkerProfileScreen({ navigation }) {
       }
     });
 
+    socket.on("connection lost", (status) => {
+      if (status) {
+        alert("Connection Lost");
+        // TODO: button to cancel walk, call cancelWalk()
+      }
+    });
+
     // cleanups
     return () => {
       socket.off("walker walk status", null);
+      socket.off("connection lost", null);
       firstFetchloadWalkerProfileController.abort();
       secondFetchloadWalkerProfileController.abort();
     };

@@ -31,6 +31,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
     loadWalk(signal);
 
+    socket.removeAllListeners();
+
     /**
      * Listen for new walk request signals (status will be true upon new requests)
      * Every time a new walk request signal is received,
