@@ -11,6 +11,7 @@ export default function WrapperTextInput(props) {
       label={props.label}
       value={props.defaultValue}
       placeholder={props.placeholder}
+      defaultValue={props.defaultValue}
       onChangeText={props.onChangeText}
       ref={props.ref}
       mode="outlined"
