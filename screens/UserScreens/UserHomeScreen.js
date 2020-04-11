@@ -72,10 +72,6 @@ export default function UserHomeScreen({ navigation }) {
     address: ""
   });
 
-  // text input values
-  const [startText, setStartText] = useState("");
-  const [endText, setEndText] = useState("");
-
   const [eta, setEta] = useState("0");
 
   // set window region of MapView
@@ -158,6 +154,7 @@ export default function UserHomeScreen({ navigation }) {
 
   async function getEta() {
 
+    navigator.geolocation.getCurrentPosition(showLocation);
     // test:     https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=43.076492,-89.401185&destinations=44.076492,-89.401185&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c
     var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + start.coordinates.latitude + ", " + start.coordinates.longitude + "&destinations=" + destination.coordinates.latitude + ", " + destination.coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
@@ -341,6 +338,19 @@ export default function UserHomeScreen({ navigation }) {
     socket.emit("walk status", true); // send notification to all Safewalkers
   }
 
+  async function showLocation(position) {
+    var latitude = position.coords.latitude;
+    var longitude = position.coords.longitude;
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latutude,
+          longitude: position.coords.longitude
+        }
+      }
+    )
+ }
+
   return (
     <View style={{ flex: 1 }}>
       {/* Conditional Statement Based on if the User has made a Request */}
@@ -382,13 +392,12 @@ export default function UserHomeScreen({ navigation }) {
                 name: "map-marker"
               }}
             />
-            <Text>{markers[1].coordinates.latitude}</Text>
-            <Text>{markers[1].coordinates.longitude}</Text>
+            <Text>{markers[1].coordinates.latitude}, {markers[1].coordinates.longitude}</Text>
             <Text>{destination.address}</Text>
             <Text>{eta}</Text>
+            <Text>{navigator.geolocation.getCurrentPosition(showLocation)}{location.coordinates.latitude}, {location.coordinates.longitude}</Text>
             {markers.map((marker, index) => (
               <MapView.Marker
-                draggable
                 coordinate={marker.coordinates}
                 title={marker.title}
                 onDragEnd={updateMarker(index)}
