@@ -95,7 +95,7 @@ export default function UserHomeScreen({ navigation }) {
      * to run only when there's a new walkId value.
      * This allows the effect to run every time a new request was made.
      */
-  }, [walkId, isTimeout]);
+  }, [walkId]);
 
   /**
    * Delete the requested walk in the database using a DELETE request to the API.
