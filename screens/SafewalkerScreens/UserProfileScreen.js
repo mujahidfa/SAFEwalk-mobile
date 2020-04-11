@@ -31,6 +31,8 @@ export default function UserProfileScreen({ navigation }) {
    * This effect is run once upon component mount.
    */
   useEffect(() => {
+    socket.removeAllListeners();
+
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       switch (status) {
@@ -48,10 +50,18 @@ export default function UserProfileScreen({ navigation }) {
           );
       }
     });
+    
+    socket.on("connection lost", (status) => {
+      if (status) {
+        alert("Connection Lost");
+        // TODO: button to cancel walk, call cancelWalk()
+      }
+    });
 
     // socket cleanup
     return () => {
       socket.off("user walk status", null);
+      socket.off("connection lost", null);
     };
   }, []);
 

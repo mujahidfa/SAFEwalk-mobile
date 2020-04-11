@@ -29,6 +29,8 @@ export default function UserHomeScreen({ navigation }) {
    * This effect is run once upon component mount.
    */
   useEffect(() => {
+    socket.removeAllListeners();
+    
     console.log("in useEffect socket of UserWaitScreen");
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
