@@ -257,7 +257,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
       return prevRequests.filter((request) => request.id != walkId);
     });
 
-    if (userSocketId) {
+    if (userSocketId != null) {
       // notify user that their walk request has been denied
       console.log("in socket in SW home screen");
       socket.emit("walker walk status", {

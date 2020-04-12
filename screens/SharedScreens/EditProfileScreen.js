@@ -3,19 +3,23 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   KeyboardAvoidingView,
-  SafeAreaView,
+  SafeAreaView, Keyboard, TouchableWithoutFeedback, ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
 import { Avatar, Divider } from "react-native-elements";
-import { TextInput } from "react-native-paper";
 import { useForm } from "react-hook-form";
+import {heightPercentageToDP as hp} from "react-native-responsive-screen";
+
+// Components
+import Button from "./../../components/Button";
+import TextInput from "./../../components/TextInput"
 
 // Constants
 import url from "./../../constants/api";
 import colors from "../../constants/colors";
+import style from "./../../constants/style";
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -154,175 +158,167 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={"padding"}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-        {!edit ? (
-          <View style={styles.containerBottom}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      {!edit ? (
+        <ScrollView style={styles.container}>
+          <SafeAreaView style={styles.innerContainer}>
             <View style={{ alignItems: "center", marginBottom: 40 }}>
               {!image ? (
                 <Avatar
                   rounded
                   size={200}
-                  title={firstName + " " + lastName}
-                  containerStyle={{ marginTop: 20 }}
-                  overlayContainerStyle={{ backgroundColor: colors.orange }}
-                  titleStyle={{ fontSize: 20 }}
+                  icon={{name: 'user-circle', type: 'font-awesome', size: 175}}
+                  containerStyle={styles.avatar}
+                  overlayContainerStyle={{backgroundColor: colors.orange}}
                 />
               ) : (
                 <Avatar
                   rounded
                   source={{ uri: image }}
                   size={200}
-                  title={firstName + " " + lastName}
-                  overlayContainerStyle={{ backgroundColor: colors.orange }}
-                  titleStyle={{ fontSize: 20 }}
+                  containerStyle={styles.avatar}
                 />
               )}
             </View>
             <Divider style={styles.divider} />
-            <Text style={styles.text}>First Name: {firstName}</Text>
-            <Text style={styles.text}>Last Name: {lastName}</Text>
+            <Text style={styles.text}>Name: {firstName + " " + lastName}</Text>
             <Divider style={styles.divider} />
             <Text style={styles.text}>Phone Number: {formatPhone()}</Text>
             <Divider style={styles.divider} />
             <Text style={styles.text}>Interests: {interests}</Text>
             <Divider style={styles.divider} />
-            <TouchableOpacity onPress={() => setEdit(true)}>
-              <Text style={styles.buttonEdit}> Edit Profile Information </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.containerBottom}>
-            <View style={{ alignItems: "center" }}>
-              {!image ? (
-                <Avatar
-                  rounded
-                  size={200}
-                  title={firstName + " " + lastName}
-                  overlayContainerStyle={{ backgroundColor: colors.orange }}
-                  titleStyle={{ fontSize: 20 }}
-                  showEditButton
-                  onEditPress={() => uploadImage()}
-                />
-              ) : (
-                <Avatar
-                  rounded
-                  source={{ uri: image }}
-                  size={200}
-                  title={firstName + " " + lastName}
-                  overlayContainerStyle={{ backgroundColor: colors.orange }}
-                  titleStyle={{ fontSize: 20 }}
-                  showEditButton
-                  onEditPress={() => uploadImage()}
-                />
-              )}
-            </View>
-            <TextInput
-              label="First Name"
-              defaultValue={firstName}
-              placeholder={firstName}
-              onChangeText={setFirstName}
-              mode="outlined"
-              theme={{ colors: { primary: colors.orange } }}
-              style={styles.inputContainer}
-            />
-            <TextInput
-              label="Last Name"
-              defaultValue={lastName}
-              placeholder={lastName}
-              onChangeText={setLastName}
-              mode="outlined"
-              theme={{ colors: { primary: colors.orange } }}
-              style={styles.inputContainer}
-            />
 
-            {errors.phoneNumber && (
-              <Text style={styles.textError}>
-                Valid US phone number is required.
-              </Text>
-            )}
-            <TextInput
-              label="Phone Number"
-              defaultValue={phoneNumber}
-              placeholder={phoneNumber}
-              ref={register(
-                { name: "phoneNumber" },
-                {
-                  required: false,
-                  minLength: 10,
-                  maxLength: 10,
-                  pattern: /^[0-9]+$/,
-                }
+            {/* Button to Edit Profile */}
+            <View style={styles.buttonContainer}>
+              <Button
+                  title="Edit"
+                  onPress={() => setEdit(true)}
+              />
+            </View>
+          </SafeAreaView>
+        </ScrollView>
+        ) : (
+          <KeyboardAvoidingView style={styles.container} behavior={"padding"}>
+            <SafeAreaView style={styles.innerContainer}>
+              <View style={{ alignItems: "center" }}>
+                {!image ? (
+                  <Avatar
+                    rounded
+                    size={200}
+                    icon={{name: 'user-circle', type: 'font-awesome', size: 175}}
+                    containerStyle={styles.avatar}
+                    overlayContainerStyle={{backgroundColor: colors.orange}}
+                    showEditButton
+                    onEditPress={() => uploadImage()}
+                  />
+                ) : (
+                  <Avatar
+                    rounded
+                    source={{ uri: image }}
+                    size={200}
+                    containerStyle={styles.avatar}
+                    showEditButton
+                    onEditPress={() => uploadImage()}
+                  />
+                )}
+              </View>
+              <TextInput
+                label="First Name"
+                defaultValue={firstName}
+                onChangeText={setFirstName}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+              />
+              <TextInput
+                label="Last Name"
+                defaultValue={lastName}
+                onChangeText={setLastName}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+              />
+
+              {errors.phoneNumber && (
+                <Text style={style.textError}>Valid US phone number is required.</Text>
               )}
-              onChangeText={(text) => {
-                setValue("phoneNumber", text, true);
-              }}
-              mode="outlined"
-              theme={{ colors: { primary: colors.orange } }}
-              style={styles.inputContainer}
-              keyboardType={"numeric"}
-            />
-            <TextInput
-              label="Interests"
-              defaultValue={interests}
-              placeholder={interests}
-              onChangeText={setInterests}
-              mode="outlined"
-              theme={{ colors: { primary: colors.orange } }}
-              style={styles.inputContainer}
-            />
-            <TouchableOpacity onPress={handleSubmit(onSubmit)}>
-              <Text style={styles.buttonEdit}> Save Profile Information </Text>
-            </TouchableOpacity>
-          </View>
+              {/* TODO: Fix the issue with not being able to change value */}
+              <TextInput
+                label="Phone Number"
+                defaultValue={phoneNumber}
+                ref={register(
+                  { name: "phoneNumber" },
+                  {
+                    required: false,
+                    minLength: 10,
+                    maxLength: 10,
+                    pattern: /^[0-9]+$/,
+                  }
+                )}
+                onChangeText={(text) => setValue("phoneNumber", text, true)}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+                keyboardType={"numeric"}
+              />
+              <TextInput
+                label="Interests"
+                defaultValue={interests}
+                placeholder={interests}
+                onChangeText={setInterests}
+                mode="outlined"
+                multiline={true}
+                numberOfLines={3}
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+              />
+
+              {/* Button to Edit Profile */}
+              <View style={styles.buttonContainer}>
+                <Button
+                    title="Save"
+                    onPress={handleSubmit(onSubmit)}
+                />
+              </View>
+            </SafeAreaView>
+          </KeyboardAvoidingView>
         )}
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  containerTop: {
-    flex: 0.3,
-    backgroundColor: colors.white,
-    alignItems: "center",
-  },
-  containerBottom: {
+  container: {
     flex: 1,
     backgroundColor: colors.white,
-    padding: 15,
-    paddingBottom: 20,
-    justifyContent: "flex-end",
   },
-  buttonEdit: {
-    backgroundColor: colors.orange,
-    borderColor: colors.white,
-    borderWidth: 1,
-    borderRadius: 25,
-    color: "white",
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginTop: 40,
+  innerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    marginHorizontal: style.marginContainerHorizontal
   },
-  inputContainer: {
-    borderBottomWidth: 0,
-    margin: 10,
-    backgroundColor: colors.white,
+  contentContainer: {
+    flex: 1,
+  },
+  avatar: {
+    marginTop: hp("2.5%"),
+    marginBottom: hp("2.5%")
   },
   text: {
-    fontSize: 20,
+    fontSize: style.fontSize,
     marginBottom: 20,
     marginLeft: 20,
   },
   divider: {
     backgroundColor: "black",
-    marginBottom: 26,
+    marginBottom: 20,
   },
-  textError: {
-    color: colors.red,
-    marginLeft: 10,
+  inputContainer: {
+    borderBottomWidth: 0,
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    height: hp("20%"),
+    justifyContent: "space-around",
   },
 });
