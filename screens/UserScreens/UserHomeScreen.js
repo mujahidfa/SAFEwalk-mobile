@@ -7,6 +7,7 @@ import {
   Image,
   Dimensions,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   View,
   Keyboard
 } from "react-native";
@@ -135,10 +136,6 @@ export default function UserHomeScreen({ navigation }) {
     };
   }
 
-  async function onRegionChange(region) {
-    setRegion({ region });
-  }
-
   async function onRegionChangeComplete(region){
     useState({ region });
   }
@@ -167,6 +164,7 @@ export default function UserHomeScreen({ navigation }) {
         destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
         destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
 
+        console.log("RETURNING: " + res.data.results[0].geometry.location.lat);
         return res.data.results[0].geometry.location;
 
       })
@@ -192,24 +190,24 @@ export default function UserHomeScreen({ navigation }) {
 
     var tempCoords = getCoordinates(destination.text);
 
-    setDestination({
-      coordinates: {
-        latitude: tempCoords.latitude,
-        longitude: tempCoords.longitude
+    setMarkers([
+      {
+        key: 0,
+        title: 'Start',
+        coordinates: {
+          latitude: LATITUDE,
+          longitude: LONGITUDE
+        }
       },
-      text: destination.text
-    });
-
-    var temp = [
       {
         key: 1,
         coordinates: {
-          latitude: tempCoords.latitude,
-          longitude: tempCoords.longitude
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude,
         }
       }
-    ];
-    setMarkers(temp);
+    ])
+
   }
 
   async function getEta() {
@@ -226,7 +224,7 @@ export default function UserHomeScreen({ navigation }) {
 
   async function setSocketId() {
     // PutUser API call
-    const res = await fetch(
+    const res1 = await fetch(
       "https://safewalkapplication.azurewebsites.net/api/Users/" + email,
       {
         method: "PUT",
@@ -311,14 +309,6 @@ export default function UserHomeScreen({ navigation }) {
   async function onMapReady() {
     mapRef.current.fitToElements();
   };
-
-  async function getDestLat() {
-    return destination.coordinates.latitude;
-  }
-
-  async function getDestLng() {
-    return destination.coordinates.longitude;
-  }
 
   return (
     <View style={{ flex: 1 }}>
