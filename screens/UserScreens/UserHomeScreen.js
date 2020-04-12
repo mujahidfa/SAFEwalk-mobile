@@ -68,8 +68,8 @@ export default function UserHomeScreen({ navigation }) {
   // walk origin
   const [start, setStart] = useState({
     coordinates: {
-      latitude: 43.081606,
-      longitude: -89.376298
+      latitude: 43.075143,
+      longitude: -89.400151
     },
     text: ""
   });
@@ -137,7 +137,13 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   async function onTextChange(textValue) {
-    setDestination({text: textValue});
+    setDestination({
+      coordinates: {
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
+      },
+      text: textValue
+    });
 }
 
   const getCoordinates = text => {
@@ -161,7 +167,11 @@ export default function UserHomeScreen({ navigation }) {
     .then(res => {
       console.log("OUTPUT: " + res.data.results[0].formatted_address);
       setDestination({
-        address: res.data.results[0].formatted_address
+        coordinates: {
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude
+        },
+        text: res.data.results[0].formatted_address
       })
       return(res.data.results[0].formatted_address);
     })
@@ -175,7 +185,8 @@ export default function UserHomeScreen({ navigation }) {
       coordinates: {
         latitude: tempCoords.latitude,
         longitude: tempCoords.longitude
-      }
+      },
+      text: destination.text
     });
 
     var temp = [
@@ -344,16 +355,24 @@ export default function UserHomeScreen({ navigation }) {
     setLocation(
       {
         coordinates: {
-          latitude: position.coords.latutude,
+          latitude: position.coords.latitude,
           longitude: position.coords.longitude
         }
       }
     )
  }
 
- async function onMapReady() {
-      mapRef.current.fitToElements();
+  async function onMapReady() {
+    mapRef.current.fitToElements();
   };
+
+  async function getDestLat() {
+    return destination.coordinates.latitude;
+  }
+
+  async function getDestLng() {
+    return destination.coordinates.longitude;
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -385,7 +404,7 @@ export default function UserHomeScreen({ navigation }) {
             />
             <Text>  Destination Marker Location: {markers[1].coordinates.latitude}, {markers[1].coordinates.longitude}</Text>
             <Text>  ETA: {eta}</Text>
-            <Text>  User Coordinates: {navigator.geolocation.getCurrentPosition(showLocation)}{location.coordinates.latitude}, {location.coordinates.longitude}</Text>
+            <Text>  User Coordinates: {location.coordinates.latitude}, {location.coordinates.longitude}</Text>
             <Text>  Destination Text: {destination.text}</Text>
             <Text>  Destination Coordinates: {destination.coordinates.latitude}, {destination.coordinates.longitude}</Text>
             {markers.map((marker) => (
@@ -499,7 +518,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 20,
-    marginTop: 0,
+    marginTop: 20,
     borderColor: 'transparent',
     backgroundColor: 'white',
     borderWidth: 2,
