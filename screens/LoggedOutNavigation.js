@@ -12,7 +12,7 @@ export default function LoggedOutNavigation() {
     <Stack.Navigator
       initialRouteName="UserLogin"
       screenOptions={{
-        headerShown: false
+        headerShown: false,
       }}
     >
       <Stack.Screen

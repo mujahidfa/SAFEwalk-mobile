@@ -1,16 +1,23 @@
 import React from "react";
+import { View, Text, Button } from "react-native";
 import Main from "./Main";
-
-import { SafeAreaProvider } from "react-native-safe-area-context";
-
 import { AuthProvider } from "./contexts/AuthProvider";
+import ErrorBoundary from "react-native-error-boundary";
 
-console.disableYellowBox = true;
+const CustomFallback = (props) => (
+  <View>
+    <Text>Something happened!</Text>
+    <Text>{props.error.toString()}</Text>
+    <Button onPress={props.resetError} title={"Try again"} />
+  </View>
+);
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Main />
-    </AuthProvider>
+    <ErrorBoundary FallbackComponent={CustomFallback}>
+      <AuthProvider>
+        <Main />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

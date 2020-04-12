@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
     isSignout: false,
     userToken: null,
     userType: "user",
-    email: null
+    email: null,
   });
 
   // Handle Login
@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
         type: "LOG_IN",
         token: userToken,
         userType: userType,
-        email: email
+        email: email,
       });
     } catch (error) {
       throw new Error("Error in login(): " + error);
@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
       email: state.email,
       dispatch,
       login,
-      signout
+      signout,
     };
   }, [state]);
 
@@ -75,7 +75,7 @@ function authReducer(prevState, action) {
         isLoading: false,
         userToken: action.token,
         userType: action.userType,
-        email: action.email
+        email: action.email,
       };
     case "LOG_IN":
       return {
@@ -83,7 +83,7 @@ function authReducer(prevState, action) {
         isSignout: false,
         userToken: action.token,
         userType: action.userType,
-        email: action.email
+        email: action.email,
       };
     case "SIGN_OUT":
       return {
@@ -91,7 +91,7 @@ function authReducer(prevState, action) {
         isSignout: true,
         userToken: null,
         userType: null,
-        email: null
+        email: null,
       };
     default: {
       console.error(`Unhandled auth action type: ${action.type}`);

@@ -3,19 +3,30 @@ import axios from 'axios';
 import {
   StyleSheet,
   Text,
-  View,
+  KeyboardAvoidingView,
   Image,
   Dimensions,
-  TouchableOpacity,
-  Platform,
-  Keyboard,
-  AsyncStorage
+  TouchableWithoutFeedback,
+  View,
+  Keyboard
 } from "react-native";
-import { Input, Icon, Button } from "react-native-elements";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import io from "socket.io-client";
+import { Input } from "react-native-elements";
+import { useForm } from "react-hook-form";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
+// Components
+import Button from "./../../components/Button"
+
+// Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
+import url from "./../../constants/api";
+import style from "./../../constants/style"
+
+// Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
@@ -233,122 +244,57 @@ export default function UserHomeScreen({ navigation }) {
       console.log("set socketId failed: status " + status);
       return;
     }
-  }
 
-  useEffect(() => {
-    console.log("socket id " + socket.id);
-    setSocketId();
-
-    // socket to listen to walker status change
-    socket.on("walker walk status", status => {
-      console.log(status);
-
-      switch (status) {
-        case -2:
-          // navigation.navigate('UserHome');
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserHome"
-              }
-            ]
-          });
-          alert("The SAFEwalker has canceled the walk.");
-          break;
-        case -1:
-          setRequest(false);
-          alert("Your request was denied.");
-          break;
-        case 1:
-          // navigation.navigate("UserTab");
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserTab"
-              }
-            ]
-          });
-          alert("A SAFEwalker is on their way!");
-          setRequest(false);
-          break;
-        case 2:
-          // navigation.navigate("UserHome");
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserHome"
-              }
-            ]
-          });
-          alert("The walk has been completed!");
-          break;
-      }
+    // Add Walk API call
+    // Create a walk in the database
+    const res = await fetch(url + "/api/Walks", {
+      method: "POST",
+      headers: {
+        token: userToken,
+        email: email,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        time: new Date(),
+        startText: location,
+        destText: destination,
+        userSocketId: socket.id,
+      }),
+    }).catch((error) => {
+      console.error(
+        "Error in POST walk in addRequest() in UserHomeScreen:" +
+        error
+      );
+      setIsLoading(false);
     });
-  }, []);
-
-  async function addRequest() {
-    // addWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks",
-      {
-        method: "POST",
-        headers: {
-          token: userToken,
-          email: email,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          time: new Date(),
-          startText: location,
-          destText: destination
-        })
-      }
-    );
 
     let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("add walk failed: status " + status);
-      return;
+    // Upon fetch failure/bad status
+    if (status !== 200 && status !== 201) {
+      console.log(
+        "creating a walk request in addRequest() in UserHomeScreen failed: status " +
+        status
+      );
+      setIsLoading(false);
+      return; // exit
     }
 
     let data = await res.json();
-    await AsyncStorage.setItem("walkId", data["id"]);
+    // store walkId in the WalkContext
+    setWalkId(data["id"]);
 
-    setRequest(true);
-    socket.emit("walk status", true); // send notification to all Safewalkers
-  }
+    // send notification to all Safewalkers
+    socket.emit("walk status", true);
 
-  async function cancelRequest() {
-    setRequest(false);
-    alert("Request Canceled");
-
-    const id = await AsyncStorage.getItem("walkId");
-    // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true
-        }
-      }
-    );
-
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("delete walk failed: status " + status);
-      return;
-    }
-
-    // remove walk-related info
-    await AsyncStorage.removeItem("WalkId");
-
-    socket.emit("walk status", true); // send notification to all Safewalkers
+    // navigate to the wait screen (keep this)
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "UserWait",
+        },
+      ],
+    });
   }
 
   async function showLocation(position) {
@@ -533,11 +479,10 @@ const styles = StyleSheet.create({
     borderRadius: 5
   },
   image: {
-    width: Dimensions.get("window").width,
+    width: Dimensions.get("window").width - 75,
     height: 350,
-    marginBottom: 30,
-    borderColor: colors.orange,
-    borderWidth: 2
+    marginBottom: 40,
+    marginTop: 20,
   },
   mapStyle: {
     marginTop: 70,

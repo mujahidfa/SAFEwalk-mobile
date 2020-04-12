@@ -2,12 +2,19 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import UserHomeScreen from "./UserHomeScreen";
-import UserTabNavigation from "./UserTabNavigation";
+import UserWaitScreen from "./UserWaitScreen";
 
-import Header from "./../../components/Header";
+import Header from "../../components/Header";
 
 const Stack = createStackNavigator();
 
+/**
+ * Wrapper to the UserHomeScreen.
+ *
+ * This wrapper is to ease header naming/customaization
+ * as editing the header straight from the Drawer navigation is tedious
+ * and not straightforward.
+ */
 export default function UserStackNavigation() {
   return (
     <Stack.Navigator
@@ -16,7 +23,7 @@ export default function UserStackNavigation() {
       screenOptions={{
         header: ({ scene, previous, navigation }) => (
           <Header scene={scene} previous={previous} navigation={navigation} />
-        )
+        ),
       }}
     >
       <Stack.Screen
@@ -25,9 +32,9 @@ export default function UserStackNavigation() {
         options={{ title: "Home" }}
       />
       <Stack.Screen
-        name="UserTab"
-        component={UserTabNavigation}
-        options={{ title: "User Current Walk" }}
+        name="UserWait"
+        component={UserWaitScreen}
+        options={{ title: "Waiting for SAFEwalker", headerShown: false }}
       />
     </Stack.Navigator>
   );

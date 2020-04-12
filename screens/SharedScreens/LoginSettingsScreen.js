@@ -7,20 +7,29 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-  ActivityIndicator,
-  AsyncStorage
+  Alert,
 } from "react-native";
-import { Button, Image, Avatar, Input, Divider } from "react-native-elements";
-import { TextInput } from "react-native-paper";
+import { Avatar } from "react-native-elements";
+//import { TextInput } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
-import { AuthContext } from "./../../contexts/AuthProvider";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
+// Constants
 import url from "./../../constants/api";
 import colors from "./../../constants/colors";
+import TextInput from "./../../components/TextInput";
+import Button from "./../../components/Button";
+import style from "./../../constants/style";
+
+// Contexts
+import { AuthContext } from "./../../contexts/AuthProvider";
+import { BorderlessButton } from "react-native-gesture-handler";
 
 export default function LoginSettingsScreen({ navigation }) {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const { userToken, email, userType } = useContext(AuthContext);
 
   // forms input handling
@@ -28,108 +37,101 @@ export default function LoginSettingsScreen({ navigation }) {
 
   // password input upon change
   useEffect(() => {
-    //register("currentPassword");
+    register("currentPassword");
     register("password");
     register("confirmPassword");
   }, [register]);
 
-  // when component is mounted
-  useEffect(() => {
-    const response = getProfileInfo();
-  }, []);
+  // upon clicking update password button
+  const saveProfileInfo = async (data) => {
+    // first check old password
+    let endpoint = "/api/Login/";
+    let oldPass = 0;
 
-  const getProfileInfo = async () => {
-    let user = true;
-    let endpoint = "/api/Users/";
-    if (userType == "safewalker") {
-      endpoint = "/api/Safewalkers/";
-      user = false;
-    }
-
-    // get info from the database
-    const response = await fetch(url + endpoint + email, {
+    // checking old password with database
+    const response1 = await fetch(url + endpoint + email, {
       method: "GET",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        email: email,
-        token: userToken,
-        isUser: user
-      }
-    }).then(response => {
-      if (!(response.status === 200)) {
-        console.log("captured " + response.status + "! Try again.");
+        password: data.currentPassword,
+      },
+    }).then((response1) => {
+      if (!(response1.status === 200)) {
+        oldPass = 0;
+        console.log("captured " + response1.status + "! Try again.");
       } else {
-        return response.json();
+        // only updates to 1 if password is correct
+        oldPass = 1;
       }
     });
 
-    // set states to proper values based on backend response
-    setFirstName(response.firstName);
-    setLastName(response.lastName);
-  };
-
-  // upon clicking update password button
-  /*
-   Response codes:
-   401 (unauthorized)
-   200 (ok)
-   */
-  const saveProfileInfo = async data => {
     //await setPassword(data.confirmPassword);
-    let endpoint = "/api/Users/";
+    endpoint = "/api/Users/";
     if (userType == "safewalker") {
       endpoint = "/api/Safewalkers/";
     }
 
-    // send new info to the database
-    const response = await fetch(url + endpoint + email, {
-      method: "PUT",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        token: userToken
-      },
-      body: JSON.stringify({
-        Password: data.confirmPassword
+    if (oldPass == 1) {
+      // send new info to the database
+      const response = await fetch(url + endpoint + email, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          token: userToken,
+        },
+        body: JSON.stringify({
+          Password: data.confirmPassword,
+        }),
       })
-    })
-      .then(response => {
-        if (!(response.status === 200)) {
-          console.log("captured " + response.status + "! Try again.");
-        } else {
-          console.log("updated password" + data.confirmPassword);
-          alert("Updated Password!");
-        }
-      })
-      .catch(error => {
-        console.log(error.message);
-        console.log("Error in updating password. Please try again.");
-      });
+        .then((response) => {
+          if (!(response.status === 200)) {
+            console.log("captured " + response.status + "! Try again.");
+          } else {
+            console.log("updated password" + data.confirmPassword);
+            Alert.alert(
+              'Password Successfully Updated',
+              '',
+              [
+                {text: 'OK'},
+              ],
+              { cancelable: false }
+            )
+          }
+        })
+        .catch((error) => {
+          console.log(error.message);
+          console.log("Error in updating password. Please try again.");
+        });
+    } else {
+      Alert.alert(
+        'Incorrect Password',
+        'Please Confirm Password',
+        [
+          {text: 'OK'},
+        ],
+        { cancelable: false }
+      )
+    }
   };
 
   // upon pressing the update password button
-  const onSubmit = data => {
+  const onSubmit = (data) => {
     const response = saveProfileInfo(data);
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
+        <SafeAreaView style={styles.container2}>
+        {/* Top View */}
         <View style={styles.containerTop}>
-          {/* TODO: Update avatar with user's name */}
-          <Avatar
-            rounded
-            size={200}
-            title={firstName + " " + lastName}
-            overlayContainerStyle={{ backgroundColor: colors.orange }}
-            titleStyle={{ fontSize: 20 }}
-          />
+          <Text style={styles.textTitle}> Update Password:</Text>
         </View>
 
-        {/* Middle View */}
+        {/* Inner View */}
         <KeyboardAvoidingView style={styles.innerContainer}>
-          {/*
           {errors.currentPassword && (
             <Text style={styles.textError}>Current password is required.</Text>
           )}
@@ -137,13 +139,10 @@ export default function LoginSettingsScreen({ navigation }) {
             label="Current Password"
             placeholder="Current Password"
             ref={register({ name: "currentPassword" }, { required: true })}
-            onChangeText={text => setValue("currentPassword", text, true)}
-            mode="outlined"
+            onChangeText={(text) => setValue("currentPassword", text, true)}
             secureTextEntry
-            theme={{ colors: { primary: 'orange' } }}
             style={styles.textInput}
           />
-          */}
 
           {errors.password && (
             <Text style={styles.textError}>Password is required.</Text>
@@ -152,10 +151,8 @@ export default function LoginSettingsScreen({ navigation }) {
             label="New Password"
             placeholder="New Password"
             ref={register({ name: "password" }, { required: true })}
-            onChangeText={text => setValue("password", text, true)}
-            mode="outlined"
+            onChangeText={(text) => setValue("password", text, true)}
             secureTextEntry
-            theme={{ colors: { primary: "orange" } }}
             style={styles.textInput}
           />
 
@@ -168,76 +165,64 @@ export default function LoginSettingsScreen({ navigation }) {
               { name: "confirmPassword" },
               {
                 required: true,
-                validate: value =>
-                  value === watch("password") || "The passwords do not match."
+                validate: (value) =>
+                  value === watch("password") || "The passwords do not match.",
               }
             )}
-            onChangeText={text => setValue("confirmPassword", text, true)}
-            mode="outlined"
+            onChangeText={(text) => setValue("confirmPassword", text, true)}
             secureTextEntry
-            theme={{ colors: { primary: colors.orange } }}
             style={styles.textInput}
           />
-        </KeyboardAvoidingView>
-
+        
         {/* Bottom */}
-        <View style={styles.containerBottom}>
-          <TouchableOpacity
+        <View style={styles.containerButton}>
+          <Button
+            title="Confirm Password Change"
             onPress={handleSubmit(onSubmit)}
-            style={styles.buttonNext}
-          >
-            <Text style={styles.buttonNextText}> Update Password </Text>
-          </TouchableOpacity>
+            />
         </View>
+        </KeyboardAvoidingView>
+        </SafeAreaView>
       </View>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  containerTop: {
-    flex: 0.6,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    marginTop: 100
-  },
-  containerBottom: {
-    flex: 1,
-    backgroundColor: "#fff"
-  },
   container: {
     flex: 1,
-    backgroundColor: colors.white
+    backgroundColor: colors.white,
+  },
+  container2: {
+    flex: 1,
+    marginHorizontal: style.marginContainerHorizontal,
+    //justifyContent: "center",
+    marginVertical: hp("6%"),
+  },
+  containerTop: {
+    height: hp("10%"),
+    justifyContent: "space-around",
+    fontSize: wp("4%"),
+  },
+  containerButton: {
+    height: hp("10%"),
+    justifyContent: "space-around",
   },
   innerContainer: {
-    flex: 1,
-    marginHorizontal: 50,
-    justifyContent: "center"
+    justifyContent: "space-around",
+    height: hp("40%"),
   },
   textError: {
-    color: colors.red
+    color: colors.red,
+    alignSelf: "center",
+    fontSize: wp("4%"),
+  },
+  textTitle: {
+    color: colors.orange,
+    fontSize: style.fontSize,
+    fontWeight: "bold",
   },
   textInput: {
-    marginBottom: 20
+    marginBottom: 20,
   },
-  buttonNext: {
-    backgroundColor: colors.orange,
-    borderColor: "white",
-    borderWidth: 1,
-    borderRadius: 25,
-    marginTop: 20,
-    marginHorizontal: 50
-  },
-  buttonNextText: {
-    color: "white",
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center"
-  },
-  imageContainer: {
-    justifyContent: "center",
-    alignItems: "center"
-  }
 });
