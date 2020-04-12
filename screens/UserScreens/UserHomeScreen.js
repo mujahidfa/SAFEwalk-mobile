@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import axios from 'axios';
 import {
   StyleSheet,
@@ -17,7 +17,7 @@ import io from "socket.io-client";
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import { AuthContext } from "./../../contexts/AuthProvider";
-import MapView, { Marker, PROVIDER_GOOGLE, fitToSuppliedMarkers } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -36,7 +36,7 @@ var initialRegion = {
 // temporary
 const homePlace = {
   description: 'Home',
-  address: "",
+  text: "",
   coordinates: {
     latitude: 43.081606,
     longitude: -89.376298
@@ -45,22 +45,24 @@ const homePlace = {
 
 export default function UserHomeScreen({ navigation }) {
 
+  const mapRef = useRef(null);
+
   // store current user location
   const [location, setLocation] = useState({
     coordinates: {
       latitude: 43.081606,
       longitude: -89.376298
     },
-    address: ""
+    text: ""
   });
 
   // destination
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: 43.081606,
+      latitude: +43.081606,
       longitude: -89.376298
     },
-    address: ""
+    text: ""
   });
 
   // walk origin
@@ -69,7 +71,7 @@ export default function UserHomeScreen({ navigation }) {
       latitude: 43.081606,
       longitude: -89.376298
     },
-    address: ""
+    text: ""
   });
 
   const [eta, setEta] = useState("0");
@@ -134,23 +136,59 @@ export default function UserHomeScreen({ navigation }) {
     useState({ region });
   }
 
-  // async function showStartEnd() {
-  //
-  //   setDestination({
-  //     coordinates: {
-  //       latitude: markers.coordinates.latitude,
-  //       longitude: markers.coordinates.longitude
-  //     }
-  //   })
-  //
-  //   setStart({
-  //     coordinates: {
-  //       latitude: markers[0].coordinates.latitude,
-  //       longitude: markers[0].coordinates.longitude
-  //     }
-  //   })
-  //
-  // }
+  async function onTextChange(textValue) {
+    setDestination({text: textValue});
+}
+
+  const getCoordinates = text => {
+    var replaced = text.split(' ').join('+');
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
+    axios.get(axiosURL)
+      .then(res => {
+        console.log("OUTPUT: " + res.data.results[0].geometry.location.lat);
+
+        destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
+        destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
+
+        return res.data.results[0].geometry.location;
+
+      })
+  }
+
+  const getAddress = coordinates => {
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
+    axios.get(axiosURL)
+    .then(res => {
+      console.log("OUTPUT: " + res.data.results[0].formatted_address);
+      setDestination({
+        address: res.data.results[0].formatted_address
+      })
+      return(res.data.results[0].formatted_address);
+    })
+  }
+
+  async function updateDestination() {
+
+    var tempCoords = getCoordinates(destination.text);
+
+    setDestination({
+      coordinates: {
+        latitude: tempCoords.latitude,
+        longitude: tempCoords.longitude
+      }
+    });
+
+    var temp = [
+      {
+        key: 1,
+        coordinates: {
+          latitude: tempCoords.latitude,
+          longitude: tempCoords.longitude
+        }
+      }
+    ];
+    setMarkers(temp);
+  }
 
   async function getEta() {
 
@@ -162,42 +200,6 @@ export default function UserHomeScreen({ navigation }) {
       console.log("OUTPUT: " + res.data.rows[0].elements[0].duration.text);
       setEta(res.data.rows[0].elements[0].duration.text);
     })
-  }
-
-  const geocodeThis = coordinates => {
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
-    axios.get(axiosURL)
-    .then(res => {
-      console.log("OUTPUT: " + res.data.results[0].formatted_address);
-      return(res.data);
-    })
-  }
-
-  const updateMarker = index => e => {
-    console.log('index: ' + index);
-    console.log('property name: '+ e.nativeEvent.coordinate.latitude);
-    setMarkers({
-      coordinates: {
-        latitude: e.nativeEvent.coordinate.latitude,
-        longitude: e.nativeEvent.coordinate.longitude
-      }
-    })
-    geocodeThis(markers[index].coordinates);
-    if(index==0) {
-      setStart({
-        coordinates: {
-          latitude: e.nativeEvent.coordinate.latitude,
-          longitude: e.nativeEvent.coordinate.longitude
-        }
-      })
-    } else {
-      setDestination({
-        coordinates: {
-          latitude: e.nativeEvent.coordinate.latitude,
-          longitude: e.nativeEvent.coordinate.longitude
-        }
-      })
-    }
   }
 
   async function setSocketId() {
@@ -339,8 +341,6 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   async function showLocation(position) {
-    var latitude = position.coords.latitude;
-    var longitude = position.coords.longitude;
     setLocation(
       {
         coordinates: {
@@ -351,6 +351,10 @@ export default function UserHomeScreen({ navigation }) {
     )
  }
 
+ async function onMapReady() {
+      mapRef.current.fitToElements();
+  };
+
   return (
     <View style={{ flex: 1 }}>
       {/* Conditional Statement Based on if the User has made a Request */}
@@ -358,33 +362,20 @@ export default function UserHomeScreen({ navigation }) {
         <View style={styles.container}>
           {/* User Start and End Location Input Fields */}
           <MapView
-            initialRegion={initialRegion}
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
             showsUserLocation={true}
-            ref={map => {
-                map = map;
-            }}
+            ref={mapRef}
             minZoomLevel={10}
             maxZoomLevel={15}
+            onMapReady={onMapReady}
           >
             <Input
               inputStyle={styles.input}
-              inputContainerStyle={styles.inputContainerTop}
-              value={location}
-              onChangeText={setStart}
-              placeholder='Start'
-              returnKeyType='search'
-              leftIcon={{
-                type: "font-awesome",
-                name: "map-marker"
-              }}
-            />
-            <Input
-              inputStyle={styles.input}
               inputContainerStyle={styles.inputContainer}
-              value={destination}
-              onChangeText={setDestination}
+              value={destination.text}
+              onChangeText={onTextChange}
+              onSubmitEditing={updateDestination}
               placeholder='Destination'
               returnKeyType='search'
               leftIcon={{
@@ -392,19 +383,23 @@ export default function UserHomeScreen({ navigation }) {
                 name: "map-marker"
               }}
             />
-            <Text>{markers[1].coordinates.latitude}, {markers[1].coordinates.longitude}</Text>
-            <Text>{destination.address}</Text>
-            <Text>{eta}</Text>
-            <Text>{navigator.geolocation.getCurrentPosition(showLocation)}{location.coordinates.latitude}, {location.coordinates.longitude}</Text>
-            {markers.map((marker, index) => (
+            <Text>  Destination Marker Location: {markers[1].coordinates.latitude}, {markers[1].coordinates.longitude}</Text>
+            <Text>  ETA: {eta}</Text>
+            <Text>  User Coordinates: {navigator.geolocation.getCurrentPosition(showLocation)}{location.coordinates.latitude}, {location.coordinates.longitude}</Text>
+            <Text>  Destination Text: {destination.text}</Text>
+            <Text>  Destination Coordinates: {destination.coordinates.latitude}, {destination.coordinates.longitude}</Text>
+            {markers.map((marker) => (
               <MapView.Marker
-                coordinate={marker.coordinates}
+                key={marker.key}
+                coordinate={{
+                  latitude: marker.coordinates.latitude,
+                  longitude: marker.coordinates.longitude
+                }}
                 title={marker.title}
-                onDragEnd={updateMarker(index)}
               />
             ))}
           </MapView>
-          <TouchableOpacity onPress={() => getEta()}>
+          <TouchableOpacity onPress={() => {getEta(); mapRef.current.fitToElements()}}>
             <Text style={styles.buttonConfirm}> ETA </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => addRequest()}>
@@ -472,6 +467,19 @@ const styles = StyleSheet.create({
     padding: 12,
     textAlign: "center",
     marginBottom: 160
+  },
+  buttonFit: {
+    backgroundColor: "#77b01a",
+    borderColor: 'transparent',
+    borderWidth: 1,
+    borderRadius: 25,
+    color: colors.white,
+    fontSize: 24,
+    fontWeight: "bold",
+    overflow: "hidden",
+    padding: 12,
+    textAlign: "center",
+    marginTop: 160
   },
   buttonCancel: {
     backgroundColor: colors.red,
