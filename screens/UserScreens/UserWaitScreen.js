@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+} from "react-native";
 import { useFocusEffect } from "@react-navigation/core";
 import LottieView from "lottie-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  heightPercentageToDP as hp
+} from "react-native-responsive-screen";
+
+// Components
+import Button from "./../../components/Button";
 
 // Constants
 import colors from "./../../constants/colors";
@@ -11,6 +22,7 @@ import url from "./../../constants/api";
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
+import style from "../../constants/style";
 
 export default function UserHomeScreen({ navigation }) {
   const [isTimeout, setIsTimeout] = useState(false);
@@ -120,7 +132,7 @@ export default function UserHomeScreen({ navigation }) {
       console.error(
         "Error in DELETE walk from cancelRequest() in UserWaitScreen:" +
         error
-      )
+      );
     });
 
     let status = res.status;
@@ -161,31 +173,34 @@ export default function UserHomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* View when the User submits a SAFEwalk request */}
-      <View style={{ flex: 3 }}>
-        <Text
-          style={{
-            textAlign: "center",
-            fontSize: 30,
-            color: colors.orange,
-            fontWeight: "bold",
-            marginTop: 60,
-          }}
-        >
-          Searching for {"\n"} SAFEwalker...
-        </Text>
+      <SafeAreaView style={styles.innerContainer}>
+        {/* Waiting Animation */}
         <LottieView
-          source={require("./../../assets/17709-loading")}
+          source={require("./../../assets/app-boot-loading")}
           speed={1}
           autoPlay={true}
           loop
           autoSize={true}
+          style={{height: hp("35%")}}
         />
-      </View>
-      <View style={{ flex: 1 }}>
-        <TouchableOpacity onPress={() => cancelRequest()}>
-          <Text style={styles.buttonCancel}> Cancel </Text>
-        </TouchableOpacity>
-      </View>
+
+        {/* Informational Text to the User */}
+        <Text style={styles.textHeader}>
+          Waiting for SAFEwalker
+        </Text>
+        <Text style={styles.text}>
+          {'\n'}Your request has been submitted and is pending approval by the next available SAFEwalker.
+        </Text>
+
+        {/* Button to Submit Request */}
+        <View style={styles.buttonContainer}>
+          <Button
+              title="Cancel"
+              onPress={() => cancelRequest()}
+              color="red"
+          />
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
@@ -194,19 +209,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    alignItems: "center",
   },
-  buttonCancel: {
-    backgroundColor: colors.red,
-    borderColor: colors.white,
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
+  innerContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginHorizontal: style.marginContainerHorizontal
+  },
+  textHeader: {
     textAlign: "center",
-    width: 200,
+    fontSize: hp("3%"),
+    color: "black",
+    fontWeight: "bold",
+  },
+  text: {
+    textAlign: "center",
+    fontSize: style.fontSize,
+    color: "black",
+    fontWeight: "bold",
+  },
+  buttonContainer: {
+    height: hp("17%"),
+    justifyContent: "space-around",
   },
 });
