@@ -14,10 +14,10 @@ export default function UserMapScreen({ navigation }) {
   useEffect(() => {
     socket.removeAllListeners();
 
-    socket.on("walker location", ({lat, lng}) => {
+    socket.on("walker location", ({ lat, lng }) => {
       console.log(lat + "," + lng);
     });
-    
+
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
       switch (status) {
@@ -36,7 +36,7 @@ export default function UserMapScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in UserMapScreen: status " +
-              status
+            status
           );
       }
     });

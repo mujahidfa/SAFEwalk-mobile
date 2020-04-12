@@ -36,18 +36,6 @@ export default function UserProfileScreen({ navigation }) {
   useEffect(() => {
     socket.removeAllListeners();
 
-    // send location to user every 5 seconds
-    const interval = setInterval(() => {
-      if (userSocketId != null) { 
-        // send location to user
-        socket.emit("walker location", {
-          userId: userSocketId,
-          lat: 0,
-          lng: 0,
-        });
-      }
-    }, 5000); // 5 seconds
-
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       switch (status) {
@@ -79,11 +67,31 @@ export default function UserProfileScreen({ navigation }) {
 
     // socket cleanup
     return () => {
-      clearInterval(interval);
       socket.off("user walk status", null);
       socket.off("connection lost", null);
     };
   }, []);
+  
+  useEffect(() => {
+    // send location to user every 5 seconds
+    const interval = setInterval(() => {
+      console.log("send");
+      console.log(userSocketId);
+      if (userSocketId != null) { 
+        console.log("sending");
+        // send location to user
+        socket.emit("walker location", {
+          userId: userSocketId,
+          lat: 0,
+          lng: 0,
+        });
+      }
+    }, 5000); // 5 seconds
+
+    return () => {
+      clearInterval(interval);
+    }
+  }, [userSocketId]);
 
   /**
    * This effect retrieves the User information associated with the walk.
