@@ -1,15 +1,19 @@
-import React, { useState, useContext, useEffect } from "react";
-import { StyleSheet, Text, View, FlatList, totalResults } from "react-native";
+import React, { useState, useContext, useEffect, useRef } from "react";
+import { StyleSheet, Text, View, FlatList, totalResults, Alert  } from "react-native";
 
 // 3rd party libraries
 import Swipeable from "react-native-gesture-handler/Swipeable";
-import LottieView from "lottie-react-native";
 import moment from "moment/moment.js";
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 // Constants
 import socket from "./../../contexts/socket";
 import colors from "./../../constants/colors";
 import url from "./../../constants/api";
+import TextInput from "./../../components/TextInput";
+import Button from "./../../components/Button";
+import style from "./../../constants/style";
+
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -190,6 +194,25 @@ export default function SafewalkerHomeScreen({ navigation }) {
     setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
   }
 
+  // used to close swipeable when canceling a delete request
+  const swipeableRef = useRef(null);
+  const closeSwipeable = () => {
+    swipeableRef.current.close();
+  }
+
+  // helper funtion to confirm delete
+  function deleteRequest2(request) {
+    Alert.alert(
+      'Deny SAFEwalk Request',
+      '',
+      [
+        {text: 'Deny', onPress: () => deleteRequest(request.id)},
+        {text: 'Cancel', onPress: () => closeSwipeable()},
+      ],
+      { cancelable: false }
+    )
+  }
+
   /**
    * Upon swipe, deletes the walk request.
    *
@@ -266,6 +289,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
     return s;
   }
 
+  function requestCount() {
+    var total = requests.length;
+    return total;
+  }
+
   const listEmptyComponent = () => (
     <View>
       <Text
@@ -277,10 +305,20 @@ export default function SafewalkerHomeScreen({ navigation }) {
           marginTop: 60,
         }}
       >
-        None
+       
         </Text>
     </View>
   );
+
+  const ListHeaderComponent = () => (
+      <View style={styles.header}>
+        <Text style={styles.textTitle}>
+          <Text>Requests: </Text>
+          <Text style={{fontWeight: "bold"}}>{requestCount()}</Text>
+        </Text>
+      </View>
+  );
+
 
   function Item({ request, deleteRequest }) {
     return (
@@ -289,22 +327,23 @@ export default function SafewalkerHomeScreen({ navigation }) {
           renderLeftActions={LeftActions}
           renderRightActions={RightActions}
           onSwipeableLeftOpen={() => acceptRequest(request.id)}
-          onSwipeableRightOpen={() => deleteRequest(request.id)}
+          onSwipeableRightOpen={() => deleteRequest2(request)}
+          ref={swipeableRef}
         >
           <View style={styles.column}>
             <View style={styles.row}>
               <Text style={styles.name}>{trimEmail(request.username)}</Text>
               <Text style={styles.time}>
-                {moment.utc(request.time).format("MMMM Do, h:mm a")}
+                {moment.utc(request.time).local().format("MMMM Do, h:mm a")}
               </Text>
             </View>
             <View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={{ color: "green", fontWeight: "bold" }}>A: </Text>
+                <Text style={{ color: "green", fontWeight: "bold", fontSize: 15, }}><Icon name="map-pin" size={15} color="green" />  </Text>
                 <Text style={styles.location}>{request.startText}</Text>
               </View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={{ color: "red", fontWeight: "bold" }}>B: </Text>
+                <Text style={{ color: "red", fontWeight: "bold", fontSize: 15,}}><Icon name="map-pin" size={15} color="red" />  </Text>
                 <Text style={styles.location}>{request.endText}</Text>
               </View>
             </View>
@@ -326,7 +365,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
         keyExtractor={(request, index) => index.toString()}
         totalResults={totalResults}
         ListEmptyComponent={() => listEmptyComponent()}
-        // inverted
+        ListHeaderComponent={() => ListHeaderComponent()}
         renderItem={({ item }) => (
           <Item request={item} deleteRequest={deleteRequest} />
         )}
@@ -369,7 +408,7 @@ const styles = StyleSheet.create({
     color: "grey",
   },
   time: {
-    fontSize: 13,
+    fontSize: 15,
     color: "grey",
   },
   LeftAction: {
@@ -387,5 +426,21 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     padding: 20,
+  },
+  header: {
+    backgroundColor: "#e8e8e8",
+    borderWidth: 1,
+    borderColor: "#e8e8e8",
+    height: '50%',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  textTitle: {
+    color: colors.darkgray,
+    fontSize: 16,
+    justifyContent: "flex-start",
+    marginLeft: 15,
+    padding: 1
   },
 });
