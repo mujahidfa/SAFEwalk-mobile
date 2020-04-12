@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-elements";
 import { Linking } from "expo";
 import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
+import TimerMixin from 'react-timer-mixin';
 
 // Constants
 import colors from "./../../constants/colors";
@@ -26,12 +27,26 @@ export default function UserProfileScreen({ navigation }) {
     WalkContext
   );
 
+  mixins: [TimerMixin];
+
   /**
    * This effect sets up the socket connection to the User.
    * This effect is run once upon component mount.
    */
   useEffect(() => {
     socket.removeAllListeners();
+
+    // send location to user every 5 seconds
+    const interval = setInterval(() => {
+      if (userSocketId != null) { 
+        // send location to user
+        socket.emit("walker location", {
+          userId: userSocketId,
+          lat: 0,
+          lng: 0,
+        });
+      }
+    }, 5000); // 5 seconds
 
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
@@ -50,16 +65,21 @@ export default function UserProfileScreen({ navigation }) {
           );
       }
     });
-    
+
     socket.on("connection lost", (status) => {
       if (status) {
-        alert("Connection Lost");
-        // TODO: button to cancel walk, call cancelWalk()
+        deleteWalk();
+
+        // reset the Walk states
+        // This will bring navigation to InactiveWalk screens
+        resetWalkContextState();
+        alert("Connection lost, walk cancelled.");
       }
     });
 
     // socket cleanup
     return () => {
+      clearInterval(interval);
       socket.off("user walk status", null);
       socket.off("connection lost", null);
     };
@@ -138,14 +158,7 @@ export default function UserProfileScreen({ navigation }) {
     setPhoneNumber(data["phoneNumber"]);
   }
 
-  /**
-   * Upon cancel button press, we delete the walk in the database using a DELETE request to the API.
-   * If successful,
-   *  - we emit a message to the User that walk has been cancelled,
-   *  - we remove all walk data from Context, and
-   *  - we navigate back to home screen.
-   */
-  async function cancelWalk() {
+  async function deleteWalk() {
     // Delete Walk API call
     // Delete the current walk in the database
     const res = await fetch(url + "/api/Walks/" + walkId, {
@@ -171,8 +184,20 @@ export default function UserProfileScreen({ navigation }) {
       );
     }
 
+  }
+
+  /**
+   * Upon cancel button press, we delete the walk in the database using a DELETE request to the API.
+   * If successful,
+   *  - we emit a message to the User that walk has been cancelled,
+   *  - we remove all walk data from Context, and
+   *  - we navigate back to home screen.
+   */
+  async function cancelWalk() {
+    await deleteWalk();
+
     // if userSocketId is not null
-    if (userSocketId) {
+    if (userSocketId != null) {
       // notify the user that walk has been cancelled
       socket.emit("walker walk status", {
         userId: userSocketId,
@@ -183,7 +208,6 @@ export default function UserProfileScreen({ navigation }) {
     // Remove all current walk-related information
     // and bring navigation back to InactiveWalk screens
     resetWalkContextState();
-
     alert("You canceled the walk.");
   }
 

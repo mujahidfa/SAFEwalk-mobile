@@ -13,6 +13,10 @@ export default function UserMapScreen({ navigation }) {
    */
   useEffect(() => {
     socket.removeAllListeners();
+
+    socket.on("walker location", ({lat, lng}) => {
+      console.log(lat + "," + lng);
+    });
     
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
@@ -46,6 +50,7 @@ export default function UserMapScreen({ navigation }) {
 
     // cleanup socket
     return () => {
+      socket.off("walker location", null);
       socket.off("walker walk status", null);
       socket.off("connection lost", null);
     };

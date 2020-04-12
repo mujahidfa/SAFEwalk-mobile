@@ -44,6 +44,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
+      console.log(status);
       switch (status) {
         // SAFEwalker has canceled the walk.
         case -2:
@@ -67,8 +68,12 @@ export default function SafewalkerProfileScreen({ navigation }) {
 
     socket.on("connection lost", (status) => {
       if (status) {
-        alert("Connection Lost");
-        // TODO: button to cancel walk, call cancelWalk()
+        deleteWalk();
+
+        // reset the Walk states
+        // This will bring navigation to InactiveWalk screens
+        resetWalkContextState();
+        alert("Connection lost, walk cancelled.");
       }
     });
 
@@ -173,10 +178,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
     setPhoneNumber(data1["phoneNumber"]);
   }
 
-  /**
-   * Upon button press, User cancels the walk.
-   */
-  async function cancelWalk() {
+  async function deleteWalk() {
     // Delete Walk API call
     // Delete the cancelled walk in the database
     const res = await fetch(url + "/api/Walks/" + walkId, {
@@ -198,6 +200,13 @@ export default function SafewalkerProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log("delete walk failed: status " + status);
     }
+  }
+
+  /**
+   * Upon button press, User cancels the walk.
+   */
+  async function cancelWalk() {
+    await deleteWalk();
 
     if (walkerSocketId) {
       // notify the SAFEwalker that the walk has been cancelled
@@ -206,7 +215,6 @@ export default function SafewalkerProfileScreen({ navigation }) {
         status: -2,
       });
     }
-    console.log("emit to walker - cancel request");
 
     // reset the Walk states
     // This will bring navigation to InactiveWalk screens

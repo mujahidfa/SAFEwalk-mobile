@@ -18,10 +18,10 @@ export default function MapScreen({ navigation }) {
     WalkContext
   );
 
-  /**
-   * This effect sets up the socket connection to the User.
-   * This effect is run once upon component mount.
-   */
+  // /**
+  //  * This effect sets up the socket connection to the User.
+  //  * This effect is run once upon component mount.
+  //  */
   useEffect(() => {
     socket.removeAllListeners();
     
@@ -98,7 +98,7 @@ export default function MapScreen({ navigation }) {
     }
 
     // Upon fetch success
-    if (userSocketId) {
+    if (userSocketId != null) {
       // Let user know walk has been completed
       socket.emit("walker walk status", {
         userId: userSocketId,
