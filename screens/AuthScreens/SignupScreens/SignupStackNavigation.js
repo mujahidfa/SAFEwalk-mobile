@@ -8,6 +8,8 @@ import PersonalInfoScreen from "./PersonalInfoScreen";
 import CredentialsScreen from "./CredentialsScreen";
 import SuccessScreen from "./SuccessScreen";
 
+import colors from "./../../../constants/colors";
+
 const Stack = createStackNavigator();
 
 export default function SignupStackNavigation() {
@@ -17,6 +19,13 @@ export default function SignupStackNavigation() {
       screenOptions={{
         // left-to-right transition: standard iOS-style slide in from the right
         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+      }}
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.lightorange,
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
       }}
     >
       <Stack.Screen
