@@ -7,21 +7,29 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import { Avatar } from "react-native-elements";
-import { TextInput } from "react-native-paper";
+//import { TextInput } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 // Constants
 import url from "./../../constants/api";
 import colors from "./../../constants/colors";
+import TextInput from "./../../components/TextInput";
+import Button from "./../../components/Button";
+import style from "./../../constants/style";
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { BorderlessButton } from "react-native-gesture-handler";
 
 export default function LoginSettingsScreen({ navigation }) {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const { userToken, email, userType } = useContext(AuthContext);
 
   // forms input handling
@@ -34,47 +42,10 @@ export default function LoginSettingsScreen({ navigation }) {
     register("confirmPassword");
   }, [register]);
 
-  // when component is mounted
-  useEffect(() => {
-    const response = getProfileInfo();
-  }, []);
-
-  const getProfileInfo = async () => {
-    let user = true;
-    let endpoint = "/api/Users/";
-    if (userType === "safewalker") {
-      endpoint = "/api/Safewalkers/";
-      user = false;
-    }
-
-    // get info from the database
-    const response = await fetch(url + endpoint + email, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        email: email,
-        token: userToken,
-        isUser: user,
-      },
-    }).then((response) => {
-      if (!(response.status === 200)) {
-        console.log("captured " + response.status + "! Try again.");
-      } else {
-        return response.json();
-      }
-    });
-
-    // set states to proper values based on backend response
-    setFirstName(response.firstName);
-    setLastName(response.lastName);
-  };
-
   // upon clicking update password button
   const saveProfileInfo = async (data) => {
     // first check old password
     let endpoint = "/api/Login/";
-    //setOldPassword("fail");
     let oldPass = 0;
 
     // checking old password with database
@@ -87,12 +58,11 @@ export default function LoginSettingsScreen({ navigation }) {
       },
     }).then((response1) => {
       if (!(response1.status === 200)) {
-        //setOldPassword("fail");
         oldPass = 0;
         console.log("captured " + response1.status + "! Try again.");
       } else {
+        // only updates to 1 if password is correct
         oldPass = 1;
-        // return response1.json();
       }
     });
 
@@ -120,7 +90,14 @@ export default function LoginSettingsScreen({ navigation }) {
             console.log("captured " + response.status + "! Try again.");
           } else {
             console.log("updated password" + data.confirmPassword);
-            alert("Updated Password!");
+            Alert.alert(
+              'Password Successfully Updated',
+              '',
+              [
+                {text: 'OK'},
+              ],
+              { cancelable: false }
+            )
           }
         })
         .catch((error) => {
@@ -128,7 +105,14 @@ export default function LoginSettingsScreen({ navigation }) {
           console.log("Error in updating password. Please try again.");
         });
     } else {
-      alert("Incorrect Password");
+      Alert.alert(
+        'Incorrect Password',
+        'Please Confirm Password',
+        [
+          {text: 'OK'},
+        ],
+        { cancelable: false }
+      )
     }
   };
 
@@ -140,17 +124,13 @@ export default function LoginSettingsScreen({ navigation }) {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
+        <SafeAreaView style={styles.container2}>
+        {/* Top View */}
         <View style={styles.containerTop}>
-          <Avatar
-            rounded
-            size={200}
-            title={firstName + " " + lastName}
-            overlayContainerStyle={{ backgroundColor: colors.orange }}
-            titleStyle={{ fontSize: 20 }}
-          />
+          <Text style={styles.textTitle}> Update Password:</Text>
         </View>
 
-        {/* Middle View */}
+        {/* Inner View */}
         <KeyboardAvoidingView style={styles.innerContainer}>
           {errors.currentPassword && (
             <Text style={styles.textError}>Current password is required.</Text>
@@ -160,9 +140,7 @@ export default function LoginSettingsScreen({ navigation }) {
             placeholder="Current Password"
             ref={register({ name: "currentPassword" }, { required: true })}
             onChangeText={(text) => setValue("currentPassword", text, true)}
-            mode="outlined"
             secureTextEntry
-            theme={{ colors: { primary: "orange" } }}
             style={styles.textInput}
           />
 
@@ -174,9 +152,7 @@ export default function LoginSettingsScreen({ navigation }) {
             placeholder="New Password"
             ref={register({ name: "password" }, { required: true })}
             onChangeText={(text) => setValue("password", text, true)}
-            mode="outlined"
             secureTextEntry
-            theme={{ colors: { primary: "orange" } }}
             style={styles.textInput}
           />
 
@@ -194,72 +170,59 @@ export default function LoginSettingsScreen({ navigation }) {
               }
             )}
             onChangeText={(text) => setValue("confirmPassword", text, true)}
-            mode="outlined"
             secureTextEntry
-            theme={{ colors: { primary: colors.orange } }}
             style={styles.textInput}
           />
-        </KeyboardAvoidingView>
-
+        
         {/* Bottom */}
-        <View style={styles.containerBottom}>
-          <TouchableOpacity
+        <View style={styles.containerButton}>
+          <Button
+            title="Confirm Password Change"
             onPress={handleSubmit(onSubmit)}
-            style={styles.buttonNext}
-          >
-            <Text style={styles.buttonNextText}> Update Password </Text>
-          </TouchableOpacity>
+            />
         </View>
+        </KeyboardAvoidingView>
+        </SafeAreaView>
       </View>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  containerTop: {
-    flex: 0.8,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    marginTop: 100,
-    marginBottom: 100,
-  },
-  containerBottom: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
   container: {
     flex: 1,
     backgroundColor: colors.white,
   },
-  innerContainer: {
+  container2: {
     flex: 1,
-    marginHorizontal: 50,
-    justifyContent: "center",
+    marginHorizontal: style.marginContainerHorizontal,
+    //justifyContent: "center",
+    marginVertical: hp("6%"),
+  },
+  containerTop: {
+    height: hp("10%"),
+    justifyContent: "space-around",
+    fontSize: wp("4%"),
+  },
+  containerButton: {
+    height: hp("10%"),
+    justifyContent: "space-around",
+  },
+  innerContainer: {
+    justifyContent: "space-around",
+    height: hp("40%"),
   },
   textError: {
     color: colors.red,
+    alignSelf: "center",
+    fontSize: wp("4%"),
+  },
+  textTitle: {
+    color: colors.orange,
+    fontSize: style.fontSize,
+    fontWeight: "bold",
   },
   textInput: {
     marginBottom: 20,
-  },
-  buttonNext: {
-    backgroundColor: colors.orange,
-    borderColor: "white",
-    borderWidth: 1,
-    borderRadius: 25,
-    marginTop: 20,
-    marginHorizontal: 50,
-  },
-  buttonNextText: {
-    color: "white",
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-  },
-  imageContainer: {
-    justifyContent: "center",
-    alignItems: "center",
   },
 });

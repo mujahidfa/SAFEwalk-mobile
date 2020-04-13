@@ -22,11 +22,13 @@ export default function MapScreen({ navigation }) {
     WalkContext
   );
 
-  /**
-   * This effect sets up the socket connection to the User.
-   * This effect is run once upon component mount.
-   */
+  // /**
+  //  * This effect sets up the socket connection to the User.
+  //  * This effect is run once upon component mount.
+  //  */
   useEffect(() => {
+    socket.removeAllListeners();
+    
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       console.log("user walk status in SWMapScreen:" + status);
@@ -42,14 +44,22 @@ export default function MapScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in SafewalkerMapScreen: status " +
-              status
+            status
           );
+      }
+    });
+
+    socket.on("connection lost", (status) => {
+      if (status) {
+        alert("Connection Lost");
+        // TODO: button to cancel walk, call cancelWalk()
       }
     });
 
     // socket cleanup
     return () => {
       socket.off("user walk status", null);
+      socket.off("connection lost", null);
     };
   }, []);
 
@@ -61,51 +71,47 @@ export default function MapScreen({ navigation }) {
    *  - we navigate back to home screen.
    */
   async function completeWalk() {
-    try {
-      // Put Walk API call
-      // Update walk status in database as completed
-      const res = await fetch(url + "/api/Walks/" + walkId, {
-        method: "PUT",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: 2,
-        }),
-      });
-
-      let status = res.status;
-
-      // Upon fetch failure/bad status
-      if (status != 200 && status != 201) {
-        console.log(
-          "complete walk in completeWalk() in SafewalkerMapScreen failed: status " +
-            status
-        );
-        return;
-      }
-
-      // Upon fetch success
-      else {
-        if (userSocketId) {
-          // Let user know walk has been completed
-          socket.emit("walker walk status", {
-            userId: userSocketId,
-            status: 2,
-          });
-        }
-        // walk is done, so wereset the walk state and return to InactiveWalk screens.
-        resetWalkContextState();
-      }
-    } catch (error) {
+    // Put Walk API call
+    // Update walk status in database as completed
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "PUT",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: 2,
+      })
+    }).catch((error) => {
       console.error(
-        "Error in completing walk data in completeWalk() in SafewalkerMapScreen:" +
-          error
+        "Error in PUT walk request in completeWalk() in SafewalkerHomeScreen:" +
+        error
+      )
+    });
+
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "complete walk in completeWalk() in SafewalkerMapScreen failed: status " +
+        status
       );
+      return; //exit
     }
+
+    // Upon fetch success
+    if (userSocketId != null) {
+      // Let user know walk has been completed
+      socket.emit("walker walk status", {
+        userId: userSocketId,
+        status: 2,
+      });
+    }
+
+    // walk is done, so wereset the walk state and return to InactiveWalk screens.
+    resetWalkContextState();
   }
 
   return (

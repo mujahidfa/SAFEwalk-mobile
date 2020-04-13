@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  heightPercentageToDP as hp
+} from "react-native-responsive-screen";
+
+// Components
+import Button from "./../../components/Button";
 
 // Constants
 import colors from "./../../constants/colors";
@@ -10,6 +17,7 @@ import url from "./../../constants/api";
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
+import style from "../../constants/style";
 
 export default function UserHomeScreen({ navigation }) {
   const [isTimeout, setIsTimeout] = useState(false);
@@ -28,6 +36,8 @@ export default function UserHomeScreen({ navigation }) {
    * This effect is run once upon component mount.
    */
   useEffect(() => {
+    socket.removeAllListeners();
+    
     console.log("in useEffect socket of UserWaitScreen");
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
@@ -59,7 +69,7 @@ export default function UserHomeScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in UserWaitScreen: status " +
-              status
+            status
           );
       }
     });
@@ -94,7 +104,7 @@ export default function UserHomeScreen({ navigation }) {
      * to run only when there's a new walkId value.
      * This allows the effect to run every time a new request was made.
      */
-  }, [walkId /*,isTimeout*/]);
+  }, [walkId]);
 
   /**
    * Delete the requested walk in the database using a DELETE request to the API.
@@ -104,91 +114,88 @@ export default function UserHomeScreen({ navigation }) {
    *  - we navigate back to home screen.
    */
   async function cancelRequest() {
-    try {
-      // Delete Walk API call
-      // Delete the requested walk in the database
-      const res = await fetch(url + "/api/Walks/" + walkId, {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true,
-        },
-      });
-      let status = res.status;
-
-      // Upon fetch failure/bad status
-      if (status !== 200 && status !== 201) {
-        console.log(
-          "deleting requested walk failed in cancelRequest() in UserWaitScreen: status " +
-            status
-        );
-        return;
-      }
-
-      // Upon fetch success
-      else {
-        // send notification to all Safewalkers that the walk request is cancelled
-        socket.emit("walk status", true);
-
-        // reset all walk state
-        resetWalkContextState();
-
-        // keep this
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: "UserHome",
-            },
-          ],
-        });
-
-        // Show different alerts according to whether
-        // the user cancels the walk or 30 seconds has passed
-        if (isTimeoutRef.current === true) {
-          setIsTimeout(false);
-          alert("Your request was timed out.");
-        } else {
-          alert("Request canceled.");
-        }
-      }
-    } catch (error) {
+    // Delete Walk API call
+    // Delete the requested walk in the database
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: true,
+      },
+    }).catch((error) => {
       console.error(
-        "Error in cancelling walk from cancelRequest() in UserWaitScreen:" +
-          error
+        "Error in DELETE walk from cancelRequest() in UserWaitScreen:" +
+        error
       );
+    });
+
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status !== 200 && status !== 201) {
+      console.log(
+        "deleting requested walk failed in cancelRequest() in UserWaitScreen: status " +
+        status
+      );
+    }
+
+    // send notification to all Safewalkers that the walk request is cancelled
+    socket.emit("walk status", true);
+
+    // reset all walk state
+    resetWalkContextState();
+
+    // navigate to user home screen
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "UserHome",
+        },
+      ],
+    });
+
+    // Show different alerts according to whether
+    // the user cancels the walk or 30 seconds has passed
+    if (isTimeoutRef.current === true) {
+      setIsTimeout(false);
+      alert("Your request was timed out.");
+    } else {
+      alert("Request canceled.");
     }
   }
 
   return (
     <View style={styles.container}>
       {/* View when the User submits a SAFEwalk request */}
-      <View style={{ flex: 3 }}>
-        <Text
-          style={{
-            textAlign: "center",
-            fontSize: 30,
-            color: colors.orange,
-            fontWeight: "bold",
-            marginTop: 60,
-          }}
-        >
-          Searching for {"\n"} SAFEwalker...
-        </Text>
+      <SafeAreaView style={styles.innerContainer}>
+        {/* Waiting Animation */}
         <LottieView
-          source={require("./../../assets/17709-loading")}
+          source={require("./../../assets/app-boot-loading")}
           speed={1}
           autoPlay={true}
           loop
           autoSize={true}
+          style={{height: hp("35%")}}
         />
-      </View>
-      <View style={{ flex: 1 }}>
-        <TouchableOpacity onPress={() => cancelRequest()}>
-          <Text style={styles.buttonCancel}> Cancel </Text>
-        </TouchableOpacity>
-      </View>
+
+        {/* Informational Text to the User */}
+        <Text style={styles.textHeader}>
+          Waiting for SAFEwalker
+        </Text>
+        <Text style={styles.text}>
+          {'\n'}Your request has been submitted and is pending approval by the next available SAFEwalker.
+        </Text>
+
+        {/* Button to Submit Request */}
+        <View style={styles.buttonContainer}>
+          <Button
+              title="Cancel"
+              onPress={() => cancelRequest()}
+              color="red"
+          />
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
@@ -197,19 +204,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    alignItems: "center",
   },
-  buttonCancel: {
-    backgroundColor: colors.red,
-    borderColor: colors.white,
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
+  innerContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginHorizontal: style.marginContainerHorizontal
+  },
+  textHeader: {
     textAlign: "center",
-    width: 200,
+    fontSize: hp("3%"),
+    color: "black",
+    fontWeight: "bold",
+  },
+  text: {
+    textAlign: "center",
+    fontSize: style.fontSize,
+    color: "black",
+    fontWeight: "bold",
+  },
+  buttonContainer: {
+    height: hp("17%"),
+    justifyContent: "space-around",
   },
 });

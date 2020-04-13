@@ -12,6 +12,12 @@ export default function UserMapScreen({ navigation }) {
    * This effect is run once upon component mount.
    */
   useEffect(() => {
+    socket.removeAllListeners();
+
+    socket.on("walker location", ({ lat, lng }) => {
+      console.log(lat + "," + lng);
+    });
+
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
       switch (status) {
@@ -30,14 +36,23 @@ export default function UserMapScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in UserMapScreen: status " +
-              status
+            status
           );
+      }
+    });
+
+    socket.on("connection lost", (status) => {
+      if (status) {
+        alert("Connection Lost");
+        // TODO: button to cancel walk, call cancelWalk()
       }
     });
 
     // cleanup socket
     return () => {
+      socket.off("walker location", null);
       socket.off("walker walk status", null);
+      socket.off("connection lost", null);
     };
   }, []);
 

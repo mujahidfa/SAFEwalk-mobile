@@ -4,6 +4,7 @@ import { Linking } from "expo";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 // Libraries
+import TimerMixin from 'react-timer-mixin';
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   widthPercentageToDP as wp,
@@ -40,11 +41,15 @@ export default function UserProfileScreen({ navigation }) {
     WalkContext
   );
 
+  mixins: [TimerMixin];
+
   /**
    * This effect sets up the socket connection to the User.
    * This effect is run once upon component mount.
    */
   useEffect(() => {
+    socket.removeAllListeners();
+
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       switch (status) {
@@ -52,21 +57,55 @@ export default function UserProfileScreen({ navigation }) {
         case -2:
           resetWalkContextState();
           alert("The user canceled the walk.");
+          console.log("listened to user walk - cancelled request");
           break;
 
         default:
           console.log(
             "Unexpected socket status received in UserProfileScreen: status " +
-              status
+            status
           );
+      }
+    });
+
+    socket.on("connection lost", (status) => {
+      if (status) {
+        deleteWalk();
+
+        // reset the Walk states
+        // This will bring navigation to InactiveWalk screens
+        resetWalkContextState();
+        alert("Connection lost, walk cancelled.");
       }
     });
 
     // socket cleanup
     return () => {
       socket.off("user walk status", null);
+      socket.off("connection lost", null);
     };
   }, []);
+  
+  useEffect(() => {
+    // send location to user every 5 seconds
+    const interval = setInterval(() => {
+      console.log("send");
+      console.log(userSocketId);
+      if (userSocketId != null) { 
+        console.log("sending");
+        // send location to user
+        socket.emit("walker location", {
+          userId: userSocketId,
+          lat: 0,
+          lng: 0,
+        });
+      }
+    }, 5000); // 5 seconds
+
+    return () => {
+      clearInterval(interval);
+    }
+  }, [userSocketId]);
 
   /**
    * This effect retrieves the User information associated with the walk.
@@ -99,55 +138,74 @@ export default function UserProfileScreen({ navigation }) {
    * @param signal cancels the fetch request when component is unmounted.
    */
   async function loadUserProfile(signal) {
-    try {
-      // Get User API
-      // Retrieve the User's personal information such as name & phone number
-      const res = await fetch(url + "/api/Users/" + userEmail, {
-        method: "GET",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
-        signal: signal,
-      });
-
-      const status = res.status;
-
-      // Upon fetch failure/bad status
-      if (status != 200 && status != 201) {
-        console.log(
-          "retrieving user info in loadUserProfile() in UserProfileScreen failed: status " +
-            status
-        );
-        return;
-      }
-
-      // Upon fetch success
-      else {
-        // We update the local state with retrieved data
-        const data = await res.json();
-        setFirstname(data["firstName"]);
-        setLastname(data["lastName"]);
-        setPhoneNumber(data["phoneNumber"]);
-        setImage(data["photo"]);
-      }
-    } catch (error) {
-      /**
-       * When the component unmounts, the AbortController will cancel any recurring fetch requests.
-       * When that happens (i.e. fetch cancel), it throws an AbortError error.
-       * So we catch this error to differentiate it from other errors.
-       * This is the same as if (error.name === "AbortError")
-       */
+    // Get User API
+    // Retrieve the User's personal information such as name & phone number
+    const res = await fetch(url + "/api/Users/" + userEmail, {
+      method: "GET",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+      signal: signal,
+    }).catch((error) => {
+      // cancel fetch upon component unmount
       if (signal.aborted) {
-        return;
+        return; // exit
       }
-
       console.error(
         "Error in fetching data from loadUserProfile() in UserProfileScreen:" +
-          error
+        error
+      );
+    });
+
+    if (res == null) {
+      return; // exit
+    }
+
+    const status = res.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "retrieving user info in loadUserProfile() in UserProfileScreen failed: status " +
+        status
+      );
+      return; // exit
+    }
+
+    // We update the local state with retrieved data
+    const data = await res.json();
+    setFirstname(data["firstName"]);
+    setLastname(data["lastName"]);
+    setPhoneNumber(data["phoneNumber"]);
+  }
+
+  async function deleteWalk() {
+    // Delete Walk API call
+    // Delete the current walk in the database
+    const res = await fetch(url + "/api/Walks/" + walkId, {
+      method: "DELETE",
+      headers: {
+        token: userToken,
+        email: email,
+        isUser: false,
+      },
+    }).catch((error) => {
+      console.error(
+        "Error in DELETE walk from cancelWalk() in UserProfileScreen:" +
+        error
+      )
+    });
+
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status != 200 && status != 201) {
+      console.log(
+        "deleting walk failed in cancelWalk() in UserProfileScreen: status " +
+        status
       );
     }
+
   }
 
   /**
@@ -158,53 +216,21 @@ export default function UserProfileScreen({ navigation }) {
    *  - we navigate back to home screen.
    */
   async function cancelWalk() {
-    try {
-      // Delete Walk API call
-      // Delete the current walk in the database
-      const res = await fetch(url + "/api/Walks/" + walkId, {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: false,
-        },
+    await deleteWalk();
+
+    // if userSocketId is not null
+    if (userSocketId != null) {
+      // notify the user that walk has been cancelled
+      socket.emit("walker walk status", {
+        userId: userSocketId,
+        status: -2,
       });
-
-      let status = res.status;
-
-      // Upon fetch failure/bad status
-      if (status != 200 && status != 201) {
-        console.log(
-          "deleting walk failed in cancelWalk() in UserProfileScreen: status " +
-            status
-        );
-
-        return;
-      }
-
-      // Upon fetch success
-      else {
-        // if userSocketId is not null
-        if (userSocketId) {
-          // notify the user that walk has been cancelled
-          socket.emit("walker walk status", {
-            userId: userSocketId,
-            status: -2,
-          });
-        }
-
-        // Remove all current walk-related information
-        // and bring navigation back to InactiveWalk screens
-        resetWalkContextState();
-
-        alert("You canceled the walk.");
-      }
-    } catch (error) {
-      console.error(
-        "Error in cancelling walk from cancelWalk() in UserProfileScreen:" +
-          error
-      );
     }
+
+    // Remove all current walk-related information
+    // and bring navigation back to InactiveWalk screens
+    resetWalkContextState();
+    alert("You canceled the walk.");
   }
 
   function handleCall() {
