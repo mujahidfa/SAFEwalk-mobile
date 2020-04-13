@@ -1,21 +1,36 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
   KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import { Button, Image } from "react-native-elements";
-import { TextInput } from "react-native-paper";
+
+// Libraries
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
+// Custom components
+import SAFEwalkLogo from "../../../components/SAFEwalkLogo";
+import ErrorText from "./../../../components/ErrorText";
+import TextInput from "./../../../components/TextInput";
+import Button from "./../../../components/Button";
+import Or from "../../../components/Or";
+import Spacer from "../../../components/Spacer";
+
+// Constants
 import colors from "./../../../constants/colors";
 import url from "./../../../constants/api";
+import style from "./../../../constants/style";
 
+// Contexts
 import { AuthContext } from "./../../../contexts/AuthProvider";
 
 export default function SafewalkerLoginScreen({ navigation }) {
@@ -91,77 +106,69 @@ export default function SafewalkerLoginScreen({ navigation }) {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={styles.container}>
-        <View style={styles.logoUWContainer}>
-          <Image
-            source={require("./../../../assets/uw-transportation-logo.png")}
-            style={styles.logoUW}
-          />
-        </View>
-        <KeyboardAvoidingView style={styles.innerContainer}>
-          <View style={styles.logoSAFEwalkContainer}>
-            <Text style={styles.logoSAFE}>SAFE</Text>
-            <Text style={styles.logoWALK}>walk</Text>
+        <KeyboardAvoidingView
+          behavior={Platform.Os == "ios" ? "padding" : "height"}
+          style={styles.innerKeyboardViewContainer}
+        >
+          <View>
+            <SAFEwalkLogo />
           </View>
+          <View>
+            <Text style={styles.titleLogin}>SAFEwalker Login</Text>
+            <View style={styles.inputContainer}>
+              {errors.email && (
+                <ErrorText>wisc.edu email is required.</ErrorText>
+              )}
+              {isUserNotAvailable && (
+                <ErrorText>Invalid email or password.</ErrorText>
+              )}
+              {isLoginError && (
+                <ErrorText>There was an error. Please try again.</ErrorText>
+              )}
+              <TextInput
+                label="Email"
+                placeholder="netid@wisc.edu"
+                ref={register(
+                  { name: "email" },
+                  { required: true, pattern: /^\S+@wisc\.edu$/i }
+                )}
+                onChangeText={(text) => setValue("email", text, true)}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
 
-          {errors.email && (
-            <Text style={styles.textError}>wisc.edu email is required.</Text>
-          )}
-          <TextInput
-            label="Email"
-            placeholder="netid@wisc.edu"
-            ref={register(
-              { name: "email" },
-              { required: true, pattern: /^\S+@wisc\.edu$/i }
-            )}
-            onChangeText={(text) => setValue("email", text, true)}
-            mode="outlined"
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          {errors.password && (
-            <Text style={styles.textError}>Password is required.</Text>
-          )}
-          <TextInput
-            label="Password"
-            placeholder="Password"
-            ref={register({ name: "password" }, { required: true })}
-            onChangeText={(text) => setValue("password", text, true)}
-            mode="outlined"
-            secureTextEntry
-            theme={{ colors: { primary: colors.red } }}
-            style={styles.textInput}
-          />
-
-          {isLoginError && (
-            <Text style={styles.textErrorAPICall}>
-              There was an error. Please try again.
-            </Text>
-          )}
-          {isUserNotAvailable && (
-            <Text style={styles.textErrorAPICall}>
-              Invalid email or password.
-            </Text>
-          )}
-
-          <View style={styles.buttonContainer}>
+            <View style={styles.inputContainer}>
+              {errors.password && <ErrorText>Password is required.</ErrorText>}
+              {isUserNotAvailable && (
+                <ErrorText>Invalid email or password.</ErrorText>
+              )}
+              <TextInput
+                label="Password"
+                placeholder="Password"
+                ref={register({ name: "password" }, { required: true })}
+                onChangeText={(text) => setValue("password", text, true)}
+                secureTextEntry
+              />
+            </View>
+            <Spacer />
             <Button
-              title="Login as SAFEwalker"
+              title="Login"
+              onPress={handleSubmit(onSubmit)}
               loading={isLoading}
               disabled={isLoading}
-              onPress={handleSubmit(onSubmit)}
-              buttonStyle={styles.buttonLogin}
-              titleStyle={styles.buttonLoginText}
             />
           </View>
         </KeyboardAvoidingView>
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerPrompt}>Not a SAFEwalker?</Text>
-          <TouchableOpacity onPress={() => navigation.replace("UserLogin")}>
-            <Text style={styles.footerClickable}>Click here.</Text>
-          </TouchableOpacity>
+        <View style={styles.innerFooterContainer}>
+          <Or withOr={false} />
+          <Spacer />
+          <Button
+            title="Go to User login"
+            onPress={() => navigation.replace("UserLogin")}
+            type="outline"
+          />
+          <Spacer />
         </View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
@@ -173,67 +180,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  logoUWContainer: {
-    alignItems: "center",
-  },
-  logoUW: {
-    width: 333,
-    height: 40,
-    alignSelf: "center",
-  },
-  innerContainer: {
+  innerKeyboardViewContainer: {
     flex: 1,
-    marginHorizontal: 50,
-    justifyContent: "center",
+    marginHorizontal: style.marginContainerHorizontal,
+    justifyContent: "space-evenly",
   },
-  logoSAFEwalkContainer: {
-    flexDirection: "row",
+  innerFooterContainer: {
+    marginHorizontal: style.marginContainerHorizontal,
+  },
+  titleLogin: {
+    fontSize: wp("6%"),
+    fontWeight: "normal",
     alignSelf: "center",
-    marginBottom: 60,
+    color: colors.darkgray,
   },
-  logoSAFE: {
-    fontWeight: "bold",
-    fontSize: 75,
-    color: colors.orange,
-  },
-  logoWALK: {
-    fontStyle: "italic",
-    fontSize: 75,
-    color: colors.orange,
-  },
-  textError: {
-    color: colors.red,
-  },
-  textInput: {
-    marginBottom: 20,
+  inputContainer: {
+    height: hp("9.5%"),
+    justifyContent: "flex-end",
   },
   buttonContainer: {
-    marginTop: 50,
-  },
-  buttonLogin: {
-    marginBottom: 20,
-    height: 60,
-    borderRadius: 50,
-    backgroundColor: colors.orange,
-  },
-  buttonLoginText: {
-    fontSize: 20,
-  },
-  textErrorAPICall: {
-    color: colors.red,
-    alignSelf: "center",
-    fontSize: 18,
-  },
-  footerContainer: {
-    position: "absolute",
-    bottom: 0,
-    marginBottom: 30,
-    marginLeft: 50,
-  },
-  footerPrompt: { fontSize: 20 },
-  footerClickable: {
-    fontSize: 20,
-    color: colors.darkred,
-    fontWeight: "bold",
+    height: hp("9.5%"),
+    justifyContent: "flex-start",
   },
 });
