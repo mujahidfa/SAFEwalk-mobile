@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
-import { useFocusEffect } from "@react-navigation/core";
 import LottieView from "lottie-react-native";
 
 // Constants
@@ -95,7 +94,7 @@ export default function UserHomeScreen({ navigation }) {
      * to run only when there's a new walkId value.
      * This allows the effect to run every time a new request was made.
      */
-  }, [walkId, isTimeout]);
+  }, [walkId /*,isTimeout*/]);
 
   /**
    * Delete the requested walk in the database using a DELETE request to the API.
