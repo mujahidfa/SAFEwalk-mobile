@@ -1,34 +1,49 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Image } from "react-native-elements";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-import colors from "./../constants/colors";
+import colors from "../constants/colors";
 
-export default function SAFEWalkLogo(props) {
+export default function SAFEwalkLogo() {
   return (
-    <View style={styles.logoSAFEwalkContainer}>
-      <Text style={styles.logoSAFE}>SAFE</Text>
-      <Text style={styles.logoWALK}>walk</Text>
+    <View style={styles.logoContainer}>
+      <Image
+        source={require("./../assets/safewalk-logo.png")}
+        style={styles.logo}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  logoContainer: {
+    alignItems: "center",
+  },
+  logo: {
+    width: wp("70%"), //280,
+    height: wp("21.4%"), //85,
+  },
   logoSAFEwalkContainer: {
     flexDirection: "row",
     alignSelf: "center",
   },
   logoSAFE: {
     fontWeight: "bold",
-    fontSize: wp("18%"),
+    fontSize: wp("15%"),
     color: colors.orange,
+    lineHeight: 80,
   },
   logoWALK: {
     fontStyle: "italic",
-    fontSize: wp("18%"),
+    fontSize: wp("15%"),
     color: colors.orange,
+    lineHeight: 80,
+  },
+  logoFooter: {
+    alignSelf: "flex-start",
   },
 });
