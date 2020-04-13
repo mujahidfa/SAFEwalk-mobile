@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import UserHomeScreen from "./UserHomeScreen";
 import UserWaitScreen from "./UserWaitScreen";
 
-import Header from "../../components/Header";
+import Header from "./../../components/Header";
 
 const Stack = createStackNavigator();
 
