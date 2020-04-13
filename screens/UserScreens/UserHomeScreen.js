@@ -79,7 +79,8 @@ export default function UserHomeScreen({ navigation }) {
     text: ""
   });
 
-  const [eta, setEta] = useState("0");
+  const [eta, setEta] = useState("");
+  const [duration, setDuration] = useState("");
 
   // markers and locations
   const [markers, setMarkers] = useState([
@@ -238,11 +239,45 @@ export default function UserHomeScreen({ navigation }) {
     ])
   }
 
+  async function convertEta() {
+    var today = new Date();
+    var hours = today.getHours();
+    var minutes = today.getMinutes();
+    console.log("Time: " + hours + ":" + minutes);
+    console.log("Duration: " + eta)
+    var replaced = duration.split(' ');
+    if(replaced[1].localeCompare("hours") == 0) {
+      hours = parseInt(hours) + parseInt(replaced[0]);
+      minutes = parseInt(minutes) + parseInt(replaced[2]);
+    }
+    else{
+      minutes = parseInt(minutes) + parseInt(replaced[0]);
+    }
+
+    if(minutes > 59) {
+      minutes = parseInt(minutes) - 60;
+      hours = parseInt(hours) + 1;
+    }
+    if(hours > 12) {
+      hours = parseInt(hours) - 12;
+    }
+
+    if(minutes < 10) {
+      minutes = "0" + minutes;
+    }
+    var returnString = hours + ":" + minutes;
+    setEta(returnString);
+
+    console.log(returnString);
+    console.log("Updated ETA: " + eta);
+  }
+
   async function getEta() {
     var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + start.coordinates.latitude + ", " + start.coordinates.longitude + "&destinations=" + destination.coordinates.latitude + ", " + destination.coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
     .then(res => {
-      setEta(res.data.rows[0].elements[0].duration.text);
+      setDuration(res.data.rows[0].elements[0].duration.text);
+      convertEta();
     })
   }
 
@@ -382,32 +417,6 @@ export default function UserHomeScreen({ navigation }) {
       {!request ? (
         <View style={styles.container}>
           {/* User Start and End Location Input Fields */}
-          <Input
-            inputStyle={styles.input}
-            inputContainerStyle={styles.inputContainerTop}
-            value={start.text}
-            onChangeText={onStartTextChange}
-            onSubmitEditing={updateStart}
-            placeholder='Start'
-            returnKeyType='search'
-            leftIcon={{
-              type: "font-awesome",
-              name: "map-marker"
-            }}
-          />
-          <Input
-            inputStyle={styles.input}
-            inputContainerStyle={styles.inputContainer}
-            value={destination.text}
-            onChangeText={onDestinationTextChange}
-            onSubmitEditing={updateDestination}
-            placeholder='Destination'
-            returnKeyType='search'
-            leftIcon={{
-              type: "font-awesome",
-              name: "map-marker"
-            }}
-          />
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
@@ -417,11 +426,33 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
-            <Text>  Destination Marker Location: {markers[1].coordinates.latitude}, {markers[1].coordinates.longitude}</Text>
+            <Input
+              inputStyle={styles.input}
+              inputContainerStyle={styles.inputContainerTop}
+              value={start.text}
+              onChangeText={onStartTextChange}
+              onSubmitEditing={updateStart}
+              placeholder='Start'
+              returnKeyType='search'
+              leftIcon={{
+                type: "font-awesome",
+                name: "map-marker"
+              }}
+            />
+            <Input
+              inputStyle={styles.input}
+              inputContainerStyle={styles.inputContainer}
+              value={destination.text}
+              onChangeText={onDestinationTextChange}
+              onSubmitEditing={updateDestination}
+              placeholder='Destination'
+              returnKeyType='search'
+              leftIcon={{
+                type: "font-awesome",
+                name: "map-marker"
+              }}
+            />
             <Text>  ETA: {eta}</Text>
-            <Text>  User Coordinates: {location.coordinates.latitude}, {location.coordinates.longitude}</Text>
-            <Text>  Destination Text: {destination.text}</Text>
-            <Text>  Destination Coordinates: {destination.coordinates.latitude}, {destination.coordinates.longitude}</Text>
             {markers.map((marker) => (
               <MapView.Marker
                 key={marker.key}
@@ -506,7 +537,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 12,
     textAlign: "center",
-    marginBottom: 160
+    marginBottom: 200
   },
   buttonFit: {
     backgroundColor: "#77b01a",
@@ -552,17 +583,17 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   inputContainer: {
-    marginBottom: 10,
-    marginTop: 200,
-    borderColor: 'black',
+    marginBottom: 0,
+    marginTop: 0,
+    borderColor: 'transparent',
     backgroundColor: 'white',
     borderWidth: 2,
     borderRadius: 5
   },
   inputContainerTop: {
     marginBottom: 10,
-    marginTop: 110,
-    borderColor: 'black',
+    marginTop: 20,
+    borderColor: 'transparent',
     backgroundColor: 'white',
     borderWidth: 2,
     borderRadius: 5
@@ -574,8 +605,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   mapStyle: {
-    marginTop: 200,
+    marginTop: 90,
     width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height*0.7,
+    height: Dimensions.get('window').height-90,
   }
 });
