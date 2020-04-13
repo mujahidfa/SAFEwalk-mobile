@@ -47,7 +47,17 @@ export default function ActiveWalkNavigation() {
 // The reason to wrap the Tabs nav with a parent Stack nav is to allow auto-named headers
 function UserActiveWalkNavigation() {
   return (
-    <Stack.Navigator initialRouteName="CurrentWalk" headerMode="screen">
+    <Stack.Navigator
+      initialRouteName="CurrentWalk"
+      headerMode="screen"
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.lightorange,
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    >
       <Stack.Screen
         name="CurrentWalk"
         component={UserActiveWalkTabNav}
@@ -63,7 +73,7 @@ function UserActiveWalkTabNav() {
     <Tab.Navigator
       initialRouteName="SafewalkerProfile"
       tabBarOptions={{
-        activeTintColor: colors.orange,
+        activeTintColor: colors.darkorange,
       }}
     >
       <Tab.Screen
@@ -94,7 +104,17 @@ function UserActiveWalkTabNav() {
 // The reason to wrap the Tabs nav with a parent Stack nav is to allow auto-named headers
 function SafewalkerActiveWalkNavigation() {
   return (
-    <Stack.Navigator initialRouteName="CurrentWalk" headerMode="screen">
+    <Stack.Navigator
+      initialRouteName="CurrentWalk"
+      headerMode="screen"
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.lightorange,
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    >
       <Stack.Screen
         name="CurrentWalk"
         component={SafewalkerActiveWalkTabNav}
@@ -110,7 +130,7 @@ function SafewalkerActiveWalkTabNav() {
     <Tab.Navigator
       initialRouteName="UserProfile"
       tabBarOptions={{
-        activeTintColor: colors.orange,
+        activeTintColor: colors.darkorange,
       }}
     >
       <Tab.Screen

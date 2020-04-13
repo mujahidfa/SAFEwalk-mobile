@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import {
-  Text,
-  View,
-  StyleSheet,
-} from "react-native";
-import { useFocusEffect } from "@react-navigation/core";
+import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {

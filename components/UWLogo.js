@@ -22,8 +22,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoUW: {
-    width: wp("70%"),
-    height: hp("4%"),
-    alignSelf: "center",
+    width: wp("55%"),
+    height: hp("2.87%"),
   },
 });

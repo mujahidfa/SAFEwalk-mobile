@@ -7,10 +7,18 @@ import EditProfileNavigation from "./SharedScreens/EditProfileNavigation";
 import LoginSettingsNavigation from "./SharedScreens/LoginSettingsNavigation";
 import WalkErrorScreen from "./SharedScreens/WalkErrorScreen";
 
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
 // Drawer navigation
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import DrawerContent from "../components/DrawerContent";
 const Drawer = createDrawerNavigator();
+
+// Constants
+import colors from "./../constants/colors";
 
 // Context
 import { AuthContext } from "../contexts/AuthProvider";
@@ -37,9 +45,20 @@ export default function InactiveWalkNavigation() {
 
 function UserInactiveWalkNavigation() {
   return (
-    <Drawer.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
+    <Drawer.Navigator
+      drawerContent={(props) => <DrawerContent {...props} />}
+      drawerContentOptions={{
+        labelStyle: {
+          fontSize: wp("4%"),
+        },
+      }}
+      drawerStyle={{
+        backgroundColor: colors.lightorange,
+        width: wp("60%"),
+      }}
+    >
       <Drawer.Screen
-        name="UserHomeNavigation"
+        name="Home"
         component={UserHomeNavigation}
         options={{ title: "Home" }}
       />
@@ -59,11 +78,22 @@ function UserInactiveWalkNavigation() {
 
 function SafewalkerInactiveWalkNavigation() {
   return (
-    <Drawer.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
+    <Drawer.Navigator
+      drawerContent={(props) => <DrawerContent {...props} />}
+      drawerContentOptions={{
+        labelStyle: {
+          fontSize: wp("4%"),
+        },
+      }}
+      drawerStyle={{
+        backgroundColor: colors.lightorange,
+        width: wp("60%"),
+      }}
+    >
       <Drawer.Screen
-        name="SafewalkerHomeNavigation"
+        name="Home"
         component={SafewalkerHomeNavigation}
-        options={{ title: "Safewalker Home" }}
+        options={{ title: "Home" }}
       />
       <Drawer.Screen
         name="EditProfile"

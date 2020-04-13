@@ -2,16 +2,10 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import { Button } from "react-native-elements";
 
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
-
 import colors from "./../constants/colors";
 import style from "./../constants/style";
 
 export default function WrapperButton(props) {
-  // props.color
   return (
     <Button
       title={props.title}
@@ -41,6 +35,7 @@ const styles = StyleSheet.create({
   /* Generic styles */
   buttonDimensions: {
     height: style.buttonHeight,
+    borderRadius: 5,
   },
   buttonTitle: {
     fontSize: style.buttonFontSize,

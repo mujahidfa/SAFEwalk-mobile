@@ -8,7 +8,6 @@ import ActiveWalkNavigation from "./ActiveWalkNavigation";
 
 // Constants
 import url from "./../constants/api";
-import colors from "./../constants/colors";
 
 // Contexts
 import { AuthContext } from "./../contexts/AuthProvider";
