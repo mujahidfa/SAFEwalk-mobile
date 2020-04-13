@@ -311,7 +311,6 @@ export default function UserHomeScreen({ navigation }) {
   };
 
   return (
-<<<<<<< HEAD
     <View style={{ flex: 1 }}>
       {/* Conditional Statement Based on if the User has made a Request */}
       {!request ? (
@@ -326,16 +325,6 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
-=======
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.innerContainer}>
-          {/* User Start and End Location input fields */}
-          <View style={styles.inputContainer}>
-            {errors.startLocation && (
-              <Text style={style.textError}>Start location is required.</Text>
-            )}
->>>>>>> iteration-2
             <Input
               inputStyle={styles.input}
               inputContainerStyle={styles.inputContainer}
@@ -392,28 +381,12 @@ export default function UserHomeScreen({ navigation }) {
             size={80}
             iconStyle={{ marginBottom: 100 }}
           />
-<<<<<<< HEAD
           <TouchableOpacity onPress={() => cancelRequest()}>
             <Text style={styles.buttonCancel}> Cancel </Text>
           </TouchableOpacity>
         </View>
       )}
     </View>
-=======
-
-          {/* Button to Submit Request */}
-          <View style={styles.buttonContainer}>
-            <Button
-                title="Request Now"
-                onPress={() => addRequest()}
-                loading={isLoading}
-                disabled={isLoading}
-            />
-          </View>
-        </View>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
->>>>>>> iteration-2
   );
 }
 
