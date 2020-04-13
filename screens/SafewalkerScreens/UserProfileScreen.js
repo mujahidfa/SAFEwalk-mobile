@@ -1,14 +1,27 @@
 import React, { useState, useEffect, useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Button } from "react-native-elements";
 import { Linking } from "expo";
-import { Ionicons, EvilIcons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+
+// Libraries
 import TimerMixin from 'react-timer-mixin';
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import { Avatar } from "react-native-paper";
+import { Button } from "react-native-elements";
+
+// Custom components
+import BButton from "./../../components/Button";
+import Spacer from "./../../components/Spacer";
 
 // Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import url from "./../../constants/api";
+import style from "./../../constants/style";
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
@@ -18,6 +31,7 @@ export default function UserProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [image, setImage] = useState("");
   const [address, setAddress] = useState("728 State St");
   const [postalCode, setPostalCode] = useState("53715");
   const [city, setCity] = useState("Madison");
@@ -234,41 +248,45 @@ export default function UserProfileScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <FontAwesome
-        name="user-circle"
-        size={100}
-        style={styles.profilePicture}
-      />
-      <Text style={styles.textName}>
-        {firstname} {lastname}
-      </Text>
-      <View style={styles.buttonContactContainer}>
-        <Button
-          icon={<Ionicons name="ios-call" size={60} color={colors.white} />}
-          buttonStyle={styles.buttonCall}
-          onPress={() => handleCall()}
-        />
-        <Button
-          icon={<Ionicons name="md-text" size={60} color={colors.white} />}
-          buttonStyle={styles.buttonText}
-          onPress={() => handleText()}
-        />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.innerContainer}>
+        <View style={styles.profileContainer}>
+          <Avatar.Image
+            source={{
+              uri: !image
+                ? "https://ui-avatars.com/api/?name=" +
+                  firstname +
+                  "+" +
+                  lastname
+                : image,
+            }}
+            size={wp("30%")}
+          />
+          <Spacer />
+          <Text style={styles.textName}>
+            {firstname} {lastname}
+          </Text>
+        </View>
 
-      <Button
-        title="Navigate using Maps"
-        buttonStyle={styles.buttonCancel}
-        icon={<EvilIcons name="external-link" size={25} color={colors.white} />}
-        iconRight={true}
-        onPress={() => handleMaps()}
-      />
-      <Button
-        title="Cancel"
-        buttonStyle={styles.buttonCancel}
-        onPress={() => cancelWalk()}
-      />
-    </View>
+        <View style={styles.buttonContactContainer}>
+          <Button
+            icon={<Ionicons name="ios-call" size={60} color={colors.white} />}
+            buttonStyle={styles.buttonCall}
+            onPress={() => handleCall()}
+          />
+          <Button
+            icon={<Ionicons name="md-text" size={60} color={colors.white} />}
+            buttonStyle={styles.buttonText}
+            onPress={() => handleText()}
+          />
+        </View>
+
+        <View style={styles.buttonCancelContainer}>
+          <BButton title="Cancel" onPress={() => cancelWalk()} />
+        </View>
+        <Spacer />
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -276,40 +294,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    alignItems: "stretch",
+  },
+  innerContainer: {
+    flex: 1,
+    marginHorizontal: style.marginContainerHorizontal,
+    justifyContent: "space-between",
+  },
+  profileContainer: {
+    flex: 1,
+    alignItems: "center",
     justifyContent: "center",
   },
-  profilePicture: {
-    alignSelf: "center",
-    marginBottom: 30,
-  },
+  profilePicture: {},
   textName: {
-    alignSelf: "center",
-    fontSize: 30,
-    marginBottom: 40,
+    fontSize: wp("9%"), //30,
   },
   buttonContactContainer: {
+    flex: 1,
     flexDirection: "row",
-    justifyContent: "space-evenly",
-    marginBottom: 100,
+    justifyContent: "space-around",
   },
   buttonCall: {
     backgroundColor: colors.gray,
     borderRadius: 15,
-    width: 80,
-    height: 80,
+    width: hp("11%"), //80,
+    height: hp("11%"), //80,
   },
   buttonText: {
     backgroundColor: colors.gray,
     borderRadius: 15,
-    width: 80,
-    height: 80,
+    width: hp("11%"), //80,
+    height: hp("11%"), //80,
   },
-  buttonCancel: {
-    marginBottom: 40,
-    height: 60,
-    borderRadius: 50,
-    backgroundColor: colors.red,
-    marginHorizontal: 40,
-  },
+  buttonCancelContainer: {},
 });

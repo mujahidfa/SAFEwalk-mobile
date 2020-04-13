@@ -10,7 +10,8 @@ import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
 import { Avatar, Divider } from "react-native-elements";
 import { useForm } from "react-hook-form";
-import {heightPercentageToDP as hp} from "react-native-responsive-screen";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { TextInput as RNTextInput } from "react-native-paper";
 
 // Components
 import Button from "./../../components/Button";
@@ -163,6 +164,7 @@ export default function EditProfileScreen() {
         <ScrollView style={styles.container}>
           <SafeAreaView style={styles.innerContainer}>
             <View style={{ alignItems: "center", marginBottom: 40 }}>
+              {/* Fix so avatar does not move when clicking edit button */}
               {!image ? (
                 <Avatar
                   rounded
@@ -242,8 +244,7 @@ export default function EditProfileScreen() {
               {errors.phoneNumber && (
                 <Text style={style.textError}>Valid US phone number is required.</Text>
               )}
-              {/* TODO: Fix the issue with not being able to change value */}
-              <TextInput
+              <RNTextInput
                 label="Phone Number"
                 defaultValue={phoneNumber}
                 ref={register(
@@ -316,6 +317,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     borderBottomWidth: 0,
     marginBottom: 10,
+    height: style.inputHeight
   },
   buttonContainer: {
     height: hp("20%"),

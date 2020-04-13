@@ -1,11 +1,15 @@
 import React, { useEffect, useState, useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Button } from "react-native-elements";
+
+// Custom components
+import Button from "./../../components/Button";
+import Spacer from "./../../components/Spacer";
 
 // Constants
 import colors from "../../constants/colors";
 import socket from "../../contexts/socket";
 import url from "./../../constants/api";
+import style from "./../../constants/style";
 
 // Contexts
 import { AuthContext } from "../../contexts/AuthProvider";
@@ -112,16 +116,16 @@ export default function MapScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text>SAFEwalker Map Screen</Text>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="SAFEwalk Completed"
-          loading={isLoading}
-          disabled={isLoading}
-          onPress={() => completeWalk()}
-          buttonStyle={styles.button}
-          titleStyle={styles.buttonText}
-        />
+      <View style={styles.innerContainer}>
+        <Text>SAFEwalker Map Screen</Text>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Mark walk as complete"
+            loading={isLoading}
+            disabled={isLoading}
+            onPress={() => completeWalk()}
+          />
+        </View>
       </View>
     </View>
   );
@@ -133,19 +137,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "stretch",
     justifyContent: "center",
-    paddingHorizontal: 60,
+  },
+  innerContainer: {
+    flex: 1,
+    marginHorizontal: style.marginContainerHorizontal,
   },
   buttonContainer: {
     flex: 1,
     justifyContent: "flex-end",
-    marginBottom: 40,
-  },
-  button: {
-    height: 60,
-    borderRadius: 50,
-    backgroundColor: "#77b01a",
-  },
-  buttonText: {
-    fontSize: 20,
+    marginBottom: style.marginContainerHorizontal,
   },
 });
