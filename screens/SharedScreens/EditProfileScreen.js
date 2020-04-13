@@ -164,6 +164,7 @@ export default function EditProfileScreen() {
         <ScrollView style={styles.container}>
           <SafeAreaView style={styles.innerContainer}>
             <View style={{ alignItems: "center", marginBottom: 40 }}>
+              {/* Fix so avatar does not move when clicking edit button */}
               {!image ? (
                 <Avatar
                   rounded

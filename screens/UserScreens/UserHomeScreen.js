@@ -122,7 +122,7 @@ export default function UserHomeScreen({ navigation }) {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView style={styles.innerContainer}>
+        <View style={styles.innerContainer}>
           {/* User Start and End Location input fields */}
           <View style={styles.inputContainer}>
             {errors.startLocation && (
@@ -181,7 +181,7 @@ export default function UserHomeScreen({ navigation }) {
                 disabled={isLoading}
             />
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );
