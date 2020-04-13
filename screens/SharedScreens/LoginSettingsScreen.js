@@ -90,14 +90,9 @@ export default function LoginSettingsScreen({ navigation }) {
             console.log("captured " + response.status + "! Try again.");
           } else {
             console.log("updated password" + data.confirmPassword);
-            Alert.alert(
-              'Password Successfully Updated',
-              '',
-              [
-                {text: 'OK'},
-              ],
-              { cancelable: false }
-            )
+            Alert.alert("Password Successfully Updated", "", [{ text: "OK" }], {
+              cancelable: false,
+            });
           }
         })
         .catch((error) => {
@@ -106,13 +101,11 @@ export default function LoginSettingsScreen({ navigation }) {
         });
     } else {
       Alert.alert(
-        'Incorrect Password',
-        'Please Confirm Password',
-        [
-          {text: 'OK'},
-        ],
+        "Incorrect Password",
+        "Please Confirm Password",
+        [{ text: "OK" }],
         { cancelable: false }
-      )
+      );
     }
   };
 
@@ -125,63 +118,66 @@ export default function LoginSettingsScreen({ navigation }) {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <SafeAreaView style={styles.container2}>
-        {/* Top View */}
-        <View style={styles.containerTop}>
-          <Text style={styles.textTitle}> Update Password:</Text>
-        </View>
+          {/* Top View */}
+          <View style={styles.containerTop}>
+            <Text style={styles.textTitle}> Update Password:</Text>
+          </View>
 
-        {/* Inner View */}
-        <KeyboardAvoidingView style={styles.innerContainer}>
-          {errors.currentPassword && (
-            <Text style={styles.textError}>Current password is required.</Text>
-          )}
-          <TextInput
-            label="Current Password"
-            placeholder="Current Password"
-            ref={register({ name: "currentPassword" }, { required: true })}
-            onChangeText={(text) => setValue("currentPassword", text, true)}
-            secureTextEntry
-            style={styles.textInput}
-          />
-
-          {errors.password && (
-            <Text style={styles.textError}>Password is required.</Text>
-          )}
-          <TextInput
-            label="New Password"
-            placeholder="New Password"
-            ref={register({ name: "password" }, { required: true })}
-            onChangeText={(text) => setValue("password", text, true)}
-            secureTextEntry
-            style={styles.textInput}
-          />
-
-          {errors.confirmPassword && (
-            <Text style={styles.textError}>The passwords do not match.</Text>
-          )}
-          <TextInput
-            label="Confirm password"
-            ref={register(
-              { name: "confirmPassword" },
-              {
-                required: true,
-                validate: (value) =>
-                  value === watch("password") || "The passwords do not match.",
-              }
+          {/* Inner View */}
+          <KeyboardAvoidingView style={styles.innerContainer}>
+            {errors.currentPassword && (
+              <Text style={styles.textError}>
+                Current password is required.
+              </Text>
             )}
-            onChangeText={(text) => setValue("confirmPassword", text, true)}
-            secureTextEntry
-            style={styles.textInput}
-          />
-        
-        {/* Bottom */}
-        <View style={styles.containerButton}>
-          <Button
-            title="Confirm Password Change"
-            onPress={handleSubmit(onSubmit)}
+            <TextInput
+              label="Current Password"
+              placeholder="Current Password"
+              ref={register({ name: "currentPassword" }, { required: true })}
+              onChangeText={(text) => setValue("currentPassword", text, true)}
+              secureTextEntry
+              style={styles.textInput}
             />
-        </View>
-        </KeyboardAvoidingView>
+
+            {errors.password && (
+              <Text style={styles.textError}>Password is required.</Text>
+            )}
+            <TextInput
+              label="New Password"
+              placeholder="New Password"
+              ref={register({ name: "password" }, { required: true })}
+              onChangeText={(text) => setValue("password", text, true)}
+              secureTextEntry
+              style={styles.textInput}
+            />
+
+            {errors.confirmPassword && (
+              <Text style={styles.textError}>The passwords do not match.</Text>
+            )}
+            <TextInput
+              label="Confirm password"
+              ref={register(
+                { name: "confirmPassword" },
+                {
+                  required: true,
+                  validate: (value) =>
+                    value === watch("password") ||
+                    "The passwords do not match.",
+                }
+              )}
+              onChangeText={(text) => setValue("confirmPassword", text, true)}
+              secureTextEntry
+              style={styles.textInput}
+            />
+
+            {/* Bottom */}
+            <View style={styles.containerButton}>
+              <Button
+                title="Confirm Password Change"
+                onPress={handleSubmit(onSubmit)}
+              />
+            </View>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </View>
     </TouchableWithoutFeedback>

@@ -4,7 +4,10 @@ import {
   Text,
   View,
   KeyboardAvoidingView,
-  SafeAreaView, Keyboard, TouchableWithoutFeedback, ScrollView,
+  SafeAreaView,
+  Keyboard,
+  TouchableWithoutFeedback,
+  ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
@@ -15,7 +18,7 @@ import { TextInput as RNTextInput } from "react-native-paper";
 
 // Components
 import Button from "./../../components/Button";
-import TextInput from "./../../components/TextInput"
+import TextInput from "./../../components/TextInput";
 
 // Constants
 import url from "./../../constants/api";
@@ -169,9 +172,13 @@ export default function EditProfileScreen() {
                 <Avatar
                   rounded
                   size={200}
-                  icon={{name: 'user-circle', type: 'font-awesome', size: 175}}
+                  icon={{
+                    name: "user-circle",
+                    type: "font-awesome",
+                    size: 175,
+                  }}
                   containerStyle={styles.avatar}
-                  overlayContainerStyle={{backgroundColor: colors.orange}}
+                  overlayContainerStyle={{ backgroundColor: colors.orange }}
                 />
               ) : (
                 <Avatar
@@ -192,98 +199,98 @@ export default function EditProfileScreen() {
 
             {/* Button to Edit Profile */}
             <View style={styles.buttonContainer}>
-              <Button
-                  title="Edit"
-                  onPress={() => setEdit(true)}
-              />
+              <Button title="Edit" onPress={() => setEdit(true)} />
             </View>
           </SafeAreaView>
         </ScrollView>
-        ) : (
-          <KeyboardAvoidingView style={styles.container} behavior={"padding"}>
-            <SafeAreaView style={styles.innerContainer}>
-              <View style={{ alignItems: "center" }}>
-                {!image ? (
-                  <Avatar
-                    rounded
-                    size={200}
-                    icon={{name: 'user-circle', type: 'font-awesome', size: 175}}
-                    containerStyle={styles.avatar}
-                    overlayContainerStyle={{backgroundColor: colors.orange}}
-                    showEditButton
-                    onEditPress={() => uploadImage()}
-                  />
-                ) : (
-                  <Avatar
-                    rounded
-                    source={{ uri: image }}
-                    size={200}
-                    containerStyle={styles.avatar}
-                    showEditButton
-                    onEditPress={() => uploadImage()}
-                  />
-                )}
-              </View>
-              <TextInput
-                label="First Name"
-                defaultValue={firstName}
-                onChangeText={setFirstName}
-                mode="outlined"
-                theme={{ colors: { primary: colors.orange } }}
-                style={styles.inputContainer}
-              />
-              <TextInput
-                label="Last Name"
-                defaultValue={lastName}
-                onChangeText={setLastName}
-                mode="outlined"
-                theme={{ colors: { primary: colors.orange } }}
-                style={styles.inputContainer}
-              />
-
-              {errors.phoneNumber && (
-                <Text style={style.textError}>Valid US phone number is required.</Text>
-              )}
-              <RNTextInput
-                label="Phone Number"
-                defaultValue={phoneNumber}
-                ref={register(
-                  { name: "phoneNumber" },
-                  {
-                    required: false,
-                    minLength: 10,
-                    maxLength: 10,
-                    pattern: /^[0-9]+$/,
-                  }
-                )}
-                onChangeText={(text) => setValue("phoneNumber", text, true)}
-                mode="outlined"
-                theme={{ colors: { primary: colors.orange } }}
-                style={styles.inputContainer}
-                keyboardType={"numeric"}
-              />
-              <TextInput
-                label="Interests"
-                defaultValue={interests}
-                placeholder={interests}
-                onChangeText={setInterests}
-                mode="outlined"
-                multiline={true}
-                numberOfLines={3}
-                theme={{ colors: { primary: colors.orange } }}
-                style={styles.inputContainer}
-              />
-
-              {/* Button to Edit Profile */}
-              <View style={styles.buttonContainer}>
-                <Button
-                    title="Save"
-                    onPress={handleSubmit(onSubmit)}
+      ) : (
+        <KeyboardAvoidingView style={styles.container} behavior={"padding"}>
+          <SafeAreaView style={styles.innerContainer}>
+            <View style={{ alignItems: "center" }}>
+              {!image ? (
+                <Avatar
+                  rounded
+                  size={200}
+                  icon={{
+                    name: "user-circle",
+                    type: "font-awesome",
+                    size: 175,
+                  }}
+                  containerStyle={styles.avatar}
+                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  showEditButton
+                  onEditPress={() => uploadImage()}
                 />
-              </View>
-            </SafeAreaView>
-          </KeyboardAvoidingView>
-        )}
+              ) : (
+                <Avatar
+                  rounded
+                  source={{ uri: image }}
+                  size={200}
+                  containerStyle={styles.avatar}
+                  showEditButton
+                  onEditPress={() => uploadImage()}
+                />
+              )}
+            </View>
+            <TextInput
+              label="First Name"
+              defaultValue={firstName}
+              onChangeText={setFirstName}
+              mode="outlined"
+              theme={{ colors: { primary: colors.orange } }}
+              style={styles.inputContainer}
+            />
+            <TextInput
+              label="Last Name"
+              defaultValue={lastName}
+              onChangeText={setLastName}
+              mode="outlined"
+              theme={{ colors: { primary: colors.orange } }}
+              style={styles.inputContainer}
+            />
+
+            {errors.phoneNumber && (
+              <Text style={style.textError}>
+                Valid US phone number is required.
+              </Text>
+            )}
+            <RNTextInput
+              label="Phone Number"
+              defaultValue={phoneNumber}
+              ref={register(
+                { name: "phoneNumber" },
+                {
+                  required: false,
+                  minLength: 10,
+                  maxLength: 10,
+                  pattern: /^[0-9]+$/,
+                }
+              )}
+              onChangeText={(text) => setValue("phoneNumber", text, true)}
+              mode="outlined"
+              theme={{ colors: { primary: colors.orange } }}
+              style={styles.inputContainer}
+              keyboardType={"numeric"}
+            />
+            <TextInput
+              label="Interests"
+              defaultValue={interests}
+              placeholder={interests}
+              onChangeText={setInterests}
+              mode="outlined"
+              multiline={true}
+              numberOfLines={3}
+              theme={{ colors: { primary: colors.orange } }}
+              style={styles.inputContainer}
+            />
+
+            {/* Button to Edit Profile */}
+            <View style={styles.buttonContainer}>
+              <Button title="Save" onPress={handleSubmit(onSubmit)} />
+            </View>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
+      )}
     </TouchableWithoutFeedback>
   );
 }
@@ -296,14 +303,14 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
     justifyContent: "center",
-    marginHorizontal: style.marginContainerHorizontal
+    marginHorizontal: style.marginContainerHorizontal,
   },
   contentContainer: {
     flex: 1,
   },
   avatar: {
     marginTop: hp("2.5%"),
-    marginBottom: hp("2.5%")
+    marginBottom: hp("2.5%"),
   },
   text: {
     fontSize: style.fontSize,
@@ -317,7 +324,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     borderBottomWidth: 0,
     marginBottom: 10,
-    height: style.inputHeight
+    height: style.inputHeight,
   },
   buttonContainer: {
     height: hp("20%"),
