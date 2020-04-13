@@ -79,8 +79,8 @@ export default function UserHomeScreen({ navigation }) {
     text: ""
   });
 
-  const [eta, setEta] = useState("");
-  const [duration, setDuration] = useState("");
+  const [eta, setEta] = useState("0");
+  const [duration, setDuration] = useState("0 minutes");
 
   // markers and locations
   const [markers, setMarkers] = useState([
@@ -273,7 +273,7 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   async function getEta() {
-    var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + start.coordinates.latitude + ", " + start.coordinates.longitude + "&destinations=" + destination.coordinates.latitude + ", " + destination.coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
+    var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + start.coordinates.latitude + ", " + start.coordinates.longitude + "&destinations=" + destination.coordinates.latitude + ", " + destination.coordinates.longitude + "&mode=walking&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
     .then(res => {
       setDuration(res.data.rows[0].elements[0].duration.text);
@@ -370,6 +370,13 @@ export default function UserHomeScreen({ navigation }) {
   };
 
   async function currentAsStart() {
+    setStart({
+      coordinates: {
+        latitude: location.coordinates.latitude,
+        longitude: location.coordinates.longitude
+      },
+      text: ""
+    });
     setMarkers([
       {
         key: 0,
@@ -388,9 +395,17 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
+    mapRef.current.fitToElements();
   }
 
   async function homeAsDest() {
+    setDestination({
+      coordinates: {
+        latitude: homePlace.coordinates.latitude,
+        longitude: homePlace.coordinates.longitude
+      },
+      text: ""
+    });
     setMarkers([
       {
         key: 0,
@@ -409,6 +424,7 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
+    mapRef.current.fitToElements();
   }
 
   return (
