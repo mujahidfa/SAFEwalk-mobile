@@ -339,11 +339,11 @@ export default function SafewalkerHomeScreen({ navigation }) {
             </View>
             <View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={{ color: "green", fontWeight: "bold", fontSize: 15, }}><Icon name="map-pin" size={15} color="green" />  </Text>
+                <Text style={{ color: "green", fontWeight: "bold", fontSize: 15, }}><Icon name="map-marker" size={15} color="green" />  </Text>
                 <Text style={styles.location}>{request.startText}</Text>
               </View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={{ color: "red", fontWeight: "bold", fontSize: 15,}}><Icon name="map-pin" size={15} color="red" />  </Text>
+                <Text style={{ color: "red", fontWeight: "bold", fontSize: 15,}}><Icon name="map-marker" size={15} color="red" />  </Text>
                 <Text style={styles.location}>{request.endText}</Text>
               </View>
             </View>
