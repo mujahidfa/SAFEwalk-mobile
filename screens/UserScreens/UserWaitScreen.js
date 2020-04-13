@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -176,7 +176,7 @@ export default function UserHomeScreen({ navigation }) {
           autoPlay={true}
           loop
           autoSize={true}
-          style={{height: hp("35%")}}
+          style={styles.animation}
         />
 
         {/* Informational Text to the User */}
@@ -209,6 +209,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     marginHorizontal: style.marginContainerHorizontal
+  },
+  animation: {
+    height: hp("35%"),
+    alignSelf: "center",
+    justifyContent: "center",
   },
   textHeader: {
     textAlign: "center",
