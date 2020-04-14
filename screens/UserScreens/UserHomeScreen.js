@@ -19,7 +19,8 @@ import {
 } from "react-native-responsive-screen";
 
 // Components
-import Button from "./../../components/Button"
+// import Button from "./../../components/Button"
+import Button from "react-native-paper";
 
 // Constants
 import colors from "./../../constants/colors";
@@ -112,6 +113,8 @@ export default function UserHomeScreen({ navigation }) {
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
 
+  const [isLoading, setIsLoading] = useState(false);
+
   /**
    * Make a walk request.
    *
@@ -127,6 +130,8 @@ export default function UserHomeScreen({ navigation }) {
     if (!startFilled || !endFilled) {
       return; // exit
     }
+
+    console.log(destination.text);
 
     // Add Walk API call
     // Create a walk in the database
