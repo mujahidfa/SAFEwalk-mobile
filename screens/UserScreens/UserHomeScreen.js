@@ -48,6 +48,8 @@ const homePlace = {
   }
 };
 
+const pinColor = ["#46C4FF", "red"]
+
 export default function UserHomeScreen({ navigation }) {
 
   const mapRef = useRef(null);
@@ -354,6 +356,122 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
+  useEffect(() => {
+    console.log("socket id " + socket.id);
+    setSocketId();
+
+    // socket to listen to walker status change
+    socket.on("walker walk status", status => {
+      console.log(status);
+
+      switch (status) {
+        case -2:
+          // navigation.navigate('UserHome');
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserHome"
+              }
+            ]
+          });
+          alert("The SAFEwalker has canceled the walk.");
+          break;
+        case -1:
+          setRequest(false);
+          alert("Your request was denied.");
+          break;
+        case 1:
+          // navigation.navigate("UserTab");
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserTab"
+              }
+            ]
+          });
+          alert("A SAFEwalker is on their way!");
+          setRequest(false);
+          break;
+        case 2:
+          // navigation.navigate("UserHome");
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: "UserHome"
+              }
+            ]
+          });
+          alert("The walk has been completed!");
+          break;
+      }
+    });
+  }, []);
+
+  async function addRequest() {
+    // addWalk API call
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks",
+      {
+        method: "POST",
+        headers: {
+          token: userToken,
+          email: email,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          time: new Date(),
+          startText: location,
+          destText: destination
+        })
+      }
+    );
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("add walk failed: status " + status);
+      return;
+    }
+
+    let data = await res.json();
+    await AsyncStorage.setItem("walkId", data["id"]);
+
+    setRequest(true);
+    socket.emit("walk status", true); // send notification to all Safewalkers
+  }
+
+  async function cancelRequest() {
+    setRequest(false);
+    alert("Request Canceled");
+
+    const id = await AsyncStorage.getItem("walkId");
+    // DeleteWalk API call
+    const res = await fetch(
+      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
+      {
+        method: "DELETE",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true
+        }
+      }
+    );
+
+    let status = res.status;
+    if (status != 200 && status != 201) {
+      console.log("delete walk failed: status " + status);
+      return;
+    }
+
+    // remove walk-related info
+    await AsyncStorage.removeItem("WalkId");
+
+    socket.emit("walk status", true); // send notification to all Safewalkers
+  }
+
   async function showLocation(position) {
     setLocation(
       {
@@ -454,6 +572,11 @@ export default function UserHomeScreen({ navigation }) {
                 type: "font-awesome",
                 name: "map-marker"
               }}
+              rightIcon={{
+                type: "font-awesome",
+                name: "location-arrow",
+                onPress: console.log("pressed icon")
+              }}
             />
             <Input
               inputStyle={styles.input}
@@ -467,6 +590,10 @@ export default function UserHomeScreen({ navigation }) {
                 type: "font-awesome",
                 name: "map-marker"
               }}
+              rightIcon={{
+                type: "font-awesome",
+                name: "home",
+              }}
             />
             <Text>  ETA: {eta}</Text>
             {markers.map((marker) => (
@@ -477,6 +604,7 @@ export default function UserHomeScreen({ navigation }) {
                   longitude: marker.coordinates.longitude
                 }}
                 title={marker.title}
+                pinColor={pinColor[marker.key]}
               />
             ))}
           </MapView>
