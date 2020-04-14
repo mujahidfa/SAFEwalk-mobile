@@ -29,6 +29,7 @@ import style from "./../../constants/style"
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { WalkContext } from "./../../contexts/WalkProvider";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
 const { width, height } = Dimensions.get('window');
@@ -47,6 +48,8 @@ const homePlace = {
     longitude: -89.376298
   }
 };
+
+const pinColor = ["#46C4FF", "red"]
 
 export default function UserHomeScreen({ navigation }) {
 
@@ -103,9 +106,103 @@ export default function UserHomeScreen({ navigation }) {
     }
   ]);
 
-  const [request, setRequest] = useState(false);
-  const [show, setShow] = useState(false);
   const { userToken, email } = useContext(AuthContext);
+  const { setWalkId } = useContext(WalkContext);
+
+  // forms input handling
+  const { register, setValue, errors, triggerValidation } = useForm();
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  /**
+   * Make a walk request.
+   *
+   * First, do input checking on the location inputs
+   * Next, create a new walk in the database
+   * Finally, notify the SAFEwalkers that a new walk request is made, and move into
+   */
+  async function addRequest() {
+    const startFilled = await triggerValidation("startLocation");
+    const endFilled = await triggerValidation("endLocation");
+
+    // if start or end location is empty
+    if (!startFilled || !endFilled) {
+      return; // exit
+    }
+
+    console.log(destination.text);
+
+    // Add Walk API call
+    // Create a walk in the database
+    const res = await fetch(url + "/api/Walks", {
+      method: "POST",
+      headers: {
+        token: userToken,
+        email: email,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        time: new Date(),
+        startText: start.text,
+        destText: destination.text,
+        userSocketId: socket.id,
+      }),
+    }).catch((error) => {
+      console.error(
+        "Error in POST walk in addRequest() in UserHomeScreen:" +
+        error
+      )
+    });
+
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status !== 200 && status !== 201) {
+      console.log(
+        "creating a walk request in addRequest() in UserHomeScreen failed: status " +
+        status
+      );
+      return; // exit
+    }
+
+    let data = await res.json();
+    // store walkId in the WalkContext
+    setWalkId(data["id"]);
+
+    // send notification to all Safewalkers
+    socket.emit("walk status", true);
+
+    // navigate to the wait screen (keep this)
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "UserWait",
+        },
+      ],
+    });
+  }
+
+  const changeLocation = (type, location) => {
+    if (type === "start") {
+      setValue("startLocation", location, true);
+      setStart({
+        coordinates: {
+          latitude: start.coordinates.latitude,
+          longitude: start.coordinates.longitude
+        },
+        text: location
+      });
+    } else {
+      setValue("endLocation", location, true);
+      setDestination({
+        coordinates: {
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude
+        },
+        text: location
+      });
+    }
+  };
 
   async function onStartTextChange(textValue) {
     setStart({
@@ -132,14 +229,15 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
       .then(res => {
-        console.log("OUTPUT: " + res.data.results[0].geometry.location.lat);
-
-        start.coordinates.latitude = res.data.results[0].geometry.location.lat;
-        start.coordinates.longitude = res.data.results[0].geometry.location.lng;
-
-        console.log("RETURNING: " + res.data.results[0].geometry.location.lat);
-        return res.data.results[0].geometry.location;
-
+        // start.coordinates.latitude = res.data.results[0].geometry.location.lat;
+        // start.coordinates.longitude = res.data.results[0].geometry.location.lng;
+        setStart({
+          coordinates: {
+            latitude: res.data.results[0].geometry.location.lat,
+            longitude: res.data.results[0].geometry.location.lng
+          },
+          text: text
+        });
       })
   }
 
@@ -148,14 +246,15 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
       .then(res => {
-        console.log("OUTPUT: " + res.data.results[0].geometry.location.lat);
-
-        destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
-        destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
-
-        console.log("RETURNING: " + res.data.results[0].geometry.location.lat);
-        return res.data.results[0].geometry.location;
-
+        // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
+        // destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
+        setDestination({
+          coordinates: {
+            latitude: res.data.results[0].geometry.location.lat,
+            longitude: res.data.results[0].geometry.location.lng
+          },
+          text: text
+        });
       })
   }
 
@@ -163,7 +262,6 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
     .then(res => {
-      console.log("OUTPUT: " + res.data.results[0].formatted_address);
       setStart({
         coordinates: {
           latitude: start.coordinates.latitude,
@@ -179,7 +277,6 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
     .then(res => {
-      console.log("OUTPUT: " + res.data.results[0].formatted_address);
       setDestination({
         coordinates: {
           latitude: destination.coordinates.latitude,
@@ -194,6 +291,8 @@ export default function UserHomeScreen({ navigation }) {
   async function updateStart() {
 
     getStartCoordinates(start.text);
+
+    changeLocation("start", start.text);
 
     setMarkers([
       {
@@ -219,6 +318,8 @@ export default function UserHomeScreen({ navigation }) {
 
     getDestinationCoordinates(destination.text);
 
+    changeLocation("destination", destination.text);
+
     setMarkers([
       {
         key: 0,
@@ -237,14 +338,13 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
+
   }
 
   async function convertEta() {
     var today = new Date();
     var hours = today.getHours();
     var minutes = today.getMinutes();
-    console.log("Time: " + hours + ":" + minutes);
-    console.log("Duration: " + eta)
     var replaced = duration.split(' ');
     if(replaced[1].localeCompare("hours") == 0) {
       hours = parseInt(hours) + parseInt(replaced[0]);
@@ -267,9 +367,6 @@ export default function UserHomeScreen({ navigation }) {
     }
     var returnString = hours + ":" + minutes;
     setEta(returnString);
-
-    console.log(returnString);
-    console.log("Updated ETA: " + eta);
   }
 
   async function getEta() {
@@ -279,79 +376,6 @@ export default function UserHomeScreen({ navigation }) {
       setDuration(res.data.rows[0].elements[0].duration.text);
       convertEta();
     })
-  }
-
-  async function setSocketId() {
-    // PutUser API call
-    const res1 = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Users/" + email,
-      {
-        method: "PUT",
-        headers: {
-          token: userToken,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          socketId: socket.id
-        })
-      }
-    );
-
-    if (status != 200 && status != 201) {
-      console.log("set socketId failed: status " + status);
-      return;
-    }
-
-    // Add Walk API call
-    // Create a walk in the database
-    const res = await fetch(url + "/api/Walks", {
-      method: "POST",
-      headers: {
-        token: userToken,
-        email: email,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        time: new Date(),
-        startText: location,
-        destText: destination,
-        userSocketId: socket.id,
-      }),
-    }).catch((error) => {
-      console.error(
-        "Error in POST walk in addRequest() in UserHomeScreen:" +
-        error
-      );
-      setIsLoading(false);
-    });
-
-    let status = res.status;
-    // Upon fetch failure/bad status
-    if (status !== 200 && status !== 201) {
-      console.log(
-        "creating a walk request in addRequest() in UserHomeScreen failed: status " +
-        status
-      );
-      setIsLoading(false);
-      return; // exit
-    }
-
-    let data = await res.json();
-    // store walkId in the WalkContext
-    setWalkId(data["id"]);
-
-    // send notification to all Safewalkers
-    socket.emit("walk status", true);
-
-    // navigate to the wait screen (keep this)
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: "UserWait",
-        },
-      ],
-    });
   }
 
   async function showLocation(position) {
@@ -428,11 +452,50 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Conditional Statement Based on if the User has made a Request */}
-      {!request ? (
-        <View style={styles.container}>
-          {/* User Start and End Location Input Fields */}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+         <View style={styles.container}>
+           <View style={styles.innerContainer}>
+            {/* User Start and End Location input fields */}
+            <View style={styles.inputContainer}>
+              {errors.startLocation && (
+                <Text style={style.textError}>Start location is required.</Text>
+              )}
+              <Input
+                inputStyle={styles.inputStyle}
+                inputContainerStyle={styles.inputContainerStyleTop}
+                containerStyle={styles.containerStyle}
+                placeholder="Start Location"
+                ref={register({ name: "startLocation" }, { required: true })}
+                value={start.text}
+                returnKeyType='search'
+                onChangeText={onStartTextChange}
+                onSubmitEditing={updateStart}
+                leftIcon={{
+                  type: "font-awesome",
+                  name: "map-marker",
+                }}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              {errors.endLocation && (
+                <Text style={style.textError}>Destination is required.</Text>
+            )}
+            <Input
+              inputStyle={styles.inputStyle}
+              inputContainerStyle={styles.inputContainerStyleBottom}
+              containerStyle={styles.containerStyle}
+              placeholder="Destination"
+              ref={register({ name: "endLocation" }, { required: true })}
+              value={destination.text}
+              onChangeText={onDestinationTextChange}
+              onSubmitEditing={updateDestination}
+              returnKeyType='search'
+              leftIcon={{
+                type: "font-awesome",
+                name: "map-marker",
+              }}
+            />
+          </View>
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
@@ -442,32 +505,6 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
-            <Input
-              inputStyle={styles.input}
-              inputContainerStyle={styles.inputContainerTop}
-              value={start.text}
-              onChangeText={onStartTextChange}
-              onSubmitEditing={updateStart}
-              placeholder='Start'
-              returnKeyType='search'
-              leftIcon={{
-                type: "font-awesome",
-                name: "map-marker"
-              }}
-            />
-            <Input
-              inputStyle={styles.input}
-              inputContainerStyle={styles.inputContainer}
-              value={destination.text}
-              onChangeText={onDestinationTextChange}
-              onSubmitEditing={updateDestination}
-              placeholder='Destination'
-              returnKeyType='search'
-              leftIcon={{
-                type: "font-awesome",
-                name: "map-marker"
-              }}
-            />
             <Text>  ETA: {eta}</Text>
             {markers.map((marker) => (
               <MapView.Marker
@@ -477,152 +514,84 @@ export default function UserHomeScreen({ navigation }) {
                   longitude: marker.coordinates.longitude
                 }}
                 title={marker.title}
+                pinColor={pinColor[marker.key]}
               />
             ))}
           </MapView>
-          <TouchableOpacity onPress={() => {navigator.geolocation.getCurrentPosition(showLocation);currentAsStart()}}>
-            <Text style={styles.buttonCurrent}> Set Start to Current </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => homeAsDest()}>
-            <Text style={styles.buttonCurrent}> Set Home to Dest. </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {getEta(); mapRef.current.fitToElements()}}>
-            <Text style={styles.buttonConfirm}> ETA </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => addRequest()}>
-            <Text style={styles.buttonRequest}> Request SAFEwalk </Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <Button
+                title="Start = Current"
+                onPress={() => {
+                  navigator.geolocation.getCurrentPosition(showLocation);
+                  currentAsStart();
+                  mapRef.current.fitToElements();
+                }}
+                loading={isLoading}
+                disabled={isLoading}
+            />
+            <Button
+                title="Home = Dest."
+                onPress={() => {homeAsDest(); mapRef.current.fitToElements()}}
+                loading={isLoading}
+                disabled={isLoading}
+            />
+            <Button
+                title="ETA"
+                onPress={() => {getEta(); mapRef.current.fitToElements()}}
+                loading={isLoading}
+                disabled={isLoading}
+            />
+            <Button
+                title="Request Now"
+                onPress={() => addRequest()}
+                loading={isLoading}
+                disabled={isLoading}
+            />
+          </View>
         </View>
-      ) : (
-        <View style={styles.container}>
-          {/* View When the User Submits a SAFEwalk Request */}
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 30,
-              color: colors.orange,
-              fontWeight: "bold"
-            }}
-          >
-            Searching for {"\n"} SAFEwalker...
-          </Text>
-          <Icon
-            type="font-awesome"
-            name="hourglass"
-            color={colors.orange}
-            size={80}
-            iconStyle={{ marginBottom: 100 }}
-          />
-          <TouchableOpacity onPress={() => cancelRequest()}>
-            <Text style={styles.buttonCancel}> Cancel </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
+      </View>
+      </TouchableWithoutFeedback>
+    );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    alignItems: "center",
-    justifyContent: "space-around"
   },
-  buttonRequest: {
-    backgroundColor: "#77b01a",
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginBottom: 110
-  },
-  buttonConfirm: {
-    backgroundColor: "#77b01a",
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginBottom: 200
-  },
-  buttonFit: {
-    backgroundColor: "#77b01a",
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginTop: 160
-  },
-  buttonCurrent: {
-    backgroundColor: "#77b01a",
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 11,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginTop: 0,
-    marginBottom: 200
-  },
-  buttonCancel: {
-    backgroundColor: colors.red,
-    borderColor: colors.white,
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    width: 200
-  },
-  input: {
-    marginLeft: 20,
+  innerContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   inputContainer: {
-    marginBottom: 0,
-    marginTop: 0,
-    borderColor: 'transparent',
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderRadius: 5
+    height: hp("7.5%"),
+    justifyContent: "flex-end",
   },
-  inputContainerTop: {
-    marginBottom: 10,
-    marginTop: 20,
-    borderColor: 'transparent',
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderRadius: 5
+  inputStyle: {
+    marginLeft: 20,
   },
-  image: {
-    width: Dimensions.get("window").width - 75,
-    height: 350,
-    marginBottom: 40,
-    marginTop: 20,
+  containerStyle: {
+    paddingLeft: 0,
+    paddingRight: 0
+  },
+  inputContainerStyleTop: {
+    borderColor: "black",
+    borderWidth: 2,
+    borderRadius: 2,
+  },
+  inputContainerStyleBottom: {
+    borderColor: "black",
+    borderWidth: 2,
+    borderRadius: 2,
+    marginBottom: 20
+  },
+  buttonContainer: {
+    height: hp("17%"),
+    justifyContent: "space-around",
   },
   mapStyle: {
-    marginTop: 90,
+    marginTop:0,
     width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height-90,
+    height: hp("55%")
   }
 });
