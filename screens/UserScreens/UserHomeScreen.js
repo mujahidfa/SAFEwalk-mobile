@@ -186,10 +186,22 @@ export default function UserHomeScreen({ navigation }) {
   const changeLocation = (type, location) => {
     if (type === "start") {
       setValue("startLocation", location, true);
-      setLocation(location);
+      setStart({
+        coordinates: {
+          latitude: start.coordinates.latitude,
+          longitude: start.coordinates.longitude
+        },
+        text: location
+      });
     } else {
       setValue("endLocation", location, true);
-      setDestination(location);
+      setDestination({
+        coordinates: {
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude
+        },
+        text: location
+      });
     }
   };
 
@@ -299,6 +311,9 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
+
+    changeLocation("start", start.text);
+
   }
 
   async function updateDestination() {
@@ -323,6 +338,9 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
+
+    changeLocation("destination", destination.text);
+
   }
 
   async function convertEta() {
