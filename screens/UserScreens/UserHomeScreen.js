@@ -229,14 +229,15 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
       .then(res => {
-        console.log("OUTPUT: " + res.data.results[0].geometry.location.lat);
-
-        start.coordinates.latitude = res.data.results[0].geometry.location.lat;
-        start.coordinates.longitude = res.data.results[0].geometry.location.lng;
-
-        console.log("RETURNING: " + res.data.results[0].geometry.location.lat);
-        return res.data.results[0].geometry.location;
-
+        // start.coordinates.latitude = res.data.results[0].geometry.location.lat;
+        // start.coordinates.longitude = res.data.results[0].geometry.location.lng;
+        setStart({
+          coordinates: {
+            latitude: res.data.results[0].geometry.location.lat,
+            longitude: res.data.results[0].geometry.location.lng
+          },
+          text: text
+        });
       })
   }
 
@@ -245,14 +246,15 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
       .then(res => {
-        console.log("OUTPUT: " + res.data.results[0].geometry.location.lat);
-
-        destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
-        destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
-
-        console.log("RETURNING: " + res.data.results[0].geometry.location.lat);
-        return res.data.results[0].geometry.location;
-
+        // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
+        // destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
+        setDestination({
+          coordinates: {
+            latitude: res.data.results[0].geometry.location.lat,
+            longitude: res.data.results[0].geometry.location.lng
+          },
+          text: text
+        });
       })
   }
 
@@ -260,7 +262,6 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
     .then(res => {
-      console.log("OUTPUT: " + res.data.results[0].formatted_address);
       setStart({
         coordinates: {
           latitude: start.coordinates.latitude,
@@ -276,7 +277,6 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
     .then(res => {
-      console.log("OUTPUT: " + res.data.results[0].formatted_address);
       setDestination({
         coordinates: {
           latitude: destination.coordinates.latitude,
@@ -292,6 +292,8 @@ export default function UserHomeScreen({ navigation }) {
 
     getStartCoordinates(start.text);
 
+    changeLocation("start", start.text);
+
     setMarkers([
       {
         key: 0,
@@ -310,15 +312,14 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
-
-    changeLocation("start", start.text);
-
   }
 
   async function updateDestination() {
 
     getDestinationCoordinates(destination.text);
 
+    changeLocation("destination", destination.text);
+
     setMarkers([
       {
         key: 0,
@@ -337,8 +338,6 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
-
-    changeLocation("destination", destination.text);
 
   }
 
@@ -346,8 +345,6 @@ export default function UserHomeScreen({ navigation }) {
     var today = new Date();
     var hours = today.getHours();
     var minutes = today.getMinutes();
-    console.log("Time: " + hours + ":" + minutes);
-    console.log("Duration: " + eta)
     var replaced = duration.split(' ');
     if(replaced[1].localeCompare("hours") == 0) {
       hours = parseInt(hours) + parseInt(replaced[0]);
@@ -370,9 +367,6 @@ export default function UserHomeScreen({ navigation }) {
     }
     var returnString = hours + ":" + minutes;
     setEta(returnString);
-
-    console.log(returnString);
-    console.log("Updated ETA: " + eta);
   }
 
   async function getEta() {
@@ -502,7 +496,6 @@ export default function UserHomeScreen({ navigation }) {
               }}
             />
           </View>
-          <Text>  ETA: {eta}</Text>
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
@@ -512,6 +505,7 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
+            <Text>  ETA: {eta}</Text>
             {markers.map((marker) => (
               <MapView.Marker
                 key={marker.key}
@@ -525,15 +519,28 @@ export default function UserHomeScreen({ navigation }) {
             ))}
           </MapView>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={() => {navigator.geolocation.getCurrentPosition(showLocation);currentAsStart()}}>
-              <Text style={styles.buttonCurrent}> Set Start to Current </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => homeAsDest()}>
-              <Text style={styles.buttonCurrent}> Set Home to Dest. </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => {getEta(); mapRef.current.fitToElements()}}>
-              <Text style={styles.buttonConfirm}> ETA </Text>
-            </TouchableOpacity>
+            <Button
+                title="Start = Current"
+                onPress={() => {
+                  navigator.geolocation.getCurrentPosition(showLocation);
+                  currentAsStart();
+                  mapRef.current.fitToElements();
+                }}
+                loading={isLoading}
+                disabled={isLoading}
+            />
+            <Button
+                title="Home = Dest."
+                onPress={() => {homeAsDest(); mapRef.current.fitToElements()}}
+                loading={isLoading}
+                disabled={isLoading}
+            />
+            <Button
+                title="ETA"
+                onPress={() => {getEta(); mapRef.current.fitToElements()}}
+                loading={isLoading}
+                disabled={isLoading}
+            />
             <Button
                 title="Request Now"
                 onPress={() => addRequest()}
@@ -576,84 +583,15 @@ const styles = StyleSheet.create({
     borderColor: "black",
     borderWidth: 2,
     borderRadius: 2,
+    marginBottom: 20
   },
   buttonContainer: {
     height: hp("17%"),
     justifyContent: "space-around",
   },
-  buttonRequest: {
-    backgroundColor: "#77b01a",
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginBottom: 110
-  },
-  buttonConfirm: {
-    backgroundColor: "#77b01a",
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginBottom: 90
-  },
-  buttonCurrent: {
-    backgroundColor: "#77b01a",
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 11,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginTop: 0,
-    marginBottom: 50
-  },
-  buttonCancel: {
-    backgroundColor: colors.red,
-    borderColor: colors.white,
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    width: 200
-  },
-  input: {
-    marginLeft: 20,
-  },
-  inputContainerTop: {
-    marginBottom: 10,
-    marginTop: 70,
-    borderColor: 'black',
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderRadius: 5
-  },
-  image: {
-    width: Dimensions.get("window").width - 75,
-    height: 350,
-    marginBottom: 40,
-    marginTop: 20,
-  },
   mapStyle: {
     marginTop:0,
     width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height*0.5,
+    height: hp("55%")
   }
 });
