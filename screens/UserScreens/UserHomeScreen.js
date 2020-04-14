@@ -19,8 +19,7 @@ import {
 } from "react-native-responsive-screen";
 
 // Components
-// import Button from "./../../components/Button"
-import Button from "react-native-paper";
+import Button from "./../../components/Button"
 
 // Constants
 import colors from "./../../constants/colors";
@@ -459,45 +458,38 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   return (
-      <View style={{ flex: 1 }}>
-        <View style={styles.container}>
-          <MapView
-            provider={PROVIDER_GOOGLE}
-            style={styles.mapStyle}
-            showsUserLocation={true}
-            ref={mapRef}
-            minZoomLevel={10}
-            maxZoomLevel={15}
-            onMapReady={onMapReady}
-          >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+         <View style={styles.container}>
+           <View style={styles.innerContainer}>
             {/* User Start and End Location input fields */}
-            {errors.startLocation && (
-              <Text style={styles.textError}>
-                A start location is required to submit a request.
-              </Text>
+            <View style={styles.inputContainer}>
+              {errors.startLocation && (
+                <Text style={style.textError}>Start location is required.</Text>
+              )}
+              <Input
+                inputStyle={styles.inputStyle}
+                inputContainerStyle={styles.inputContainerStyleTop}
+                containerStyle={styles.containerStyle}
+                placeholder="Start Location"
+                ref={register({ name: "startLocation" }, { required: true })}
+                value={start.text}
+                returnKeyType='search'
+                onChangeText={onStartTextChange}
+                onSubmitEditing={updateStart}
+                leftIcon={{
+                  type: "font-awesome",
+                  name: "map-marker",
+                }}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              {errors.endLocation && (
+                <Text style={style.textError}>Destination is required.</Text>
             )}
             <Input
-              inputStyle={styles.input}
-              inputContainerStyle={styles.inputContainerTop}
-              placeholder="Start Location"
-              ref={register({ name: "startLocation" }, { required: true })}
-              value={start.text}
-              returnKeyType='search'
-              onChangeText={onStartTextChange}
-              onSubmitEditing={updateStart}
-              leftIcon={{
-                type: "font-awesome",
-                name: "map-marker",
-              }}
-            />
-            {errors.endLocation && (
-              <Text style={styles.textError}>
-                A destination is required to submit a request.
-              </Text>
-            )}
-            <Input
-              inputStyle={styles.input}
-              inputContainerStyle={styles.inputContainer}
+              inputStyle={styles.inputStyle}
+              inputContainerStyle={styles.inputContainerStyleBottom}
+              containerStyle={styles.containerStyle}
               placeholder="Destination"
               ref={register({ name: "endLocation" }, { required: true })}
               value={destination.text}
@@ -509,7 +501,17 @@ export default function UserHomeScreen({ navigation }) {
                 name: "map-marker",
               }}
             />
-            <Text>  ETA: {eta}</Text>
+          </View>
+          <Text>  ETA: {eta}</Text>
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={styles.mapStyle}
+            showsUserLocation={true}
+            ref={mapRef}
+            minZoomLevel={10}
+            maxZoomLevel={15}
+            onMapReady={onMapReady}
+          >
             {markers.map((marker) => (
               <MapView.Marker
                 key={marker.key}
@@ -522,20 +524,26 @@ export default function UserHomeScreen({ navigation }) {
               />
             ))}
           </MapView>
-          <TouchableOpacity onPress={() => {navigator.geolocation.getCurrentPosition(showLocation);currentAsStart()}}>
-            <Text style={styles.buttonCurrent}> Set Start to Current </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => homeAsDest()}>
-            <Text style={styles.buttonCurrent}> Set Home to Dest. </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {getEta(); mapRef.current.fitToElements()}}>
-            <Text style={styles.buttonConfirm}> ETA </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => addRequest()}>
-            <Text style={styles.buttonRequest}> Request SAFEwalk Now</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={() => {navigator.geolocation.getCurrentPosition(showLocation);currentAsStart()}}>
+              <Text style={styles.buttonCurrent}> Set Start to Current </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => homeAsDest()}>
+              <Text style={styles.buttonCurrent}> Set Home to Dest. </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => {getEta(); mapRef.current.fitToElements()}}>
+              <Text style={styles.buttonConfirm}> ETA </Text>
+            </TouchableOpacity>
+            <Button
+                title="Request Now"
+                onPress={() => addRequest()}
+                loading={isLoading}
+                disabled={isLoading}
+            />
+          </View>
         </View>
       </View>
+      </TouchableWithoutFeedback>
     );
 }
 
@@ -543,8 +551,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    alignItems: "center",
-    justifyContent: "space-around"
+  },
+  innerContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  inputContainer: {
+    height: hp("7.5%"),
+    justifyContent: "flex-end",
+  },
+  inputStyle: {
+    marginLeft: 20,
+  },
+  containerStyle: {
+    paddingLeft: 0,
+    paddingRight: 0
+  },
+  inputContainerStyleTop: {
+    borderColor: "black",
+    borderWidth: 2,
+    borderRadius: 2,
+  },
+  inputContainerStyleBottom: {
+    borderColor: "black",
+    borderWidth: 2,
+    borderRadius: 2,
+  },
+  buttonContainer: {
+    height: hp("17%"),
+    justifyContent: "space-around",
   },
   buttonRequest: {
     backgroundColor: "#77b01a",
@@ -570,20 +605,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 12,
     textAlign: "center",
-    marginBottom: 200
-  },
-  buttonFit: {
-    backgroundColor: "#77b01a",
-    borderColor: 'transparent',
-    borderWidth: 1,
-    borderRadius: 25,
-    color: colors.white,
-    fontSize: 24,
-    fontWeight: "bold",
-    overflow: "hidden",
-    padding: 12,
-    textAlign: "center",
-    marginTop: 160
+    marginBottom: 90
   },
   buttonCurrent: {
     backgroundColor: "#77b01a",
@@ -597,7 +619,7 @@ const styles = StyleSheet.create({
     padding: 12,
     textAlign: "center",
     marginTop: 0,
-    marginBottom: 200
+    marginBottom: 50
   },
   buttonCancel: {
     backgroundColor: colors.red,
@@ -615,18 +637,10 @@ const styles = StyleSheet.create({
   input: {
     marginLeft: 20,
   },
-  inputContainer: {
-    marginBottom: 0,
-    marginTop: 0,
-    borderColor: 'transparent',
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderRadius: 5
-  },
   inputContainerTop: {
     marginBottom: 10,
-    marginTop: 20,
-    borderColor: 'transparent',
+    marginTop: 70,
+    borderColor: 'black',
     backgroundColor: 'white',
     borderWidth: 2,
     borderRadius: 5
@@ -638,8 +652,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   mapStyle: {
-    marginTop: 90,
+    marginTop:0,
     width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height-90,
+    height: Dimensions.get('window').height*0.5,
   }
 });
