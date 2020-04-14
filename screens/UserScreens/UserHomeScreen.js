@@ -29,6 +29,7 @@ import style from "./../../constants/style"
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
+import { WalkContext } from "./../../contexts/WalkProvider";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
 const { width, height } = Dimensions.get('window');
@@ -105,9 +106,87 @@ export default function UserHomeScreen({ navigation }) {
     }
   ]);
 
-  const [request, setRequest] = useState(false);
-  const [show, setShow] = useState(false);
   const { userToken, email } = useContext(AuthContext);
+  const { setWalkId } = useContext(WalkContext);
+
+  // forms input handling
+  const { register, setValue, errors, triggerValidation } = useForm();
+
+  /**
+   * Make a walk request.
+   *
+   * First, do input checking on the location inputs
+   * Next, create a new walk in the database
+   * Finally, notify the SAFEwalkers that a new walk request is made, and move into
+   */
+  async function addRequest() {
+    const startFilled = await triggerValidation("startLocation");
+    const endFilled = await triggerValidation("endLocation");
+
+    // if start or end location is empty
+    if (!startFilled || !endFilled) {
+      return; // exit
+    }
+
+    // Add Walk API call
+    // Create a walk in the database
+    const res = await fetch(url + "/api/Walks", {
+      method: "POST",
+      headers: {
+        token: userToken,
+        email: email,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        time: new Date(),
+        startText: start.text,
+        destText: destination.text,
+        userSocketId: socket.id,
+      }),
+    }).catch((error) => {
+      console.error(
+        "Error in POST walk in addRequest() in UserHomeScreen:" +
+        error
+      )
+    });
+
+    let status = res.status;
+    // Upon fetch failure/bad status
+    if (status !== 200 && status !== 201) {
+      console.log(
+        "creating a walk request in addRequest() in UserHomeScreen failed: status " +
+        status
+      );
+      return; // exit
+    }
+
+    let data = await res.json();
+    // store walkId in the WalkContext
+    setWalkId(data["id"]);
+
+    // send notification to all Safewalkers
+    socket.emit("walk status", true);
+
+    // navigate to the wait screen (keep this)
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "UserWait",
+        },
+      ],
+    });
+  }
+
+  const changeLocation = (type, location) => {
+    if (type === "start") {
+      setValue("startLocation", location, true);
+      setLocation(location);
+    } else {
+      setValue("endLocation", location, true);
+      setDestination(location);
+    }
+  };
 
   async function onStartTextChange(textValue) {
     setStart({
@@ -283,195 +362,6 @@ export default function UserHomeScreen({ navigation }) {
     })
   }
 
-  async function setSocketId() {
-    // PutUser API call
-    const res1 = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Users/" + email,
-      {
-        method: "PUT",
-        headers: {
-          token: userToken,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          socketId: socket.id
-        })
-      }
-    );
-
-    if (status != 200 && status != 201) {
-      console.log("set socketId failed: status " + status);
-      return;
-    }
-
-    // Add Walk API call
-    // Create a walk in the database
-    const res = await fetch(url + "/api/Walks", {
-      method: "POST",
-      headers: {
-        token: userToken,
-        email: email,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        time: new Date(),
-        startText: location,
-        destText: destination,
-        userSocketId: socket.id,
-      }),
-    }).catch((error) => {
-      console.error(
-        "Error in POST walk in addRequest() in UserHomeScreen:" +
-        error
-      );
-      setIsLoading(false);
-    });
-
-    let status = res.status;
-    // Upon fetch failure/bad status
-    if (status !== 200 && status !== 201) {
-      console.log(
-        "creating a walk request in addRequest() in UserHomeScreen failed: status " +
-        status
-      );
-      setIsLoading(false);
-      return; // exit
-    }
-
-    let data = await res.json();
-    // store walkId in the WalkContext
-    setWalkId(data["id"]);
-
-    // send notification to all Safewalkers
-    socket.emit("walk status", true);
-
-    // navigate to the wait screen (keep this)
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: "UserWait",
-        },
-      ],
-    });
-  }
-
-  useEffect(() => {
-    console.log("socket id " + socket.id);
-    setSocketId();
-
-    // socket to listen to walker status change
-    socket.on("walker walk status", status => {
-      console.log(status);
-
-      switch (status) {
-        case -2:
-          // navigation.navigate('UserHome');
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserHome"
-              }
-            ]
-          });
-          alert("The SAFEwalker has canceled the walk.");
-          break;
-        case -1:
-          setRequest(false);
-          alert("Your request was denied.");
-          break;
-        case 1:
-          // navigation.navigate("UserTab");
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserTab"
-              }
-            ]
-          });
-          alert("A SAFEwalker is on their way!");
-          setRequest(false);
-          break;
-        case 2:
-          // navigation.navigate("UserHome");
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "UserHome"
-              }
-            ]
-          });
-          alert("The walk has been completed!");
-          break;
-      }
-    });
-  }, []);
-
-  async function addRequest() {
-    // addWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks",
-      {
-        method: "POST",
-        headers: {
-          token: userToken,
-          email: email,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          time: new Date(),
-          startText: location,
-          destText: destination
-        })
-      }
-    );
-
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("add walk failed: status " + status);
-      return;
-    }
-
-    let data = await res.json();
-    await AsyncStorage.setItem("walkId", data["id"]);
-
-    setRequest(true);
-    socket.emit("walk status", true); // send notification to all Safewalkers
-  }
-
-  async function cancelRequest() {
-    setRequest(false);
-    alert("Request Canceled");
-
-    const id = await AsyncStorage.getItem("walkId");
-    // DeleteWalk API call
-    const res = await fetch(
-      "https://safewalkapplication.azurewebsites.net/api/Walks/" + id,
-      {
-        method: "DELETE",
-        headers: {
-          token: userToken,
-          email: email,
-          isUser: true
-        }
-      }
-    );
-
-    let status = res.status;
-    if (status != 200 && status != 201) {
-      console.log("delete walk failed: status " + status);
-      return;
-    }
-
-    // remove walk-related info
-    await AsyncStorage.removeItem("WalkId");
-
-    socket.emit("walk status", true); // send notification to all Safewalkers
-  }
-
   async function showLocation(position) {
     setLocation(
       {
@@ -546,11 +436,8 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Conditional Statement Based on if the User has made a Request */}
-      {!request ? (
+      <View style={{ flex: 1 }}>
         <View style={styles.container}>
-          {/* User Start and End Location Input Fields */}
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
@@ -560,39 +447,43 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
+            {/* User Start and End Location input fields */}
+            {errors.startLocation && (
+              <Text style={styles.textError}>
+                A start location is required to submit a request.
+              </Text>
+            )}
             <Input
               inputStyle={styles.input}
               inputContainerStyle={styles.inputContainerTop}
+              placeholder="Start Location"
+              ref={register({ name: "startLocation" }, { required: true })}
               value={start.text}
+              returnKeyType='search'
               onChangeText={onStartTextChange}
               onSubmitEditing={updateStart}
-              placeholder='Start'
-              returnKeyType='search'
               leftIcon={{
                 type: "font-awesome",
-                name: "map-marker"
-              }}
-              rightIcon={{
-                type: "font-awesome",
-                name: "location-arrow",
-                onPress: console.log("pressed icon")
+                name: "map-marker",
               }}
             />
+            {errors.endLocation && (
+              <Text style={styles.textError}>
+                A destination is required to submit a request.
+              </Text>
+            )}
             <Input
               inputStyle={styles.input}
               inputContainerStyle={styles.inputContainer}
+              placeholder="Destination"
+              ref={register({ name: "endLocation" }, { required: true })}
               value={destination.text}
               onChangeText={onDestinationTextChange}
               onSubmitEditing={updateDestination}
-              placeholder='Destination'
               returnKeyType='search'
               leftIcon={{
                 type: "font-awesome",
-                name: "map-marker"
-              }}
-              rightIcon={{
-                type: "font-awesome",
-                name: "home",
+                name: "map-marker",
               }}
             />
             <Text>  ETA: {eta}</Text>
@@ -618,36 +509,11 @@ export default function UserHomeScreen({ navigation }) {
             <Text style={styles.buttonConfirm}> ETA </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => addRequest()}>
-            <Text style={styles.buttonRequest}> Request SAFEwalk </Text>
+            <Text style={styles.buttonRequest}> Request SAFEwalk Now</Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <View style={styles.container}>
-          {/* View When the User Submits a SAFEwalk Request */}
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 30,
-              color: colors.orange,
-              fontWeight: "bold"
-            }}
-          >
-            Searching for {"\n"} SAFEwalker...
-          </Text>
-          <Icon
-            type="font-awesome"
-            name="hourglass"
-            color={colors.orange}
-            size={80}
-            iconStyle={{ marginBottom: 100 }}
-          />
-          <TouchableOpacity onPress={() => cancelRequest()}>
-            <Text style={styles.buttonCancel}> Cancel </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
+      </View>
+    );
 }
 
 const styles = StyleSheet.create({
