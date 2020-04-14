@@ -45,16 +45,21 @@ export default function LoginSettingsScreen({ navigation }) {
   // upon clicking update password button
   const saveProfileInfo = async (data) => {
     // first check old password
+    let isUser = true;
+    if (userType === "safewalker") {
+      isUser = false;
+    }
     let endpoint = "/api/Login/";
     let oldPass = 0;
 
     // checking old password with database
-    const response1 = await fetch(url + endpoint + email, {
+    const response1 = await fetch(url + endpoint + email + "/PasswordVerify", {
       method: "GET",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
         password: data.currentPassword,
+        isUser: isUser,
       },
     }).then((response1) => {
       if (!(response1.status === 200)) {
