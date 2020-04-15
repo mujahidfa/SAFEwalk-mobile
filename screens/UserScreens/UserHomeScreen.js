@@ -11,7 +11,7 @@ import {
   View,
   Keyboard
 } from "react-native";
-import { Input } from "react-native-elements";
+import { Input, Icon } from "react-native-elements";
 import { useForm } from "react-hook-form";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -474,6 +474,11 @@ export default function UserHomeScreen({ navigation }) {
                   type: "font-awesome",
                   name: "map-marker",
                 }}
+                rightIcon={{
+                  type: "font-awesome",
+                  name: "location-arrow",
+                  onPress: () => {currentAsStart(); mapRef.current.fitToElements()}
+                }}
               />
             </View>
             <View style={styles.inputContainer}>
@@ -494,6 +499,11 @@ export default function UserHomeScreen({ navigation }) {
                 type: "font-awesome",
                 name: "map-marker",
               }}
+              rightIcon={{
+                type: "font-awesome",
+                name: "home",
+                onPress: () => {homeAsDest(); mapRef.current.fitToElements()}
+              }}
             />
           </View>
           <MapView
@@ -505,7 +515,15 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
-            <Text>  ETA: {eta}</Text>
+            <Icon
+              raised
+              type= "font-awesome"
+              name= "hourglass"
+              onPress={() => {getEta(); mapRef.current.fitToElements()}}
+              loading={isLoading}
+              disabled={isLoading}
+            />
+            <Text style={styles.etaText}>  ETA: {eta}</Text>
             {markers.map((marker) => (
               <MapView.Marker
                 key={marker.key}
@@ -519,28 +537,6 @@ export default function UserHomeScreen({ navigation }) {
             ))}
           </MapView>
           <View style={styles.buttonContainer}>
-            <Button
-                title="Start = Current"
-                onPress={() => {
-                  navigator.geolocation.getCurrentPosition(showLocation);
-                  currentAsStart();
-                  mapRef.current.fitToElements();
-                }}
-                loading={isLoading}
-                disabled={isLoading}
-            />
-            <Button
-                title="Home = Dest."
-                onPress={() => {homeAsDest(); mapRef.current.fitToElements()}}
-                loading={isLoading}
-                disabled={isLoading}
-            />
-            <Button
-                title="ETA"
-                onPress={() => {getEta(); mapRef.current.fitToElements()}}
-                loading={isLoading}
-                disabled={isLoading}
-            />
             <Button
                 title="Request Now"
                 onPress={() => addRequest()}
@@ -569,6 +565,7 @@ const styles = StyleSheet.create({
   },
   inputStyle: {
     marginLeft: 20,
+    marginRight: 20,
   },
   containerStyle: {
     paddingLeft: 0,
@@ -592,6 +589,12 @@ const styles = StyleSheet.create({
   mapStyle: {
     marginTop:0,
     width: Dimensions.get('window').width,
-    height: hp("55%")
+    height: hp("60%"),
+    justifyContent: 'space-between'
+  },
+  etaText: {
+    textAlign: 'right',
+    marginRight: 10,
+    marginBottom: 10
   }
 });
