@@ -2,12 +2,18 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import SafewalkerHomeScreen from "./SafewalkerHomeScreen";
-import SafewalkerTabNavigation from "./SafewalkerTabNavigation";
 
-import Header from "./../../components/Header";
+import Header from "../../components/Header";
 
 const Stack = createStackNavigator();
 
+/**
+ * Wrapper to the SafewalkerHomeScreen.
+ *
+ * This wrapper is to ease header naming/customaization
+ * as editing the header straight from the Drawer navigation is tedious
+ * and not straightforward.
+ */
 export default function SafewalkerStackNavigation() {
   return (
     <Stack.Navigator
@@ -16,18 +22,13 @@ export default function SafewalkerStackNavigation() {
       screenOptions={{
         header: ({ scene, previous, navigation }) => (
           <Header scene={scene} previous={previous} navigation={navigation} />
-        )
+        ),
       }}
     >
       <Stack.Screen
         name="SafewalkerHome"
         component={SafewalkerHomeScreen}
         options={{ title: "SAFEwalker Home" }}
-      />
-      <Stack.Screen
-        name="SafewalkerTab"
-        component={SafewalkerTabNavigation}
-        options={{ title: "Safewalker Current Walk" }}
       />
     </Stack.Navigator>
   );

@@ -1,19 +1,34 @@
 import React, { useState, useEffect } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
-  KeyboardAvoidingView,
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
 } from "react-native";
-import { Button } from "react-native-elements";
-import { TextInput } from "react-native-paper";
-import { useForm } from "react-hook-form";
 
+// Libraries
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useForm } from "react-hook-form";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
+// Custom components
+import ErrorText from "./../../../components/ErrorText";
+import TextInput from "./../../../components/TextInput";
+import Button from "./../../../components/Button";
+import Or from "../../../components/Or";
+import Footer from "../../../components/AuthScreenFooter";
+import Spacer from "../../../components/Spacer";
+
+// Constants
 import colors from "./../../../constants/colors";
 import url from "./../../../constants/api";
+import style from "./../../../constants/style";
 
 export default function CredentialsSignupScreen({ navigation }) {
   const [isLoginError, setIsLoginError] = useState(false);
@@ -41,43 +56,49 @@ export default function CredentialsSignupScreen({ navigation }) {
   }, [register]);
 
   // upon pressing the submit button
-  const onSubmit = formData => {
+  const onSubmit = (formData) => {
     // check if email is taken. just check, do not create an account yet.
     fetch(url + "/api/Login/" + formData.email, { method: "GET" })
-        .then(response => {
-          console.log(JSON.stringify(response.status));
-          setIsLoading(false);
+      .then((response) => {
+        console.log(JSON.stringify(response.status));
+        setIsLoading(false);
 
-          if (response.status && response.status === 200) {
-            console.log("Email available!");
+        if (response.status && response.status === 200) {
+          console.log("Email available!");
 
-            // if email not taken, go to next screen
-            navigation.navigate("PersonalInfo", {
-              email: formData.email,
-              password: formData.password
-            });
-          } else if (response.status && response.status === 409) {
-            console.log("captured 409! User not available.");
-            setIsUserNotAvailable(true);
-          } else {
-            console.log("Unknown error" + response.status + " Try again");
-            setIsLoginError(true);
-          }
-        })
-        .catch(error => {
-          console.log("Error: " + error);
+          // if email not taken, go to next screen
+          navigation.navigate("PersonalInfo", {
+            email: formData.email,
+            password: formData.password,
+          });
+        } else if (response.status && response.status === 409) {
+          console.log("captured 409! User not available.");
+          setIsUserNotAvailable(true);
+        } else {
+          console.log("Unknown error" + response.status + " Try again");
           setIsLoginError(true);
-          setIsLoading(false);
-        });
+        }
+      })
+      .catch((error) => {
+        console.log("Error: " + error);
+        setIsLoginError(true);
+        setIsLoading(false);
+      });
   };
 
   return (
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.container}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.innerContainer}
+        >
           {/* Progress animation */}
           <View style={styles.progressContainer}>
             <View style={styles.progressCircleContainer}>
-              <View style={[styles.progressCircle, styles.progressCurrentCircle]}>
+              <View
+                style={[styles.progressCircle, styles.progressCurrentCircle]}
+              >
                 <Text style={styles.progressCircleText}>1</Text>
               </View>
               <Text style={styles.progressDescription}>Credentials</Text>
@@ -93,7 +114,7 @@ export default function CredentialsSignupScreen({ navigation }) {
             </View>
 
             <View
-                style={[styles.progressLine, { marginLeft: 5, marginRight: 10 }]}
+              style={[styles.progressLine, { marginLeft: 5, marginRight: 10 }]}
             />
 
             <View style={styles.progressCircleContainer}>
@@ -104,114 +125,104 @@ export default function CredentialsSignupScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Main view */}
-          <KeyboardAvoidingView style={styles.innerContainer}>
-            {errors.email && (
-                <Text style={styles.textError}>wisc.edu email is required.</Text>
-            )}
-            <TextInput
+          {/* Input fields */}
+          <View>
+            <View style={styles.inputContainer}>
+              {errors.email && (
+                <ErrorText>wisc.edu email is required.</ErrorText>
+              )}
+              {isLoginError && (
+                <ErrorText>There was an error. Please try again.</ErrorText>
+              )}
+              {isUserNotAvailable && (
+                <ErrorText>Email is taken. Use a different email.</ErrorText>
+              )}
+              <TextInput
                 label="Email"
                 placeholder="netid@wisc.edu"
                 ref={register(
-                    { name: "email" },
-                    { required: true, pattern: /^[A-Z0-9._%+-]+@wisc\.edu$/i }
+                  { name: "email" },
+                  { required: true, pattern: /^[A-Z0-9._%+-]+@wisc\.edu$/i }
                 )}
-                onChangeText={text => setValue("email", text, true)}
+                onChangeText={(text) => setValue("email", text, true)}
                 mode="outlined"
-                theme={{ colors: { primary: colors.red } }}
-                style={styles.textInput}
                 keyboardType="email-address"
                 autoCapitalize="none"
-            />
+              />
+            </View>
 
-            {errors.password && (
-                <Text style={styles.textError}>Password is required.</Text>
-            )}
-            <TextInput
+            <View style={styles.inputContainer}>
+              {errors.password && <ErrorText>Password is required.</ErrorText>}
+              <TextInput
                 label="Password"
                 placeholder="Password"
                 ref={register({ name: "password" }, { required: true })}
-                onChangeText={text => setValue("password", text, true)}
+                onChangeText={(text) => setValue("password", text, true)}
                 mode="outlined"
                 secureTextEntry
-                theme={{ colors: { primary: colors.red } }}
-                style={styles.textInput}
-            />
+              />
+            </View>
 
-            {errors.confirmPassword && (
-                <Text style={styles.textError}>The passwords do not match.</Text>
-            )}
-            <TextInput
+            <View style={styles.inputContainer}>
+              {errors.confirmPassword && (
+                <ErrorText>The passwords do not match.</ErrorText>
+              )}
+              <TextInput
                 label="Confirm password"
                 ref={register(
-                    { name: "confirmPassword" },
-                    {
-                      required: true,
-                      validate: value =>
-                          value === watch("password") || "The passwords do not match."
-                    }
+                  { name: "confirmPassword" },
+                  {
+                    required: true,
+                    validate: (value) =>
+                      value === watch("password") ||
+                      "The passwords do not match.",
+                  }
                 )}
-                onChangeText={text => setValue("confirmPassword", text, true)}
+                onChangeText={(text) => setValue("confirmPassword", text, true)}
                 mode="outlined"
                 secureTextEntry
-                theme={{ colors: { primary: colors.red } }}
-                style={styles.textInput}
-            />
-
-            {isLoginError && (
-                <Text style={styles.textErrorAPICall}>
-                  There was an error. Please try again.
-                </Text>
-            )}
-            {isUserNotAvailable && (
-                <Text style={styles.textErrorAPICall}>
-                  Email is taken. Use a different email.
-                </Text>
-            )}
-          </KeyboardAvoidingView>
+              />
+            </View>
+          </View>
 
           {/* Footer */}
-          <Button
+          <View style={styles.footerContainer}>
+            <Spacer />
+            <Button
               title="Next"
               loading={isLoading}
               disabled={isLoading}
               onPress={handleSubmit(onSubmit)}
-              buttonStyle={styles.buttonNext}
-              titleStyle={styles.buttonNextText}
-          />
-          <View style={styles.orContainer}>
-            <View style={styles.orLine} />
-            <Text style={styles.orText}>or</Text>
-            <View style={styles.orLine} />
+            />
+            <Spacer />
+            <Or />
+            <Spacer />
+            <Footer
+              type="register"
+              onPress={() =>
+                navigation.dangerouslyGetParent().replace("UserLogin")
+              }
+            />
+            <Spacer />
           </View>
-          <View style={styles.footerContainer}>
-            <Text style={styles.footerPrompt}>Already have an account? </Text>
-            <TouchableOpacity
-                onPress={() =>
-                    navigation.dangerouslyGetParent().replace("UserLogin")
-                }
-            >
-              <Text style={styles.footerClickable}>Sign in.</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white
+    backgroundColor: colors.white,
   },
   progressContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 50
   },
   progressCircleContainer: {
-    alignItems: "center"
+    alignItems: "center",
   },
   progressCircle: {
     alignItems: "center",
@@ -220,73 +231,33 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 50,
-    borderWidth: 1
+    borderWidth: 3,
   },
   progressCurrentCircle: {
-    borderColor: colors.red
+    borderColor: colors.darkorange,
   },
   progressCircleText: {
     // textAlign: "center"
   },
   progressDescription: {
-    marginTop: 10
+    marginTop: 10,
   },
   progressLine: {
     borderWidth: 1,
     borderColor: colors.lightgray,
     width: 40,
-    marginBottom: 20
+    marginBottom: 20,
   },
   innerContainer: {
     flex: 1,
-    marginHorizontal: 50,
-    justifyContent: "center"
+    marginHorizontal: style.marginContainerHorizontal,
+    justifyContent: "space-between",
   },
-  textError: {
-    color: colors.red
-  },
-  textInput: {
-    marginBottom: 20
-  },
-  textErrorAPICall: {
-    color: colors.red,
-    alignSelf: "center",
-    fontSize: 18
-  },
-  buttonNext: {
-    marginHorizontal: 50,
-    marginBottom: 20,
-    height: 50,
-    backgroundColor: colors.red
-  },
-  buttonNextText: {
-    fontSize: 17
-  },
-  orContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 15
-  },
-  orText: {
-    fontSize: 20,
-    color: colors.lightgray,
-    marginHorizontal: 20
-  },
-  orLine: {
-    borderWidth: 1,
-    borderColor: colors.lightgray,
-    width: 100
+  inputContainer: {
+    height: hp("9.5%"),
+    justifyContent: "flex-end",
   },
   footerContainer: {
-    marginBottom: 50,
-    flexDirection: "row",
-    justifyContent: "center"
+    // marginHorizontal: style.marginContainerHorizontal,
   },
-  footerPrompt: { fontSize: 20 },
-  footerClickable: {
-    fontSize: 20,
-    color: colors.darkred,
-    fontWeight: "bold"
-  }
 });

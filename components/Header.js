@@ -1,7 +1,11 @@
 import React from "react";
 import { Appbar } from "react-native-paper";
-import { TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Platform } from "react-native";
+
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 import colors from "./../constants/colors";
 
@@ -15,15 +19,30 @@ export default function Header({ scene, navigation }) {
       : scene.route.name;
 
   return (
-    <Appbar.Header theme={{ colors: { primary: colors.white } }}>
-      <TouchableOpacity
-        onPress={() => {
-          navigation.openDrawer();
+    <Appbar.Header theme={{ colors: { primary: colors.lightorange } }}>
+      <Appbar.Action
+        icon="menu"
+        color={colors.white}
+        onPress={() => navigation.openDrawer()}
+      />
+      <Appbar.Content
+        title={title}
+        titleStyle={{
+          alignSelf: "center",
+          color: colors.white,
+          // fix padding issue on Android
+          ...Platform.select({
+            ios: {},
+            android: {
+              paddingRight: wp("10%"),
+            },
+            default: {
+              // other platforms, web for example
+              paddingRight: wp("10%"),
+            },
+          }),
         }}
-      >
-        <Ionicons name="ios-menu" size={40} style={{ marginLeft: 15 }} />
-      </TouchableOpacity>
-      <Appbar.Content title={title} />
+      />
     </Appbar.Header>
   );
 }

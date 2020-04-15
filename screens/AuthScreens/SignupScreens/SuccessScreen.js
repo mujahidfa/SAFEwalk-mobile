@@ -1,9 +1,22 @@
 import React, { useState, useEffect, useContext } from "react";
 import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
-import { Button, Image } from "react-native-elements";
+import { Image } from "react-native-elements";
+import Button from "./../../../components/Button";
+import ErrorText from "./../../../components/ErrorText";
+import Spacer from "../../../components/Spacer";
 
+// Libraries
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useForm } from "react-hook-form";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
+// Constants
 import colors from "./../../../constants/colors";
 import url from "./../../../constants/api";
+import style from "./../../../constants/style";
 
 import { AuthContext } from "./../../../contexts/AuthProvider";
 
@@ -35,184 +48,154 @@ export default function SuccessSignupScreen({ route }) {
         "Content-Type": "application/json;charset=UTF-8",
         email: route.params.email,
         password: route.params.password,
-        isUser: true // since this is user login, then isUser has to be true
-      }
+        isUser: true, // since this is user login, then isUser has to be true
+      },
     })
-        .then(response => response.json())
-        .then(data => {
-          setIsLoading(false);
-          console.log("data: " + data);
-
-          // The endpoint only returns a string upon success
-          // and a full body response if there's an error.
-          // Therefore, if data.status exists, then this means it's an error.
-          if (data.status) {
-            console.log("data in if: " + JSON.stringify(data));
-            if (data.status === 404) {
-              console.log("captured 404! User not available.");
-              setIsUserNotAvailable(true);
-            } else {
-              console.log("Unknown error " + data.status + ". Try again");
-              setIsLoginError(true);
-            }
+      .then((response) => response.json())
+      .then((data) => {
+        setIsLoading(false);
+        console.log("data: " + data);
+        // The endpoint only returns a string upon success
+        // and a full body response if there's an error.
+        // Therefore, if data.status exists, then this means it's an error.
+        if (data.status) {
+          console.log("data in if: " + JSON.stringify(data));
+          if (data.status === 404) {
+            console.log("captured 404! User not available.");
+            setIsUserNotAvailable(true);
+          } else {
+            console.log("Unknown error " + data.status + ". Try again");
+            setIsLoginError(true);
           }
-              // The endpoint only returns a string upon success,
-          // so because of that, if it's a success, data.status would be null.
-          else {
-            console.log("data in else: " + data);
-            console.log("email: " + route.params.email);
-            login("user", data, route.params.email);
-          }
-        })
-        .catch(error => {
-          console.log("Error in login(): " + error);
-          setIsLoginError(true);
-          setIsLoading(false);
-        });
+        }
+        // The endpoint only returns a string upon success,
+        // so because of that, if it's a success, data.status would be null.
+        else {
+          console.log("data in else: " + data);
+          console.log("email: " + route.params.email);
+          login("user", data, route.params.email);
+        }
+      })
+      .catch((error) => {
+        console.log("Error in login(): " + error);
+        setIsLoginError(true);
+        setIsLoading(false);
+      });
   }
 
   return (
-      <View style={styles.container}>
-        {/* Progress animation */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressCircleContainer}>
-            <View style={styles.progressCircle}>
-              <Text style={styles.progressCircleText}>✓</Text>
-            </View>
-            <Text style={styles.progressDescription}>Credentials</Text>
+    <SafeAreaView style={styles.container}>
+      {/* Progress animation */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressCircleContainer}>
+          <View style={styles.progressCircle}>
+            <Text style={styles.progressCircleText}>✓</Text>
           </View>
-
-          <View style={[styles.progressLine, { marginRight: 3 }]} />
-
-          <View style={styles.progressCircleContainer}>
-            <View style={styles.progressCircle}>
-              <Text style={styles.progressCircleText}>✓</Text>
-            </View>
-            <Text style={styles.progressDescription}>Basic Info</Text>
-          </View>
-
-          <View
-              style={[styles.progressLine, { marginLeft: 5, marginRight: 10 }]}
-          />
-
-          <View style={styles.progressCircleContainer}>
-            <View style={styles.progressCircle}>
-              <Text style={styles.progressCircleText}>✓</Text>
-            </View>
-            <Text style={styles.progressDescription}>Finish</Text>
-          </View>
+          <Text style={styles.progressDescription}>Credentials</Text>
         </View>
 
+        <View style={[styles.progressLine, { marginRight: 3 }]} />
+
+        <View style={styles.progressCircleContainer}>
+          <View style={styles.progressCircle}>
+            <Text style={styles.progressCircleText}>✓</Text>
+          </View>
+          <Text style={styles.progressDescription}>Basic Info</Text>
+        </View>
+
+        <View
+          style={[styles.progressLine, { marginLeft: 5, marginRight: 10 }]}
+        />
+
+        <View style={styles.progressCircleContainer}>
+          <View style={styles.progressCircle}>
+            <Text style={styles.progressCircleText}>✓</Text>
+          </View>
+          <Text style={styles.progressDescription}>Finish</Text>
+        </View>
+      </View>
+
+      {/* Success image*/}
+      <View>
         <Text style={styles.textSuccess}>Success!</Text>
+        <Spacer />
         <Image
-            source={require("./../../../assets/signup-success.jpg")}
-            style={styles.image}
-            PlaceholderContent={<ActivityIndicator />}
+          source={require("./../../../assets/signup-success.jpg")}
+          style={styles.image}
+          PlaceholderContent={<ActivityIndicator />}
         />
+      </View>
 
-        <Button
-            title="Go to main screen"
-            loading={isLoading}
-            disabled={isLoading}
-            onPress={() => handleLogin()}
-            buttonStyle={styles.buttonLogin}
-            titleStyle={styles.buttonLoginText}
-        />
-
+      {/* Button go to main screen */}
+      <View style={styles.buttonContainer}>
         {isLoginError && (
-            <Text style={styles.textErrorAPICall}>
-              There was an error. Please try again. (isLoginError)
-            </Text>
+          <ErrorText>
+            There was an error. Please try again. (isLoginError)
+          </ErrorText>
         )}
         {isUserNotAvailable && (
-            <Text style={styles.textErrorAPICall}>
-              There was an error. Please try again. (isUserNotAvailable)
-            </Text>
+          <ErrorText>
+            There was an error. Please try again. (isUserNotAvailable)
+          </ErrorText>
         )}
+        <Button
+          title="Go to main screen"
+          loading={isLoading}
+          disabled={isLoading}
+          onPress={() => handleLogin()}
+        />
       </View>
+      <Spacer />
+    </SafeAreaView>
   );
-}
-
-{
-  /* <View style={styles.container}>
-      <Text>Sign up 3: Success Screen</Text>
-      <Text>Email: {route.params.email}</Text>
-      <Text>Password: {route.params.password}</Text>
-      <Text>Email: {route.params.firstname}</Text>
-      <Text>Password: {route.params.lastname}</Text>
-      <Text>Email: {route.params.phoneNumber}</Text>
-      <Button
-        title="Finish"
-        onPress={() =>
-          login("user", {
-            email: route.params.email,
-            password: route.params.password
-          })
-        }
-      />
-    </View> */
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // alignItems: "center",
-    backgroundColor: colors.white
+    backgroundColor: colors.white,
+    justifyContent: "space-between",
   },
   progressContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 50
   },
   progressCircleContainer: {
-    alignItems: "center"
+    alignItems: "center",
   },
   progressCircle: {
     alignItems: "center",
     justifyContent: "center",
-    borderColor: colors.red,
+    borderColor: colors.darkorange,
     width: 50,
     height: 50,
     borderRadius: 50,
-    borderWidth: 1
+    borderWidth: 3,
   },
   progressCurrentCircle: {
-    borderColor: colors.red
+    borderColor: colors.darkorange,
   },
   progressCircleText: {
-    color: colors.red
+    color: colors.darkorange,
   },
   progressDescription: {
-    marginTop: 10
+    marginTop: 10,
   },
   progressLine: {
     borderWidth: 1,
-    borderColor: colors.red,
+    borderColor: colors.darkorange,
     width: 40,
-    marginBottom: 20
+    marginBottom: 20,
   },
   textSuccess: {
     alignSelf: "center",
-    fontSize: 40,
-    marginTop: 40,
-    marginBottom: 30
+    fontSize: hp("5%"),
   },
   image: {
-    height: 300
+    height: hp("33%"),
   },
-  buttonLogin: {
-    marginHorizontal: 40,
-    marginTop: 40,
-    height: 50,
-    backgroundColor: colors.red
+  buttonContainer: {
+    marginHorizontal: style.marginContainerHorizontal,
   },
-  buttonLoginText: {
-    fontSize: 17
-  },
-  textErrorAPICall: {
-    color: colors.red,
-    alignSelf: "center",
-    fontSize: 18
-  }
 });
