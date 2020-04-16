@@ -369,8 +369,8 @@ export default function UserHomeScreen({ navigation }) {
       minutes = parseInt(minutes) - 60;
       hours = parseInt(hours) + 1;
     }
-    if(hours > 12) {
-      hours = parseInt(hours) - 12;
+    if(hours > 23) {
+      hours = parseInt(hours) - 24;
     }
 
     if(minutes < 10) {
