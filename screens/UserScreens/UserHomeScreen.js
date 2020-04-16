@@ -70,7 +70,7 @@ export default function UserHomeScreen({ navigation }) {
       latitude: +43.081606,
       longitude: -89.376298
     },
-    text: ""
+    text: "Home"
   });
 
   // walk origin - default to current location
@@ -79,7 +79,7 @@ export default function UserHomeScreen({ navigation }) {
       latitude: 43.075143,
       longitude: -89.400151
     },
-    text: ""
+    text: "Current Location"
   });
 
   const [eta, setEta] = useState("0");
@@ -224,7 +224,18 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  const getStartCoordinates = text => {
+  async function getStartCoordinates(text) {
+    if(text == "Current Location") {
+      navigator.geolocation.getCurrentPosition(showLocation);
+      setStart({
+        coordinates: {
+          latitude: location.coordinates.latitude,
+          longitude: location.coordinates.longitude
+        },
+        text: text
+      });
+      return;
+    }
     var replaced = text.split(' ').join('+');
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
@@ -241,7 +252,7 @@ export default function UserHomeScreen({ navigation }) {
       })
   }
 
-  const getDestinationCoordinates = text => {
+  async function getDestinationCoordinates(text) {
     var replaced = text.split(' ').join('+');
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
@@ -258,7 +269,7 @@ export default function UserHomeScreen({ navigation }) {
       })
   }
 
-  const getStartAddress = coordinates => {
+  async function getStartAddress(coordinates) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
     .then(res => {
@@ -273,7 +284,7 @@ export default function UserHomeScreen({ navigation }) {
     })
   }
 
-  const getDestinationAddress = coordinates => {
+  async function getDestinationAddress(coordinates) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
     axios.get(axiosURL)
     .then(res => {
@@ -358,8 +369,8 @@ export default function UserHomeScreen({ navigation }) {
       minutes = parseInt(minutes) - 60;
       hours = parseInt(hours) + 1;
     }
-    if(hours > 12) {
-      hours = parseInt(hours) - 12;
+    if(hours > 23) {
+      hours = parseInt(hours) - 24;
     }
 
     if(minutes < 10) {
@@ -384,30 +395,30 @@ export default function UserHomeScreen({ navigation }) {
         coordinates: {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
-        }
+        },
+        text: "Current Location"
       }
     )
  }
 
-  async function onMapReady() {
-    mapRef.current.fitToElements();
-  };
-
   async function currentAsStart() {
+
+    navigator.geolocation.getCurrentPosition(showLocation);
+
     setStart({
       coordinates: {
         latitude: location.coordinates.latitude,
         longitude: location.coordinates.longitude
       },
-      text: ""
+      text: "Current Location"
     });
     setMarkers([
       {
         key: 0,
         title: 'Start',
         coordinates: {
-          latitude: location.coordinates.latitude,
-          longitude: location.coordinates.longitude
+          latitude: start.coordinates.latitude,
+          longitude: start.coordinates.longitude
         }
       },
       {
@@ -428,7 +439,7 @@ export default function UserHomeScreen({ navigation }) {
         latitude: homePlace.coordinates.latitude,
         longitude: homePlace.coordinates.longitude
       },
-      text: ""
+      text: "Home"
     });
     setMarkers([
       {
@@ -450,6 +461,14 @@ export default function UserHomeScreen({ navigation }) {
     ])
     mapRef.current.fitToElements();
   }
+
+  async function onMapReady() {
+    currentAsStart();
+    currentAsStart();
+    currentAsStart();
+    homeAsDest();
+    mapRef.current.fitToElements();
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
