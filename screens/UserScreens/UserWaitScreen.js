@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Text, View, StyleSheet } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet, Keyboard,
+} from "react-native";
 import LottieView from "lottie-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   heightPercentageToDP as hp
 } from "react-native-responsive-screen";
+import {Notifications} from "expo";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
 // Components
 import Button from "./../../components/Button";
@@ -19,6 +26,7 @@ import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
 import style from "../../constants/style";
 
+
 export default function UserHomeScreen({ navigation }) {
   const [isTimeout, setIsTimeout] = useState(false);
 
@@ -31,13 +39,41 @@ export default function UserHomeScreen({ navigation }) {
     WalkContext
   );
 
+  const localNotification = { title: 'Request Error', body: 'Request Timed Out' };
+  let localNotificationId = null;
+  const setNotification = text => {
+    Keyboard.dismiss();
+    console.log("Notification set for " + text);
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(text),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        localNotification,
+        schedulingOptions,
+    );
+  };
+  const handleNotification = async () => {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  };
+
+  const askNotification = async () => {
+    // We need to ask for Notification permissions for ios devices
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+    if (Constants.isDevice && status === 'granted')
+      console.log('Notification permissions granted.');
+  };
+
   /**
    * This effect sets up the socket connection to the SAFEwalker to listen to walk request responses.
    * This effect is run once upon component mount.
    */
   useEffect(() => {
     socket.removeAllListeners();
-    
+    askNotification();
+    setNotification(30000);
+
     console.log("in useEffect socket of UserWaitScreen");
     // socket to listen to walker status change
     socket.on("walker walk status", (status) => {
@@ -161,6 +197,7 @@ export default function UserHomeScreen({ navigation }) {
       setIsTimeout(false);
       alert("Your request was timed out.");
     } else {
+      await handleNotification();
       alert("Request canceled.");
     }
   }

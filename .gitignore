@@ -12,3 +12,8 @@ web-report/
 
 # macOS
 .DS_Store
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/SAFEwalk-mobile.iml
+/.idea/vcs.xml
+/yarn-error.log
