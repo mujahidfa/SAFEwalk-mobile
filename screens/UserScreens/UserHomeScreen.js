@@ -237,7 +237,7 @@ export default function UserHomeScreen({ navigation }) {
       return;
     }
     var replaced = text.split(' ').join('+');
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
       .then(res => {
         // start.coordinates.latitude = res.data.results[0].geometry.location.lat;
@@ -254,7 +254,7 @@ export default function UserHomeScreen({ navigation }) {
 
   async function getDestinationCoordinates(text) {
     var replaced = text.split(' ').join('+');
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
       .then(res => {
         // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
@@ -270,7 +270,7 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   async function getStartAddress(coordinates) {
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
     .then(res => {
       setStart({
@@ -285,7 +285,7 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   async function getDestinationAddress(coordinates) {
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
     .then(res => {
       setDestination({
@@ -381,7 +381,7 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   async function getEta() {
-    var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + start.coordinates.latitude + ", " + start.coordinates.longitude + "&destinations=" + destination.coordinates.latitude + ", " + destination.coordinates.longitude + "&mode=walking&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
+    var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + start.coordinates.latitude + ", " + start.coordinates.longitude + "&destinations=" + destination.coordinates.latitude + ", " + destination.coordinates.longitude + "&mode=walking&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
     .then(res => {
       setDuration(res.data.rows[0].elements[0].duration.text);
