@@ -3,14 +3,11 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
 } from "react-native";
-import { Avatar } from "react-native-elements";
-//import { TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
 import {
@@ -71,7 +68,6 @@ export default function LoginSettingsScreen({ navigation }) {
       }
     });
 
-    //await setPassword(data.confirmPassword);
     endpoint = "/api/Users/";
     if (userType == "safewalker") {
       endpoint = "/api/Safewalkers/";
@@ -197,7 +193,6 @@ const styles = StyleSheet.create({
   container2: {
     flex: 1,
     marginHorizontal: style.marginContainerHorizontal,
-    //justifyContent: "center",
     marginVertical: hp("6%"),
   },
   containerTop: {
