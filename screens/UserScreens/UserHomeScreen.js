@@ -99,7 +99,7 @@ export default function UserHomeScreen({ navigation }) {
       key: 1,
       title: 'Destination',
       coordinates: {
-        // replace with api to get user's home addre
+        // replace with api to get user's home address
         latitude: homePlace.coordinates.latitude,
         longitude: homePlace.coordinates.longitude
       }
