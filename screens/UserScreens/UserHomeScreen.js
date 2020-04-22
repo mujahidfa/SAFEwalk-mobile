@@ -31,6 +31,9 @@ import style from "./../../constants/style"
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
+import {Notifications} from "expo";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -469,6 +472,21 @@ export default function UserHomeScreen({ navigation }) {
     homeAsDest();
     mapRef.current.fitToElements();
   };
+
+  /* Notification Setup
+askNotification (only for starting screens): Asks iOS for notification permissions
+*/
+
+  const askNotification = async () => {
+    // We need to ask for Notification permissions for ios devices
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+    if (Constants.isDevice && status === 'granted')
+      console.log('Notification permissions granted.');
+  };
+
+  useEffect(() => {
+    askNotification();
+  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {Keyboard, StyleSheet, Text, View} from "react-native";
 
 // Custom components
 import Button from "./../../components/Button";
@@ -14,6 +14,7 @@ import style from "./../../constants/style";
 // Contexts
 import { AuthContext } from "../../contexts/AuthProvider";
 import { WalkContext } from "../../contexts/WalkProvider";
+import {Notifications} from "expo";
 
 export default function MapScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function MapScreen({ navigation }) {
   //  */
   useEffect(() => {
     socket.removeAllListeners();
-    
+
     // socket to listen to user status change
     socket.on("user walk status", (status) => {
       console.log("user walk status in SWMapScreen:" + status);
@@ -51,6 +52,7 @@ export default function MapScreen({ navigation }) {
 
     socket.on("connection lost", (status) => {
       if (status) {
+        setDisconnectNotification(1000);
         alert("Connection Lost");
         // TODO: button to cancel walk, call cancelWalk()
       }
@@ -62,6 +64,26 @@ export default function MapScreen({ navigation }) {
       socket.off("connection lost", null);
     };
   }, []);
+
+
+  /* Notification Setup
+setDisconnectNotification: schedules notification for <time>
+*/
+  const disconnectionNotification = { title: 'Walk Cancelled', body: 'SAFEwalker canceled the walk' };
+  let localDisconnectNotificationId = null;
+  const setDisconnectNotification = time => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localDisconnectNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        disconnectionNotification,
+        schedulingOptions,
+    );
+  };
+
 
   /**
    * Upon complete button press, update the current walk status in the database as completed

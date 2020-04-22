@@ -1,8 +1,11 @@
 import React, { useEffect, useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {Keyboard, StyleSheet, Text, View} from "react-native";
 import socket from "../../contexts/socket";
 
 import { WalkContext } from "./../../contexts/WalkProvider";
+import {Notifications} from "expo";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
 export default function UserMapScreen({ navigation }) {
   const { resetWalkContextState } = useContext(WalkContext);
@@ -43,6 +46,7 @@ export default function UserMapScreen({ navigation }) {
 
     socket.on("connection lost", (status) => {
       if (status) {
+        setNotification(1000);
         alert("Connection Lost");
         // TODO: button to cancel walk, call cancelWalk()
       }
@@ -55,6 +59,25 @@ export default function UserMapScreen({ navigation }) {
       socket.off("connection lost", null);
     };
   }, []);
+
+  /* Notification Setup
+  setNotification: schedules notification for <time>
+  */
+  const connectionNotification = { title: 'Connection Error', body: 'Connection Lost' };
+  let localNotificationId = null;
+  const setNotification = time => {
+    Keyboard.dismiss();
+    console.log("Notification set for " + time);
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        connectionNotification,
+        schedulingOptions,
+    );
+  };
 
   return (
     <View style={styles.container}>

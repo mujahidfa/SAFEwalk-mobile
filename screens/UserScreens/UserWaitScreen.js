@@ -39,7 +39,11 @@ export default function UserHomeScreen({ navigation }) {
     WalkContext
   );
 
-  const localNotification = { title: 'Request Error', body: 'Request Timed Out' };
+  /* Notification Setup
+setNotification: schedules notification for <time>
+handleNotification: cancels all scheduled notifications
+*/
+  const requestTimeOutNotification = { title: 'Request Error', body: 'Request Timed Out' };
   let localNotificationId = null;
   const setNotification = text => {
     Keyboard.dismiss();
@@ -50,19 +54,12 @@ export default function UserHomeScreen({ navigation }) {
     // Notifications show only when app is not active.
     // (ie. another app being used or device's screen is locked)
     localNotificationId  = Notifications.scheduleLocalNotificationAsync(
-        localNotification,
+        requestTimeOutNotification,
         schedulingOptions,
     );
   };
   const handleNotification = async () => {
     await Notifications.cancelAllScheduledNotificationsAsync();
-  };
-
-  const askNotification = async () => {
-    // We need to ask for Notification permissions for ios devices
-    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-    if (Constants.isDevice && status === 'granted')
-      console.log('Notification permissions granted.');
   };
 
   /**
@@ -71,7 +68,6 @@ export default function UserHomeScreen({ navigation }) {
    */
   useEffect(() => {
     socket.removeAllListeners();
-    askNotification();
     setNotification(30000);
 
     console.log("in useEffect socket of UserWaitScreen");
