@@ -200,7 +200,14 @@ export default function SafewalkerHomeScreen({ navigation }) {
     swipeableRef.current.close();
   }
 
-  // helper funtion to confirm delete
+  /**
+   * Helper function for swipe to delete. Adds in the confirm to delete functionality.
+   *
+   * Calls deleteRequest upon confirm
+   * Closes the swipeable upon cancel
+   *
+   * @param request the request to either be deleted or closed
+   */
   function deleteRequest2(request) {
     Alert.alert(
       'Deny SAFEwalk Request',

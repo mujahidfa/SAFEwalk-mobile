@@ -11,7 +11,7 @@ import {
   View,
   Keyboard
 } from "react-native";
-import { Input, Icon } from "react-native-elements";
+import { Button as ButtonE, Input, Icon } from "react-native-elements";
 import { useForm } from "react-hook-form";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -49,7 +49,7 @@ const homePlace = {
   }
 };
 
-const pinColor = ["#46C4FF", "red"]
+const pinColor = ["green", "red"]
 
 export default function UserHomeScreen({ navigation }) {
 
@@ -70,7 +70,7 @@ export default function UserHomeScreen({ navigation }) {
       latitude: +43.081606,
       longitude: -89.376298
     },
-    text: "Home"
+    text: ""
   });
 
   // walk origin - default to current location
@@ -82,7 +82,6 @@ export default function UserHomeScreen({ navigation }) {
     text: "Current Location"
   });
 
-  const [eta, setEta] = useState("0");
   const [duration, setDuration] = useState("0 minutes");
 
   // markers and locations
@@ -352,43 +351,6 @@ export default function UserHomeScreen({ navigation }) {
 
   }
 
-  async function convertEta() {
-    var today = new Date();
-    var hours = today.getHours();
-    var minutes = today.getMinutes();
-    var replaced = duration.split(' ');
-    if(replaced[1].localeCompare("hours") == 0) {
-      hours = parseInt(hours) + parseInt(replaced[0]);
-      minutes = parseInt(minutes) + parseInt(replaced[2]);
-    }
-    else{
-      minutes = parseInt(minutes) + parseInt(replaced[0]);
-    }
-
-    if(minutes > 59) {
-      minutes = parseInt(minutes) - 60;
-      hours = parseInt(hours) + 1;
-    }
-    if(hours > 23) {
-      hours = parseInt(hours) - 24;
-    }
-
-    if(minutes < 10) {
-      minutes = "0" + minutes;
-    }
-    var returnString = hours + ":" + minutes;
-    setEta(returnString);
-  }
-
-  async function getEta() {
-    var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + start.coordinates.latitude + ", " + start.coordinates.longitude + "&destinations=" + destination.coordinates.latitude + ", " + destination.coordinates.longitude + "&mode=walking&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-    axios.get(axiosURL)
-    .then(res => {
-      setDuration(res.data.rows[0].elements[0].duration.text);
-      convertEta();
-    })
-  }
-
   async function showLocation(position) {
     setLocation(
       {
@@ -439,7 +401,7 @@ export default function UserHomeScreen({ navigation }) {
         latitude: homePlace.coordinates.latitude,
         longitude: homePlace.coordinates.longitude
       },
-      text: "Home"
+      text: ""
     });
     setMarkers([
       {
@@ -473,9 +435,30 @@ export default function UserHomeScreen({ navigation }) {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
          <View style={styles.container}>
-           <View style={styles.innerContainer}>
-            {/* User Start and End Location input fields */}
-            <View style={styles.inputContainer}>
+         <KeyboardAvoidingView style={styles.innerContainer}>
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={styles.mapStyle}
+            showsUserLocation={true}
+            ref={mapRef}
+            minZoomLevel={10}
+            maxZoomLevel={15}
+            onMapReady={onMapReady}
+          >
+            {markers.map((marker) => (
+              <MapView.Marker
+                key={marker.key}
+                coordinate={{
+                  latitude: marker.coordinates.latitude,
+                  longitude: marker.coordinates.longitude
+                }}
+                title={marker.title}
+                pinColor={pinColor[marker.key]}
+              />
+            ))}
+          </MapView>
+           {/* User Start and End Location input fields */}
+           <View style={styles.inputContainer}>
               {errors.startLocation && (
                 <Text style={style.textError}>Start location is required.</Text>
               )}
@@ -492,49 +475,56 @@ export default function UserHomeScreen({ navigation }) {
                 leftIcon={{
                   type: "font-awesome",
                   name: "map-marker",
+                  color: "green"
                 }}
+                /*
                 rightIcon={{
-                  type: "font-awesome",
-                  name: "location-arrow",
+                  type: "material",
+                  name: "gps-fixed",
                   onPress: () => {currentAsStart(); mapRef.current.fitToElements()}
                 }}
+                */
               />
-            </View>
-            <View style={styles.inputContainer}>
               {errors.endLocation && (
                 <Text style={style.textError}>Destination is required.</Text>
-            )}
-            <Input
-              inputStyle={styles.inputStyle}
-              inputContainerStyle={styles.inputContainerStyleBottom}
-              containerStyle={styles.containerStyle}
-              placeholder="Destination"
-              ref={register({ name: "endLocation" }, { required: true })}
-              value={destination.text}
-              onChangeText={onDestinationTextChange}
-              onSubmitEditing={updateDestination}
-              returnKeyType='search'
-              leftIcon={{
-                type: "font-awesome",
-                name: "map-marker",
-              }}
-              rightIcon={{
-                type: "font-awesome",
-                name: "home",
-                onPress: () => {homeAsDest(); mapRef.current.fitToElements()}
-              }}
-            />
-          </View>
-          <MapView
-            provider={PROVIDER_GOOGLE}
-            style={styles.mapStyle}
-            showsUserLocation={true}
-            ref={mapRef}
-            minZoomLevel={10}
-            maxZoomLevel={15}
-            onMapReady={onMapReady}
-          >
+              )}
+              <Input
+                inputStyle={styles.inputStyle}
+                inputContainerStyle={styles.inputContainerStyleBottom}
+                containerStyle={styles.containerStyle}
+                placeholder="Destination"
+                ref={register({ name: "endLocation" }, { required: true })}
+                value={destination.text}
+                onChangeText={onDestinationTextChange}
+                onSubmitEditing={updateDestination}
+                returnKeyType='search'
+                leftIcon={{
+                  type: "font-awesome",
+                  name: "map-marker",
+                  color: "red"
+                }}
+                /*
+                rightIcon={{
+                  type: "font-awesome",
+                  name: "home",
+                  onPress: () => {homeAsDest(); mapRef.current.fitToElements()}
+                }}
+                */
+              />
+            
+          <View style={styles.icons}>
             <Icon
+              style={styles.icon}
+              raised
+              type= "material"
+              name= "gps-fixed"
+              onPress= {() => {currentAsStart(); mapRef.current.fitToElements();}}
+              loading={isLoading}
+              disabled={isLoading}
+            />
+            {/*
+            <Icon
+              style={styles.icon}
               raised
               type= "font-awesome"
               name= "hourglass"
@@ -542,33 +532,24 @@ export default function UserHomeScreen({ navigation }) {
               loading={isLoading}
               disabled={isLoading}
             />
-            <Text style={styles.etaText}>  ETA: {eta}</Text>
-            {markers.map((marker) => (
-              <MapView.Marker
-                key={marker.key}
-                coordinate={{
-                  latitude: marker.coordinates.latitude,
-                  longitude: marker.coordinates.longitude
-                }}
-                title={marker.title}
-                pinColor={pinColor[marker.key]}
-              />
-            ))}
-          </MapView>
+            */}
+             </View>
+             </View>
           <View style={styles.buttonContainer}>
-            <Button
-                title="Request Now"
-                onPress={() => addRequest()}
-                loading={isLoading}
-                disabled={isLoading}
-            />
-          </View>
-        </View>
+              <ButtonE
+                  title="Request Now"
+                  buttonStyle={{backgroundColor: colors.orange}}
+                  onPress={() => addRequest()}
+                  loading={isLoading}
+                  disabled={isLoading}
+                  raised
+              />
+            </View>
+        </KeyboardAvoidingView>
       </View>
       </TouchableWithoutFeedback>
     );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -576,11 +557,15 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    justifyContent: "center",
   },
   inputContainer: {
-    height: hp("7.5%"),
-    justifyContent: "flex-end",
+    //height: hp("7.5%"),
+    justifyContent: "space-between",
+    position: "absolute",
+    top: 10,
+    left: 10,
+    right: 10,
+    padding: 10,
   },
   inputStyle: {
     marginLeft: 20,
@@ -591,29 +576,52 @@ const styles = StyleSheet.create({
     paddingRight: 0
   },
   inputContainerStyleTop: {
-    borderColor: "black",
+    borderColor: "white",
     borderWidth: 2,
     borderRadius: 2,
+    backgroundColor: colors.white,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   inputContainerStyleBottom: {
-    borderColor: "black",
+    borderColor: "white",
     borderWidth: 2,
     borderRadius: 2,
-    marginBottom: 20
+    backgroundColor: colors.white,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   buttonContainer: {
-    height: hp("17%"),
-    justifyContent: "space-around",
+    position: "absolute",
+    bottom: 50,
+    right: 75,
+    left: 75,
   },
   mapStyle: {
-    marginTop:0,
+    marginTop: 0,
     width: Dimensions.get('window').width,
-    height: hp("60%"),
+    height: hp("100%"),
     justifyContent: 'space-between'
   },
-  etaText: {
-    textAlign: 'right',
-    marginRight: 10,
-    marginBottom: 10
-  }
+  icons: {
+    marginTop: 10,
+    left: 315,
+  },
+  icon: {
+    paddingVertical: 10,
+    position: "absolute",
+  },
 });
