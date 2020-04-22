@@ -435,7 +435,7 @@ export default function UserHomeScreen({ navigation }) {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
          <View style={styles.container}>
-           <View style={styles.innerContainer}>
+         <KeyboardAvoidingView style={styles.innerContainer}>
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
@@ -545,7 +545,7 @@ export default function UserHomeScreen({ navigation }) {
                   raised
               />
             </View>
-        </View>
+        </KeyboardAvoidingView>
       </View>
       </TouchableWithoutFeedback>
     );
