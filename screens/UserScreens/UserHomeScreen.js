@@ -49,7 +49,7 @@ const homePlace = {
   }
 };
 
-const pinColor = ["#46C4FF", "red"]
+const pinColor = ["green", "red"]
 
 export default function UserHomeScreen({ navigation }) {
 
@@ -492,6 +492,7 @@ export default function UserHomeScreen({ navigation }) {
                 leftIcon={{
                   type: "font-awesome",
                   name: "map-marker",
+                  color: "green"
                 }}
                 rightIcon={{
                   type: "font-awesome",
@@ -517,6 +518,7 @@ export default function UserHomeScreen({ navigation }) {
               leftIcon={{
                 type: "font-awesome",
                 name: "map-marker",
+                color: "red"
               }}
               rightIcon={{
                 type: "font-awesome",
@@ -534,15 +536,6 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
-            <Icon
-              raised
-              type= "font-awesome"
-              name= "hourglass"
-              onPress={() => {getEta(); mapRef.current.fitToElements()}}
-              loading={isLoading}
-              disabled={isLoading}
-            />
-            <Text style={styles.etaText}>  ETA: {eta}</Text>
             {markers.map((marker) => (
               <MapView.Marker
                 key={marker.key}
