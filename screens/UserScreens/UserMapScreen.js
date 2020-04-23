@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
+import axios from 'axios';
 import {
   StyleSheet,
   Text,
@@ -19,15 +20,14 @@ export default function UserMapScreen({ navigation }) {
 
   const mapRef = useRef(null);
   const pinColor = ["green", "red", "blue"]
-  const iconMarker = [{},{},
-    {
-      icon: {
-        type: "font-awesome",
-        name: "walking",
-        color: "blue"
-      }
-    }
-  ]
+
+  const [location, setLocation] = useState({
+    coordinates: {
+      latitude: 43.081606,
+      longitude: -89.376298
+    },
+    text: ""
+  });
 
   const [destination, setDestination] = useState({
     coordinates: {
@@ -85,6 +85,60 @@ export default function UserMapScreen({ navigation }) {
     }
   );
 
+  const [duration, setDuration] = useState("0 minutes");
+  const [distance, setDistance] = useState("0");
+  const [eta, setEta] = useState("0");
+
+  async function showLocation(position) {
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        },
+        text: "Current Location"
+      }
+    )
+  }
+
+  async function getEta() {
+    navigator.geolocation.getCurrentPosition(showLocation);
+    var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + location.coordinates.latitude + ", " + location.coordinates.longitude + "&destinations=" + safewalker.coordinates.latitude + ", " + safewalker.coordinates.longitude + "&mode=walking&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL)
+    .then(res => {
+      setDuration(res.data.rows[0].elements[0].duration.text);
+      setDistance(res.data.rows[0].elements[0].distance.text);
+      convertEta();
+    })
+  }
+
+  async function convertEta() {
+    var today = new Date();
+    var hours = today.getHours();
+    var minutes = today.getMinutes();
+    var replaced = duration.split(' ');
+    if(replaced[1].localeCompare("hours") == 0) {
+      hours = parseInt(hours) + parseInt(replaced[0]);
+      minutes = parseInt(minutes) + parseInt(replaced[2]);
+    }
+    else{
+      minutes = parseInt(minutes) + parseInt(replaced[0]);
+    }
+
+    if(minutes > 59) {
+      minutes = parseInt(minutes) - 60;
+      hours = parseInt(hours) + 1;
+    }
+    if(hours > 23) {
+      hours = parseInt(hours) - 24;
+    }
+
+    if(minutes < 10) {
+      minutes = "0" + minutes;
+    }
+    var returnString = hours + ":" + minutes;
+    setEta(returnString);
+  }
 
   /**
    * This effect sets up the socket connection to the User.
@@ -147,7 +201,8 @@ export default function UserMapScreen({ navigation }) {
 
   async function onMapReady() {
     // GET SAFEwalker coordinates
-
+    getEta();
+    convertEta();
     mapRef.current.fitToElements();
   };
 
@@ -181,6 +236,12 @@ export default function UserMapScreen({ navigation }) {
           title={walkerMarker.title}
           icon={require('../../assets/walking-solid.png')}
         />
+        <Text style={styles.textStyle}>
+          ETA: {eta}
+        </Text>
+        <Text style={styles.textStyle}>
+          Distance: {distance}
+        </Text>
       </MapView>
     </View>
   );
@@ -197,6 +258,11 @@ const styles = StyleSheet.create({
     marginTop: 0,
     width: Dimensions.get('window').width,
     height: hp("81%"),
-    justifyContent: 'space-between'
+    justifyContent: 'flex-start'
+  },
+  textStyle: {
+    marginTop: 10,
+    marginLeft: 10,
+    fontSize: 20,
   }
 });

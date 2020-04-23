@@ -82,8 +82,6 @@ export default function UserHomeScreen({ navigation }) {
     text: "Current Location"
   });
 
-  const [duration, setDuration] = useState("0 minutes");
-
   // markers and locations
   const [markers, setMarkers] = useState([
     {
@@ -379,8 +377,8 @@ export default function UserHomeScreen({ navigation }) {
         key: 0,
         title: 'Start',
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
+          latitude: loaction.coordinates.latitude,
+          longitude: location.coordinates.longitude
         }
       },
       {
