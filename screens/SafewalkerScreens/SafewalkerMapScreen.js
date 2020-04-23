@@ -85,7 +85,7 @@ export default function MapScreen({ navigation }) {
   }
 
   const mapRef = useRef(null);
-  const pinColor = ["green", "red", "blue"]
+  const pinColor = ["green", "red", "blue"];
 
   const [destination, setDestination] = useState({
     coordinates: {
@@ -129,15 +129,25 @@ export default function MapScreen({ navigation }) {
         longitude: destination.coordinates.longitude
       }
     },
+    // {
+    //   key: 2,
+    //   title: 'User',
+    //   coordinates: {
+    //     latitude: user.coordinates.latitude,
+    //     longitude: user.coordinates.longitude
+    //   }
+    // }
+  ]);
+
+  const [userMarker, setUserMarkekr] = useState(
     {
-      key: 2,
       title: 'User',
       coordinates: {
         latitude: user.coordinates.latitude,
         longitude: user.coordinates.longitude
       }
     }
-  ]);
+  );
 
   // /**
   //  * This effect sets up the socket connection to the User.
@@ -206,6 +216,14 @@ export default function MapScreen({ navigation }) {
           pinColor={pinColor[marker.key]}
           />
         ))}
+        <MapView.Marker
+          coordinate={{
+            latitude: userMarker.coordinates.latitude,
+            longitude: userMarker.coordinates.longitude
+          }}
+          title={userMarker.title}
+          icon={require('../../assets/walking-solid.png')}
+        />
       </MapView>
       {/* User Start and End Location input fields */}
       <View style={styles.buttonContainer}>

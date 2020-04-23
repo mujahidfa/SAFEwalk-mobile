@@ -19,6 +19,15 @@ export default function UserMapScreen({ navigation }) {
 
   const mapRef = useRef(null);
   const pinColor = ["green", "red", "blue"]
+  const iconMarker = [{},{},
+    {
+      icon: {
+        type: "font-awesome",
+        name: "walking",
+        color: "blue"
+      }
+    }
+  ]
 
   const [destination, setDestination] = useState({
     coordinates: {
@@ -62,9 +71,11 @@ export default function UserMapScreen({ navigation }) {
         latitude: destination.coordinates.latitude,
         longitude: destination.coordinates.longitude
       }
-    },
+    }
+  ]);
+
+  const [walkerMarker, setWalkerMarker] = useState(
     {
-      key: 2,
       title: 'SAFEwalker',
       coordinates: {
         // replace with api to get user's home address
@@ -72,7 +83,7 @@ export default function UserMapScreen({ navigation }) {
         longitude: safewalker.coordinates.longitude
       }
     }
-  ]);
+  );
 
 
   /**
@@ -162,6 +173,14 @@ export default function UserMapScreen({ navigation }) {
           pinColor={pinColor[marker.key]}
           />
         ))}
+        <MapView.Marker
+          coordinate={{
+            latitude: walkerMarker.coordinates.latitude,
+            longitude: walkerMarker.coordinates.longitude
+          }}
+          title={walkerMarker.title}
+          icon={require('../../assets/walking-solid.png')}
+        />
       </MapView>
     </View>
   );
