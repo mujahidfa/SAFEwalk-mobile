@@ -377,7 +377,7 @@ export default function UserHomeScreen({ navigation }) {
         key: 0,
         title: 'Start',
         coordinates: {
-          latitude: loaction.coordinates.latitude,
+          latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
         }
       },
