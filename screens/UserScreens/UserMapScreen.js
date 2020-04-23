@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   mapStyle: {
     marginTop: 0,
     width: Dimensions.get('window').width,
-    height: hp("100%"),
+    height: hp("81%"),
     justifyContent: 'space-between'
-  },
+  }
 });
