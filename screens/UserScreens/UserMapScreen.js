@@ -1,11 +1,79 @@
-import React, { useEffect, useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import {
+  StyleSheet,
+  Text,
+  Dimensions,
+  View,
+} from "react-native";
 import socket from "../../contexts/socket";
 
+import {
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
 import { WalkContext } from "./../../contexts/WalkProvider";
+import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
 export default function UserMapScreen({ navigation }) {
   const { resetWalkContextState } = useContext(WalkContext);
+
+  const mapRef = useRef(null);
+  const pinColor = ["green", "red", "blue"]
+
+  const [destination, setDestination] = useState({
+    coordinates: {
+      latitude: +43.081606,
+      longitude: -89.376298
+    },
+    text: "Destination"
+  });
+
+  // walk origin - default to current location
+  const [start, setStart] = useState({
+    coordinates: {
+      latitude: 43.075143,
+      longitude: -89.400151
+    },
+    text: "Start"
+  });
+
+  const [safewalker, setSafewalker] = useState({
+    coordinates: {
+      latitude: 43.075143,
+      longitude: -89.400151
+    },
+    text: "SAFEwalker"
+  });
+
+  const [markers, setMarkers] = useState([
+    {
+      key: 0,
+      title: 'Start',
+      coordinates: {
+        latitude: start.coordinates.latitude,
+        longitude: start.coordinates.longitude
+      }
+    },
+    {
+      key: 1,
+      title: 'Destination',
+      coordinates: {
+        // replace with api to get user's home address
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
+      }
+    },
+    {
+      key: 2,
+      title: 'SAFEwalker',
+      coordinates: {
+        // replace with api to get user's home address
+        latitude: safewalker.coordinates.latitude,
+        longitude: safewalker.coordinates.longitude
+      }
+    }
+  ]);
+
 
   /**
    * This effect sets up the socket connection to the User.
@@ -16,6 +84,16 @@ export default function UserMapScreen({ navigation }) {
 
     socket.on("walker location", ({ lat, lng }) => {
       console.log(lat + "," + lng);
+      setSafewalker(
+        {
+          coordinates: {
+            latitude: lat,
+            longitude: lng
+          },
+          text: "SAFEwalker"
+        }
+      )
+      mapRef.current.fitToElements();
     });
 
     // socket to listen to walker status change
@@ -56,6 +134,12 @@ export default function UserMapScreen({ navigation }) {
     };
   }, []);
 
+  async function onMapReady() {
+    // GET SAFEwalker coordinates
+
+    mapRef.current.fitToElements();
+  };
+
   return (
     <View style={styles.container}>
       <MapView
@@ -69,13 +153,13 @@ export default function UserMapScreen({ navigation }) {
       >
         {markers.map((marker) => (
           <MapView.Marker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.coordinates.latitude,
-              longitude: marker.coordinates.longitude
-            }}
-            title={marker.title}
-            pinColor={pinColor[marker.key]}
+          key={marker.key}
+          coordinate={{
+          latitude: marker.coordinates.latitude,
+          longitude: marker.coordinates.longitude
+          }}
+          title={marker.title}
+          pinColor={pinColor[marker.key]}
           />
         ))}
       </MapView>
@@ -89,5 +173,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  mapStyle: {
+    marginTop: 0,
+    width: Dimensions.get('window').width,
+    height: hp("100%"),
+    justifyContent: 'space-between'
   },
 });

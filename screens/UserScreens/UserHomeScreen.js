@@ -426,8 +426,6 @@ export default function UserHomeScreen({ navigation }) {
 
   async function onMapReady() {
     currentAsStart();
-    currentAsStart();
-    currentAsStart();
     homeAsDest();
     mapRef.current.fitToElements();
   };
@@ -511,7 +509,7 @@ export default function UserHomeScreen({ navigation }) {
                 }}
                 */
               />
-            
+
           <View style={styles.icons}>
             <Icon
               style={styles.icon}
@@ -613,7 +611,7 @@ const styles = StyleSheet.create({
   mapStyle: {
     marginTop: 0,
     width: Dimensions.get('window').width,
-    height: hp("100%"),
+    height: hp("90%"),
     justifyContent: 'space-between'
   },
   icons: {

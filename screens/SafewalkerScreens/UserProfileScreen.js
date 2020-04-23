@@ -85,13 +85,13 @@ export default function UserProfileScreen({ navigation }) {
       socket.off("connection lost", null);
     };
   }, []);
-  
+
   useEffect(() => {
     // send location to user every 5 seconds
     const interval = setInterval(() => {
       console.log("send");
       console.log(userSocketId);
-      if (userSocketId != null) { 
+      if (userSocketId != null) {
         console.log("sending");
         // send location to user
         socket.emit("walker location", {
