@@ -233,7 +233,7 @@ export default function UserMapScreen({ navigation }) {
           longitude: marker.coordinates.longitude
           }}
           title={marker.title}
-          pinColor={pinColor[marker.key]}
+          pinColor={pinColor[marker.key]}f
           />
         ))}
         <MapView.Marker
@@ -242,7 +242,11 @@ export default function UserMapScreen({ navigation }) {
             longitude: walkerMarker.coordinates.longitude
           }}
           title={walkerMarker.title}
-          icon={require('../../assets/walking-solid.png')}
+          icon={{
+            type: "font-awesome",
+            name: "map-marker",
+            color: "red"
+          }}
         />
         <Text style={styles.textStyle}>
           ETA: {duration}

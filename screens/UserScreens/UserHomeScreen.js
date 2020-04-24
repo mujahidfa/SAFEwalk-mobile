@@ -299,6 +299,14 @@ export default function UserHomeScreen({ navigation }) {
           latitude: start.coordinates.latitude,
           longitude: start.coordinates.longitude
         }
+      },
+      {
+        key: 1,
+        title: 'Destination',
+        coordinates: {
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude
+        }
       }
     ])
   }
@@ -351,6 +359,14 @@ export default function UserHomeScreen({ navigation }) {
           latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
         }
+      },
+      {
+        key: 1,
+        title: 'Destination',
+        coordinates: {
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude
+        }
       }
     ])
     mapRef.current.fitToElements();
@@ -358,7 +374,6 @@ export default function UserHomeScreen({ navigation }) {
 
   async function onMapReady() {
     currentAsStart();
-    homeAsDest();
     mapRef.current.fitToElements();
   };
 
