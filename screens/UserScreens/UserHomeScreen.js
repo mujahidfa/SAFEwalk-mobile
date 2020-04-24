@@ -450,6 +450,11 @@ export default function UserHomeScreen({ navigation }) {
                 }}
                 title={marker.title}
                 pinColor={pinColor[marker.key]}
+                icon={{
+                  style: styles.icon,
+                  type: "material",
+                  name: "directions-walk"
+                }}
               />
             ))}
           </MapView>

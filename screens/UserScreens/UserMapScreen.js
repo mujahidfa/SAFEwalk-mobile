@@ -149,15 +149,23 @@ export default function UserMapScreen({ navigation }) {
 
     socket.on("walker location", ({ lat, lng }) => {
       console.log(lat + "," + lng);
-      setSafewalker(
-        {
-          coordinates: {
-            latitude: lat,
-            longitude: lng
-          },
-          text: "SAFEwalker"
+      // setSafewalker(
+      //   {
+      //     coordinates: {
+      //       latitude: lat,
+      //       longitude: lng
+      //     },
+      //     text: "SAFEwalker"
+      //   }
+      // );
+      setWalkerMarker({
+        title: 'SAFEwalker',
+        coordinates: {
+          // replace with api to get user's home address
+          latitude: lat,
+          longitude: lng
         }
-      )
+      })
       mapRef.current.fitToElements();
     });
 
@@ -237,7 +245,7 @@ export default function UserMapScreen({ navigation }) {
           icon={require('../../assets/walking-solid.png')}
         />
         <Text style={styles.textStyle}>
-          ETA: {eta}
+          ETA: {duration}
         </Text>
         <Text style={styles.textStyle}>
           Distance: {distance}
