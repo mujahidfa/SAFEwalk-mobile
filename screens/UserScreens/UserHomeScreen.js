@@ -39,16 +39,6 @@ const LONGITUDE = -89.401185;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-// temporary - replace with home address API call
-const homePlace = {
-  description: 'Home',
-  text: "",
-  coordinates: {
-    latitude: 43.081606,
-    longitude: -89.376298
-  }
-};
-
 const pinColor = ["green", "red"]
 
 export default function UserHomeScreen({ navigation }) {
@@ -67,8 +57,8 @@ export default function UserHomeScreen({ navigation }) {
   // destination
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: +43.081606,
-      longitude: -89.376298
+      latitude: 0,
+      longitude: 0
     },
     text: ""
   });
@@ -82,6 +72,15 @@ export default function UserHomeScreen({ navigation }) {
     text: "Current Location"
   });
 
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
+  const destinationRef = useRef(destination);
+  destinationRef.current = destination;
+
+  const startRef = useRef(start);
+  startRef.current = start;
+
   // markers and locations
   const [markers, setMarkers] = useState([
     {
@@ -90,15 +89,6 @@ export default function UserHomeScreen({ navigation }) {
       coordinates: {
         latitude: start.coordinates.latitude,
         longitude: start.coordinates.longitude
-      }
-    },
-    {
-      key: 1,
-      title: 'Destination',
-      coordinates: {
-        // replace with api to get user's home address
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
       }
     }
   ]);
@@ -203,22 +193,25 @@ export default function UserHomeScreen({ navigation }) {
 
   async function onStartTextChange(textValue) {
     setStart({
-      coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
-      },
       text: textValue
     });
   }
 
   async function onDestinationTextChange(textValue) {
     setDestination({
-      coordinates: {
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
-      },
       text: textValue
     });
+  }
+
+  async function showLocation(position) {
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        }
+      }
+    )
   }
 
   async function getStartCoordinates(text) {
@@ -228,8 +221,7 @@ export default function UserHomeScreen({ navigation }) {
         coordinates: {
           latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
-        },
-        text: text
+        }
       });
       return;
     }
@@ -237,14 +229,11 @@ export default function UserHomeScreen({ navigation }) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
       .then(res => {
-        // start.coordinates.latitude = res.data.results[0].geometry.location.lat;
-        // start.coordinates.longitude = res.data.results[0].geometry.location.lng;
         setStart({
           coordinates: {
             latitude: res.data.results[0].geometry.location.lat,
             longitude: res.data.results[0].geometry.location.lng
-          },
-          text: text
+          }
         });
       })
   }
@@ -310,14 +299,6 @@ export default function UserHomeScreen({ navigation }) {
           latitude: start.coordinates.latitude,
           longitude: start.coordinates.longitude
         }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
       }
     ])
   }
@@ -349,21 +330,11 @@ export default function UserHomeScreen({ navigation }) {
 
   }
 
-  async function showLocation(position) {
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        },
-        text: "Current Location"
-      }
-    )
- }
-
   async function currentAsStart() {
 
     navigator.geolocation.getCurrentPosition(showLocation);
+
+    changeLocation("start", start.text);
 
     setStart({
       coordinates: {
@@ -379,43 +350,6 @@ export default function UserHomeScreen({ navigation }) {
         coordinates: {
           latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
-      }
-    ])
-    mapRef.current.fitToElements();
-  }
-
-  async function homeAsDest() {
-    setDestination({
-      coordinates: {
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
-      },
-      text: ""
-    });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: homePlace.coordinates.latitude,
-          longitude: homePlace.coordinates.longitude
         }
       }
     ])
