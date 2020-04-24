@@ -244,7 +244,7 @@ export default function UserMapScreen({ navigation }) {
           title={walkerMarker.title}
           icon={{
             type: "font-awesome",
-            name: "map-marker",
+            name: "walking",
             color: "red"
           }}
         />

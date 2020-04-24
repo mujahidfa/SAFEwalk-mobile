@@ -193,12 +193,20 @@ export default function UserHomeScreen({ navigation }) {
 
   async function onStartTextChange(textValue) {
     setStart({
+      coordinates: {
+        latitude: start.coordinates.latitude,
+        longitude: start.coordinates.longitude
+      },
       text: textValue
     });
   }
 
   async function onDestinationTextChange(textValue) {
     setDestination({
+      coordinates: {
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
+      },
       text: textValue
     });
   }
@@ -221,7 +229,8 @@ export default function UserHomeScreen({ navigation }) {
         coordinates: {
           latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
-        }
+        },
+        text: start.text
       });
       return;
     }
@@ -233,7 +242,8 @@ export default function UserHomeScreen({ navigation }) {
           coordinates: {
             latitude: res.data.results[0].geometry.location.lat,
             longitude: res.data.results[0].geometry.location.lng
-          }
+          },
+          text: start.text
         });
       })
   }
@@ -309,6 +319,9 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
+
+    mapRef.current.fitToElements();
+
   }
 
   async function updateDestination() {
@@ -335,6 +348,8 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
+
+    mapRef.current.fitToElements();
 
   }
 
