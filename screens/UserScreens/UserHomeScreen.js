@@ -309,14 +309,6 @@ export default function UserHomeScreen({ navigation }) {
           latitude: start.coordinates.latitude,
           longitude: start.coordinates.longitude
         }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
       }
     ])
 
@@ -357,8 +349,6 @@ export default function UserHomeScreen({ navigation }) {
 
     navigator.geolocation.getCurrentPosition(showLocation);
 
-    changeLocation("start", start.text);
-
     setStart({
       coordinates: {
         latitude: location.coordinates.latitude,
@@ -374,17 +364,28 @@ export default function UserHomeScreen({ navigation }) {
           latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
         }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
       }
     ])
-    mapRef.current.fitToElements();
+  }
+
+  async function clearStart() {
+    setStart({
+      coordinates: {
+        latitude: start.coordinates.latitude,
+        longitude: start.coordinates.longitude
+      },
+      text: ""
+    });
+  }
+
+  async function clearDestination() {
+    setDestination({
+      coordinates: {
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
+      },
+      text: ""
+    });
   }
 
   async function onMapReady() {
@@ -442,13 +443,15 @@ export default function UserHomeScreen({ navigation }) {
                   name: "map-marker",
                   color: "green"
                 }}
-                /*
                 rightIcon={{
                   type: "material",
-                  name: "gps-fixed",
-                  onPress: () => {currentAsStart(); mapRef.current.fitToElements()}
+                  name: "cancel",
+                  color: "grey",
+                  size: 18,
+                  onPress: () => {clearStart()},
+                  loading: isLoading,
+                  disabled: isLoading
                 }}
-                */
               />
               {errors.endLocation && (
                 <Text style={style.textError}>Destination is required.</Text>
@@ -468,13 +471,15 @@ export default function UserHomeScreen({ navigation }) {
                   name: "map-marker",
                   color: "red"
                 }}
-                /*
                 rightIcon={{
-                  type: "font-awesome",
-                  name: "home",
-                  onPress: () => {homeAsDest(); mapRef.current.fitToElements()}
+                  type: "material",
+                  name: "cancel",
+                  color: "grey",
+                  size: 18,
+                  onPress: () => {clearDestination()},
+                  loading: isLoading,
+                  disabled: isLoading
                 }}
-                */
               />
 
           <View style={styles.icons}>
@@ -534,7 +539,7 @@ const styles = StyleSheet.create({
   },
   inputStyle: {
     marginLeft: 20,
-    marginRight: 20,
+    marginRight: 50,
   },
   containerStyle: {
     paddingLeft: 0,

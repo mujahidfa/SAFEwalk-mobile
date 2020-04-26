@@ -4,7 +4,10 @@ import {
   Text,
   Dimensions,
   View,
+  Image
 } from "react-native";
+
+import Icon from "react-native-elements";
 
 import {
   heightPercentageToDP as hp,
@@ -222,16 +225,22 @@ export default function MapScreen({ navigation }) {
             longitude: userMarker.coordinates.longitude
           }}
           title={userMarker.title}
-          icon={require('../../assets/walking-solid.png')}
-        />
+          icon={{
+            type: "material",
+            name: "directions-walk",
+            color: "black"
+          }}
+        >
+          <Image style={styles.walkIcon} source={require('../../assets/walking-solid.png')}/>
+        </MapView.Marker>
       </MapView>
       {/* User Start and End Location input fields */}
       <View style={styles.buttonContainer}>
         <Button
-        title="Mark walk as complete"
-        loading={isLoading}
-        disabled={isLoading}
-        onPress={() => completeWalk()}
+          title="Mark walk as complete"
+          loading={isLoading}
+          disabled={isLoading}
+          onPress={() => completeWalk()}
         />
       </View>
     </View>
@@ -261,4 +270,8 @@ const styles = StyleSheet.create({
     height: hp("81%"),
     justifyContent: 'space-between'
   },
+  walkIcon: {
+    height: 40,
+    width: 20
+  }
 });

@@ -5,6 +5,7 @@ import {
   Text,
   Dimensions,
   View,
+  Image
 } from "react-native";
 import socket from "../../contexts/socket";
 
@@ -166,6 +167,8 @@ export default function UserMapScreen({ navigation }) {
           longitude: lng
         }
       })
+      getEta();
+      convertEta();
       mapRef.current.fitToElements();
     });
 
@@ -242,12 +245,9 @@ export default function UserMapScreen({ navigation }) {
             longitude: walkerMarker.coordinates.longitude
           }}
           title={walkerMarker.title}
-          icon={{
-            type: "font-awesome",
-            name: "walking",
-            color: "red"
-          }}
-        />
+        >
+          <Image style={styles.walkIcon} source={require('../../assets/walking-solid.png')}/>
+        </MapView.Marker>
         <Text style={styles.textStyle}>
           ETA: {duration}
         </Text>
@@ -276,5 +276,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginLeft: 10,
     fontSize: 20,
+  },
+  walkIcon: {
+    height: 40,
+    width: 20
   }
 });
