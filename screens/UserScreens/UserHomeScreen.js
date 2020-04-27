@@ -97,7 +97,7 @@ export default function UserHomeScreen({ navigation }) {
   markerRef.current = markers;
 
   const { userToken, email } = useContext(AuthContext);
-  const { setWalkId } = useContext(WalkContext);
+  const { setWalkId, setCoordinates } = useContext(WalkContext);
 
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
@@ -121,7 +121,7 @@ export default function UserHomeScreen({ navigation }) {
     }
 
     console.log(destination.text);
-
+s
     // Add Walk API call
     // Create a walk in the database
     const res = await fetch(url + "/api/Walks", {
@@ -134,7 +134,11 @@ export default function UserHomeScreen({ navigation }) {
       body: JSON.stringify({
         time: new Date(),
         startText: start.text,
+        startLat: 0,
+        startLng: 0,
         destText: destination.text,
+        destLat: 0,
+        destLng: 0,
         userSocketId: socket.id,
       }),
     }).catch((error) => {
@@ -154,9 +158,9 @@ export default function UserHomeScreen({ navigation }) {
       return; // exit
     }
 
-    let data = await res.json();
-    // store walkId in the WalkContext
-    setWalkId(data["id"]);
+    let data = await res.json(); 
+    setWalkId(data["id"]); // store walkId in the WalkContext
+    setCoordinates(0, 0, 0, 0); // store coordinates in the WalkContext
 
     // send notification to all Safewalkers
     socket.emit("walk status", true);

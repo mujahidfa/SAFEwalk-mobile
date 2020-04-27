@@ -9,8 +9,12 @@ export function WalkProvider({ children }) {
     isWalkLoading: true,
     isWalkActive: "false", // has to be a string due to AsyncStorage constraints (cannot store boolean)
 
-    // initial walk state
+    // initial walk states
     walkId: null,
+    startLat: null,
+    startLng: null,
+    destLat: null,
+    destLng: null,
 
     // initial user state
     userEmail: null,
@@ -63,6 +67,26 @@ export function WalkProvider({ children }) {
     }
   }
 
+  // Store Coordinates (startLat, startLng, destLat, destLng)
+  async function setCoordinates(startLat, startLng, destLat, destLng) {
+    try {
+      await AsyncStorage.setItem("startLat", startLat);
+      await AsyncStorage.setItem("startLng", startLng);
+      await AsyncStorage.setItem("destLat", destLat);
+      await AsyncStorage.setItem("destLng", destLng);
+
+      dispatch({
+        type: "SET_COORDINATES",
+        startLat: startLat,
+        startLng: startLng,
+        destLat: destLat,
+        destLng: destLng
+      });
+    } catch (error) {
+      console.error("Error in setCoordinates(): " + error);
+    }
+  }
+
   // Store User information (walkId, email and socket ID)
   async function setUserInfo(walkId, userEmail, userSocketId) {
     try {
@@ -100,11 +124,16 @@ export function WalkProvider({ children }) {
   // remove all current walk-related information
   async function resetWalkContextState() {
     try {
-      await AsyncStorage.removeItem("walkId");
       await AsyncStorage.removeItem("userEmail");
-      await AsyncStorage.removeItem("walkerEmail");
       await AsyncStorage.removeItem("userSocketId");
+      await AsyncStorage.removeItem("walkerEmail");
       await AsyncStorage.removeItem("walkerSocketId");
+
+      await AsyncStorage.removeItem("walkId");
+      await AsyncStorage.removeItem("startLat");
+      await AsyncStorage.removeItem("startLng");
+      await AsyncStorage.removeItem("destLat");
+      await AsyncStorage.removeItem("destLng");
 
       dispatch({ type: "RESET" });
     } catch (error) {
@@ -117,16 +146,21 @@ export function WalkProvider({ children }) {
       // states
       isWalkLoading: state.isWalkLoading,
       isWalkActive: state.isWalkActive,
-      walkId: state.walkId,
       userEmail: state.userEmail,
       walkerEmail: state.walkerEmail,
       userSocketId: state.userSocketId,
       walkerSocketId: state.walkerSocketId,
+      walkId: state.walkId,
+      startLat: action.startLat,
+      startLng: action.startLng,
+      destLat: action.destLat,
+      destLng: action.destLng,
 
       // functions
       setWalkAsActive,
       setWalkId,
       removeWalkId,
+      setCoordinates,
       setUserInfo,
       setWalkerInfo,
       resetWalkContextState,
@@ -148,11 +182,15 @@ function walkReducer(prevState, action) {
         ...prevState,
         isWalkLoading: false,
         isWalkActive: action.isWalkActive,
-        walkId: action.walkId,
         userEmail: action.userEmail,
         walkerEmail: action.walkerEmail,
         userSocketId: action.userSocketId,
         walkerSocketId: action.walkerSocketId,
+        walkId: action.walkId,
+        startLat: action.startLat,
+        startLng: action.startLng,
+        destLat: action.destLat,
+        destLng: action.destLng
       };
     case "SET_WALK_ACTIVE":
       return {
@@ -169,12 +207,20 @@ function walkReducer(prevState, action) {
         ...prevState,
         walkId: null,
       };
+    case "SET_COORDINATES":
+      return {
+        ...prevState,
+        startLat: action.startLat,
+        startLng: action.startLng,
+        destLat: action.destLat,
+        destLng: action.destLng
+      };
     case "SET_USER_INFO":
       return {
         ...prevState,
-        walkId: action.walkId,
         userEmail: action.userEmail,
         userSocketId: action.userSocketId,
+        walkId: action.walkId
       };
     case "SET_WALKER_INFO":
       return {
@@ -187,11 +233,15 @@ function walkReducer(prevState, action) {
         ...prevState,
         isWalkLoading: false,
         isWalkActive: "false",
-        walkId: null,
         userEmail: null,
         userSocketId: null,
         walkerEmail: null,
         walkerSocketId: null,
+        walkId: null,
+        startLat: null,
+        startLng: null,
+        destLat: null,
+        destLng: null
       };
 
     default: {
