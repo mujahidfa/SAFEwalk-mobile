@@ -93,6 +93,9 @@ export default function UserHomeScreen({ navigation }) {
     }
   ]);
 
+  const markerRef = useRef(markers);
+  markerRef.current = markers;
+
   const { userToken, email } = useContext(AuthContext);
   const { setWalkId } = useContext(WalkContext);
 
@@ -169,7 +172,7 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  const changeLocation = (type, location) => {
+  function changeLocation(type, location) {
     if (type === "start") {
       setValue("startLocation", location, true);
       setStart({
@@ -191,7 +194,7 @@ export default function UserHomeScreen({ navigation }) {
     }
   };
 
-  async function onStartTextChange(textValue) {
+  function onStartTextChange(textValue) {
     setStart({
       coordinates: {
         latitude: start.coordinates.latitude,
@@ -201,7 +204,7 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  async function onDestinationTextChange(textValue) {
+  function onDestinationTextChange(textValue) {
     setDestination({
       coordinates: {
         latitude: destination.coordinates.latitude,
@@ -211,7 +214,8 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  async function showLocation(position) {
+  function showLocation(position) {
+    console.log("Callback");
     setLocation(
       {
         coordinates: {
@@ -223,9 +227,9 @@ export default function UserHomeScreen({ navigation }) {
   }
 
   async function getStartCoordinates(text) {
-    if(text == "Current Location") {
-      navigator.geolocation.getCurrentPosition(showLocation);
-      setStart({
+    if(text == "Current Location" || text == "") {
+      await navigator.geolocation.getCurrentPosition(showLocation);
+      await setStart({
         coordinates: {
           latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
@@ -236,72 +240,84 @@ export default function UserHomeScreen({ navigation }) {
     }
     var replaced = text.split(' ').join('+');
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-    axios.get(axiosURL)
+    console.log("Before: " + startRef.current.coordinates.latitude + ", " + startRef.current.coordinates.longitude);
+    await axios.get(axiosURL)
       .then(res => {
         setStart({
           coordinates: {
             latitude: res.data.results[0].geometry.location.lat,
             longitude: res.data.results[0].geometry.location.lng
           },
-          text: start.text
+          text: startRef.current.text
         });
+        startRef.current = start;
+        console.log("After: " + res.data.results[0].geometry.location.lat + ", " + res.data.results[0].geometry.location.lng);
       })
+    console.log("After: " + startRef.current.coordinates.latitude + ", " + startRef.current.coordinates.longitude);
   }
 
-  async function getDestinationCoordinates(text) {
-    var replaced = text.split(' ').join('+');
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-    axios.get(axiosURL)
-      .then(res => {
-        // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
-        // destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
-        setDestination({
-          coordinates: {
-            latitude: res.data.results[0].geometry.location.lat,
-            longitude: res.data.results[0].geometry.location.lng
-          },
-          text: text
-        });
-      })
+  function getDestinationCoordinates(text) {
+    if(text != "") {
+      var replaced = text.split(' ').join('+');
+      var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+      axios.get(axiosURL)
+        .then(res => {
+          // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
+          // destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
+          setDestination({
+            coordinates: {
+              latitude: res.data.results[0].geometry.location.lat,
+              longitude: res.data.results[0].geometry.location.lng
+            },
+            text: text
+          });
+        })
+      }
   }
 
-  async function getStartAddress(coordinates) {
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-    axios.get(axiosURL)
-    .then(res => {
-      setStart({
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        },
-        text: res.data.results[0].formatted_address
-      })
-      return(res.data.results[0].formatted_address);
-    })
-  }
+  // async function getStartAddress(coordinates) {
+  //   var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+  //   axios.get(axiosURL)
+  //   .then(res => {
+  //     setStart({
+  //       coordinates: {
+  //         latitude: start.coordinates.latitude,
+  //         longitude: start.coordinates.longitude
+  //       },
+  //       text: res.data.results[0].formatted_address
+  //     })
+  //     return(res.data.results[0].formatted_address);
+  //   })
+  // }
 
-  async function getDestinationAddress(coordinates) {
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-    axios.get(axiosURL)
-    .then(res => {
-      setDestination({
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        },
-        text: res.data.results[0].formatted_address
-      })
-      return(res.data.results[0].formatted_address);
-    })
+  // async function getDestinationAddress(coordinates) {
+  //   var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+  //   axios.get(axiosURL)
+  //   .then(res => {
+  //     setDestination({
+  //       coordinates: {
+  //         latitude: destination.coordinates.latitude,
+  //         longitude: destination.coordinates.longitude
+  //       },
+  //       text: res.data.results[0].formatted_address
+  //     })
+  //     return(res.data.results[0].formatted_address);
+  //   })
+  // }
+
+  function fit() {
+    mapRef.current.fitToElements(false);
   }
 
   async function updateStart() {
+
+    console.log("Update Start");
 
     getStartCoordinates(start.text);
 
     changeLocation("start", start.text);
 
-    setMarkers([
+    await setMarkers([
       {
         key: 0,
         title: 'Start',
@@ -312,11 +328,13 @@ export default function UserHomeScreen({ navigation }) {
       }
     ])
 
-    mapRef.current.fitToElements();
+    markerRef.current = markers;
+
+    mapRef.current.fitToElements(false);
 
   }
 
-  async function updateDestination() {
+  function updateDestination() {
 
     getDestinationCoordinates(destination.text);
 
@@ -341,13 +359,20 @@ export default function UserHomeScreen({ navigation }) {
       }
     ])
 
-    mapRef.current.fitToElements();
+    markerRef.current = markers;
+
+    mapRef.current.fitToElements(false);
 
   }
 
   async function currentAsStart() {
 
-    navigator.geolocation.getCurrentPosition(showLocation);
+    console.log("Location before: " + location.coordinates.latitude + ", " + location.coordinates.longitude);
+
+    await navigator.geolocation.getCurrentPosition(showLocation);
+
+    console.log("Location after: " + location.coordinates.latitude + ", " + location.coordinates.longitude);
+    console.log("Start before: " + start.coordinates.latitude + ", " + start.coordinates.longitude);
 
     setStart({
       coordinates: {
@@ -356,6 +381,11 @@ export default function UserHomeScreen({ navigation }) {
       },
       text: "Current Location"
     });
+
+    console.log("Start after: " + start.coordinates.latitude + ", " + start.coordinates.longitude);
+
+    console.log("Marker before: " + markerRef.current[0].coordinates.latitude + ", " + markerRef.current[0].coordinates.longitude);
+
     setMarkers([
       {
         key: 0,
@@ -366,9 +396,15 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
+    markerRef.current = markers;
+
+    console.log("Marker after: " + markerRef.current[0].coordinates.latitude + ", " + markerRef.current[0].coordinates.longitude);
+
+    fit();
+
   }
 
-  async function clearStart() {
+  function clearStart() {
     setStart({
       coordinates: {
         latitude: start.coordinates.latitude,
@@ -378,7 +414,7 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  async function clearDestination() {
+  function clearDestination() {
     setDestination({
       coordinates: {
         latitude: destination.coordinates.latitude,
@@ -388,9 +424,13 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  async function onMapReady() {
+  function onMapReady() {
+
+    console.log("Map ready.");
+
     currentAsStart();
-    mapRef.current.fitToElements();
+    fit();
+
   };
 
   return (
@@ -406,7 +446,7 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
-            {markers.map((marker) => (
+            {markerRef.current.map((marker) => (
               <MapView.Marker
                 key={marker.key}
                 coordinate={{
@@ -488,7 +528,7 @@ export default function UserHomeScreen({ navigation }) {
               raised
               type= "material"
               name= "gps-fixed"
-              onPress= {() => {currentAsStart(); mapRef.current.fitToElements();}}
+              onPress= {() => {currentAsStart(); fit();}}
               loading={isLoading}
               disabled={isLoading}
             />
@@ -498,7 +538,7 @@ export default function UserHomeScreen({ navigation }) {
               raised
               type= "font-awesome"
               name= "hourglass"
-              onPress={() => {getEta(); mapRef.current.fitToElements()}}
+              onPress={() => {getEta(); mapRef.current.fitToElements(false)}}
               loading={isLoading}
               disabled={isLoading}
             />
