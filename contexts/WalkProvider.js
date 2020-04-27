@@ -151,10 +151,10 @@ export function WalkProvider({ children }) {
       userSocketId: state.userSocketId,
       walkerSocketId: state.walkerSocketId,
       walkId: state.walkId,
-      startLat: action.startLat,
-      startLng: action.startLng,
-      destLat: action.destLat,
-      destLng: action.destLng,
+      startLat: state.startLat,
+      startLng: state.startLng,
+      destLat: state.destLat,
+      destLng: state.destLng,
 
       // functions
       setWalkAsActive,
