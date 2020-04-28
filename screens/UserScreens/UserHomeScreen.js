@@ -39,6 +39,16 @@ const LONGITUDE = -89.401185;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
+// temporary - replace with home address API call
+const homePlace = {
+  description: 'Home',
+  text: "",
+  coordinates: {
+    latitude: 43.081606,
+    longitude: -89.376298
+  }
+};
+
 const pinColor = ["green", "red"]
 
 export default function UserHomeScreen({ navigation }) {
@@ -57,8 +67,8 @@ export default function UserHomeScreen({ navigation }) {
   // destination
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: 0,
-      longitude: 0
+      latitude: +43.081606,
+      longitude: -89.376298
     },
     text: ""
   });
@@ -72,15 +82,6 @@ export default function UserHomeScreen({ navigation }) {
     text: "Current Location"
   });
 
-  const locationRef = useRef(location);
-  locationRef.current = location;
-
-  const destinationRef = useRef(destination);
-  destinationRef.current = destination;
-
-  const startRef = useRef(start);
-  startRef.current = start;
-
   // markers and locations
   const [markers, setMarkers] = useState([
     {
@@ -90,14 +91,20 @@ export default function UserHomeScreen({ navigation }) {
         latitude: start.coordinates.latitude,
         longitude: start.coordinates.longitude
       }
+    },
+    {
+      key: 1,
+      title: 'Destination',
+      coordinates: {
+        // replace with api to get user's home address
+        latitude: homePlace.coordinates.latitude,
+        longitude: homePlace.coordinates.longitude
+      }
     }
   ]);
 
-  const markerRef = useRef(markers);
-  markerRef.current = markers;
-
   const { userToken, email } = useContext(AuthContext);
-  const { setWalkId, setCoordinates } = useContext(WalkContext);
+  const { setWalkId } = useContext(WalkContext);
 
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
@@ -134,11 +141,7 @@ export default function UserHomeScreen({ navigation }) {
       body: JSON.stringify({
         time: new Date(),
         startText: start.text,
-        startLat: 0,
-        startLng: 0,
         destText: destination.text,
-        destLat: 0,
-        destLng: 0,
         userSocketId: socket.id,
       }),
     }).catch((error) => {
@@ -159,8 +162,8 @@ export default function UserHomeScreen({ navigation }) {
     }
 
     let data = await res.json();
-    setWalkId(data["id"]); // store walkId in the WalkContext
-    setCoordinates(0, 0, 0, 0); // store coordinates in the WalkContext
+    // store walkId in the WalkContext
+    setWalkId(data["id"]);
 
     // send notification to all Safewalkers
     socket.emit("walk status", true);
@@ -176,7 +179,7 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  function changeLocation(type, location) {
+  const changeLocation = (type, location) => {
     if (type === "start") {
       setValue("startLocation", location, true);
       setStart({
@@ -198,7 +201,7 @@ export default function UserHomeScreen({ navigation }) {
     }
   };
 
-  function onStartTextChange(textValue) {
+  async function onStartTextChange(textValue) {
     setStart({
       coordinates: {
         latitude: start.coordinates.latitude,
@@ -208,7 +211,7 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  function onDestinationTextChange(textValue) {
+  async function onDestinationTextChange(textValue) {
     setDestination({
       coordinates: {
         latitude: destination.coordinates.latitude,
@@ -218,110 +221,88 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
-  function showLocation(position) {
-    console.log("Callback");
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        }
-      }
-    )
-  }
-
   async function getStartCoordinates(text) {
-    if(text == "Current Location" || text == "") {
-      await navigator.geolocation.getCurrentPosition(showLocation);
-      await setStart({
+    if(text == "Current Location") {
+      navigator.geolocation.getCurrentPosition(showLocation);
+      setStart({
         coordinates: {
           latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
         },
-        text: start.text
+        text: text
       });
       return;
     }
     var replaced = text.split(' ').join('+');
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-    console.log("Before: " + startRef.current.coordinates.latitude + ", " + startRef.current.coordinates.longitude);
-    await axios.get(axiosURL)
+    axios.get(axiosURL)
       .then(res => {
+        // start.coordinates.latitude = res.data.results[0].geometry.location.lat;
+        // start.coordinates.longitude = res.data.results[0].geometry.location.lng;
         setStart({
           coordinates: {
             latitude: res.data.results[0].geometry.location.lat,
             longitude: res.data.results[0].geometry.location.lng
           },
-          text: startRef.current.text
+          text: text
         });
-        startRef.current = start;
-        console.log("After: " + res.data.results[0].geometry.location.lat + ", " + res.data.results[0].geometry.location.lng);
       })
-    console.log("After: " + startRef.current.coordinates.latitude + ", " + startRef.current.coordinates.longitude);
   }
 
-  function getDestinationCoordinates(text) {
-    if(text != "") {
-      var replaced = text.split(' ').join('+');
-      var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-      axios.get(axiosURL)
-        .then(res => {
-          // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
-          // destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
-          setDestination({
-            coordinates: {
-              latitude: res.data.results[0].geometry.location.lat,
-              longitude: res.data.results[0].geometry.location.lng
-            },
-            text: text
-          });
-        })
-      }
+  async function getDestinationCoordinates(text) {
+    var replaced = text.split(' ').join('+');
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL)
+      .then(res => {
+        // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
+        // destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
+        setDestination({
+          coordinates: {
+            latitude: res.data.results[0].geometry.location.lat,
+            longitude: res.data.results[0].geometry.location.lng
+          },
+          text: text
+        });
+      })
   }
 
-  // async function getStartAddress(coordinates) {
-  //   var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-  //   axios.get(axiosURL)
-  //   .then(res => {
-  //     setStart({
-  //       coordinates: {
-  //         latitude: start.coordinates.latitude,
-  //         longitude: start.coordinates.longitude
-  //       },
-  //       text: res.data.results[0].formatted_address
-  //     })
-  //     return(res.data.results[0].formatted_address);
-  //   })
-  // }
+  async function getStartAddress(coordinates) {
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL)
+    .then(res => {
+      setStart({
+        coordinates: {
+          latitude: start.coordinates.latitude,
+          longitude: start.coordinates.longitude
+        },
+        text: res.data.results[0].formatted_address
+      })
+      return(res.data.results[0].formatted_address);
+    })
+  }
 
-  // async function getDestinationAddress(coordinates) {
-  //   var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-  //   axios.get(axiosURL)
-  //   .then(res => {
-  //     setDestination({
-  //       coordinates: {
-  //         latitude: destination.coordinates.latitude,
-  //         longitude: destination.coordinates.longitude
-  //       },
-  //       text: res.data.results[0].formatted_address
-  //     })
-  //     return(res.data.results[0].formatted_address);
-  //   })
-  // }
-
-  function fit() {
-    mapRef.current.fitToElements(false);
+  async function getDestinationAddress(coordinates) {
+    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL)
+    .then(res => {
+      setDestination({
+        coordinates: {
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude
+        },
+        text: res.data.results[0].formatted_address
+      })
+      return(res.data.results[0].formatted_address);
+    })
   }
 
   async function updateStart() {
-
-    console.log("Update Start");
 
     getStartCoordinates(start.text);
 
     changeLocation("start", start.text);
 
-    await setMarkers([
+    setMarkers([
       {
         key: 0,
         title: 'Start',
@@ -329,16 +310,19 @@ export default function UserHomeScreen({ navigation }) {
           latitude: start.coordinates.latitude,
           longitude: start.coordinates.longitude
         }
+      },
+      {
+        key: 1,
+        title: 'Destination',
+        coordinates: {
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude
+        }
       }
     ])
-
-    markerRef.current = markers;
-
-    mapRef.current.fitToElements(false);
-
   }
 
-  function updateDestination() {
+  async function updateDestination() {
 
     getDestinationCoordinates(destination.text);
 
@@ -363,20 +347,23 @@ export default function UserHomeScreen({ navigation }) {
       }
     ])
 
-    markerRef.current = markers;
-
-    mapRef.current.fitToElements(false);
-
   }
+
+  async function showLocation(position) {
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        },
+        text: "Current Location"
+      }
+    )
+ }
 
   async function currentAsStart() {
 
-    console.log("Location before: " + location.coordinates.latitude + ", " + location.coordinates.longitude);
-
-    await navigator.geolocation.getCurrentPosition(showLocation);
-
-    console.log("Location after: " + location.coordinates.latitude + ", " + location.coordinates.longitude);
-    console.log("Start before: " + start.coordinates.latitude + ", " + start.coordinates.longitude);
+    navigator.geolocation.getCurrentPosition(showLocation);
 
     setStart({
       coordinates: {
@@ -385,11 +372,6 @@ export default function UserHomeScreen({ navigation }) {
       },
       text: "Current Location"
     });
-
-    console.log("Start after: " + start.coordinates.latitude + ", " + start.coordinates.longitude);
-
-    console.log("Marker before: " + markerRef.current[0].coordinates.latitude + ", " + markerRef.current[0].coordinates.longitude);
-
     setMarkers([
       {
         key: 0,
@@ -398,43 +380,52 @@ export default function UserHomeScreen({ navigation }) {
           latitude: location.coordinates.latitude,
           longitude: location.coordinates.longitude
         }
+      },
+      {
+        key: 1,
+        title: 'Destination',
+        coordinates: {
+          latitude: destination.coordinates.latitude,
+          longitude: destination.coordinates.longitude
+        }
       }
     ])
-    markerRef.current = markers;
-
-    console.log("Marker after: " + markerRef.current[0].coordinates.latitude + ", " + markerRef.current[0].coordinates.longitude);
-
-    fit();
-
+    mapRef.current.fitToElements();
   }
 
-  function clearStart() {
-    setStart({
-      coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
-      },
-      text: ""
-    });
-  }
-
-  function clearDestination() {
+  async function homeAsDest() {
     setDestination({
       coordinates: {
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
+        latitude: homePlace.coordinates.latitude,
+        longitude: homePlace.coordinates.longitude
       },
       text: ""
     });
+    setMarkers([
+      {
+        key: 0,
+        title: 'Start',
+        coordinates: {
+          latitude: start.coordinates.latitude,
+          longitude: start.coordinates.longitude
+        }
+      },
+      {
+        key: 1,
+        title: 'Destination',
+        coordinates: {
+          latitude: homePlace.coordinates.latitude,
+          longitude: homePlace.coordinates.longitude
+        }
+      }
+    ])
+    mapRef.current.fitToElements();
   }
 
-  function onMapReady() {
-
-    console.log("Map ready.");
-
+  async function onMapReady() {
     currentAsStart();
-    fit();
-
+    homeAsDest();
+    mapRef.current.fitToElements();
   };
 
   return (
@@ -450,7 +441,7 @@ export default function UserHomeScreen({ navigation }) {
             maxZoomLevel={15}
             onMapReady={onMapReady}
           >
-            {markerRef.current.map((marker) => (
+            {markers.map((marker) => (
               <MapView.Marker
                 key={marker.key}
                 coordinate={{
@@ -487,15 +478,13 @@ export default function UserHomeScreen({ navigation }) {
                   name: "map-marker",
                   color: "green"
                 }}
+                /*
                 rightIcon={{
                   type: "material",
-                  name: "cancel",
-                  color: "grey",
-                  size: 18,
-                  onPress: () => {clearStart()},
-                  loading: isLoading,
-                  disabled: isLoading
+                  name: "gps-fixed",
+                  onPress: () => {currentAsStart(); mapRef.current.fitToElements()}
                 }}
+                */
               />
               {errors.endLocation && (
                 <Text style={style.textError}>Destination is required.</Text>
@@ -515,15 +504,13 @@ export default function UserHomeScreen({ navigation }) {
                   name: "map-marker",
                   color: "red"
                 }}
+                /*
                 rightIcon={{
-                  type: "material",
-                  name: "cancel",
-                  color: "grey",
-                  size: 18,
-                  onPress: () => {clearDestination()},
-                  loading: isLoading,
-                  disabled: isLoading
+                  type: "font-awesome",
+                  name: "home",
+                  onPress: () => {homeAsDest(); mapRef.current.fitToElements()}
                 }}
+                */
               />
 
           <View style={styles.icons}>
@@ -532,7 +519,7 @@ export default function UserHomeScreen({ navigation }) {
               raised
               type= "material"
               name= "gps-fixed"
-              onPress= {() => {currentAsStart(); fit();}}
+              onPress= {() => {currentAsStart(); mapRef.current.fitToElements();}}
               loading={isLoading}
               disabled={isLoading}
             />
@@ -542,7 +529,7 @@ export default function UserHomeScreen({ navigation }) {
               raised
               type= "font-awesome"
               name= "hourglass"
-              onPress={() => {getEta(); mapRef.current.fitToElements(false)}}
+              onPress={() => {getEta(); mapRef.current.fitToElements()}}
               loading={isLoading}
               disabled={isLoading}
             />
@@ -583,7 +570,7 @@ const styles = StyleSheet.create({
   },
   inputStyle: {
     marginLeft: 20,
-    marginRight: 50,
+    marginRight: 20,
   },
   containerStyle: {
     paddingLeft: 0,
