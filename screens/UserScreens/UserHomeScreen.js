@@ -130,7 +130,7 @@ export default function UserHomeScreen({ navigation }) {
     }
 
     console.log(destination.text);
-s
+
     // Add Walk API call
     // Create a walk in the database
     const res = await fetch(url + "/api/Walks", {
@@ -167,7 +167,7 @@ s
       return; // exit
     }
 
-    let data = await res.json(); 
+    let data = await res.json();
     setWalkId(data["id"]); // store walkId in the WalkContext
     setCoordinates(0, 0, 0, 0); // store coordinates in the WalkContext
 
@@ -515,7 +515,7 @@ s
                 }}
                 */
               />
-            
+
           <View style={styles.icons}>
             <Icon
               style={styles.icon}
