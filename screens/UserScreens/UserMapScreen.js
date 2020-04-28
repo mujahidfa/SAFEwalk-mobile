@@ -5,7 +5,6 @@ import {
   Text,
   Dimensions,
   View,
-  Image
 } from "react-native";
 import socket from "../../contexts/socket";
 
@@ -17,7 +16,7 @@ import { WalkContext } from "./../../contexts/WalkProvider";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
 export default function UserMapScreen({ navigation }) {
-  const { startLat, startLng, destLat, destLng, resetWalkContextState } = useContext(WalkContext);
+  const { resetWalkContextState } = useContext(WalkContext);
 
   const mapRef = useRef(null);
   const pinColor = ["green", "red", "blue"]
@@ -32,8 +31,8 @@ export default function UserMapScreen({ navigation }) {
 
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: destLat,
-      longitude: destLng
+      latitude: +43.081606,
+      longitude: -89.376298
     },
     text: "Destination"
   });
@@ -41,8 +40,8 @@ export default function UserMapScreen({ navigation }) {
   // walk origin - default to current location
   const [start, setStart] = useState({
     coordinates: {
-      latitude: startLat,
-      longitude: startLng
+      latitude: 43.075143,
+      longitude: -89.400151
     },
     text: "Start"
   });
@@ -167,8 +166,6 @@ export default function UserMapScreen({ navigation }) {
           longitude: lng
         }
       })
-      getEta();
-      convertEta();
       mapRef.current.fitToElements();
     });
 
@@ -236,7 +233,7 @@ export default function UserMapScreen({ navigation }) {
           longitude: marker.coordinates.longitude
           }}
           title={marker.title}
-          pinColor={pinColor[marker.key]}f
+          pinColor={pinColor[marker.key]}
           />
         ))}
         <MapView.Marker
@@ -245,9 +242,8 @@ export default function UserMapScreen({ navigation }) {
             longitude: walkerMarker.coordinates.longitude
           }}
           title={walkerMarker.title}
-        >
-          <Image style={styles.walkIcon} source={require('../../assets/walking-solid.png')}/>
-        </MapView.Marker>
+          icon={require('../../assets/walking-solid.png')}
+        />
         <Text style={styles.textStyle}>
           ETA: {duration}
         </Text>
@@ -276,9 +272,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginLeft: 10,
     fontSize: 20,
-  },
-  walkIcon: {
-    height: 40,
-    width: 20
   }
 });
