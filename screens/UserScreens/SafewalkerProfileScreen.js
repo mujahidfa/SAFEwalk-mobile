@@ -45,58 +45,62 @@ export default function SafewalkerProfileScreen({ navigation }) {
    * This effect is run once upon component mount.
    */
   useEffect(() => {
-    // this is to fix memory leak error: Promise cleanup
-    const firstFetchloadWalkerProfileController = new AbortController();
-    const secondFetchloadWalkerProfileController = new AbortController();
-    const signalFirstFetch = firstFetchloadWalkerProfileController.signal;
-    const signalSecondFetch = secondFetchloadWalkerProfileController.signal;
+    try {
+      // this is to fix memory leak error: Promise cleanup
+      const firstFetchloadWalkerProfileController = new AbortController();
+      const secondFetchloadWalkerProfileController = new AbortController();
+      const signalFirstFetch = firstFetchloadWalkerProfileController.signal;
+      const signalSecondFetch = secondFetchloadWalkerProfileController.signal;
 
-    loadWalkerProfile(signalFirstFetch, signalSecondFetch);
+      loadWalkerProfile(signalFirstFetch, signalSecondFetch);
 
-    socket.removeAllListeners();
+      socket.removeAllListeners();
 
-    // socket to listen to walker status change
-    socket.on("walker walk status", (status) => {
-      console.log(status);
-      switch (status) {
-        // SAFEwalker has canceled the walk.
-        case -2:
+      // socket to listen to walker status change
+      socket.on("walker walk status", (status) => {
+        console.log(status);
+        switch (status) {
+          // SAFEwalker has canceled the walk.
+          case -2:
+            resetWalkContextState();
+            alert("The SAFEwalker has canceled the walk.");
+            break;
+
+          // SAFEwalker has marked the walk as completed
+          case 2:
+            resetWalkContextState();
+            alert("The walk has been completed!");
+            break;
+
+          default:
+            console.log(
+              "Unexpected socket status received in SafewalkerProfileScreen: status " +
+              status
+            );
+        }
+      });
+
+      socket.on("connection lost", (status) => {
+        if (status) {
+          deleteWalk();
+
+          // reset the Walk states
+          // This will bring navigation to InactiveWalk screens
           resetWalkContextState();
-          alert("The SAFEwalker has canceled the walk.");
-          break;
+          alert("Connection lost, walk cancelled.");
+        }
+      });
 
-        // SAFEwalker has marked the walk as completed
-        case 2:
-          resetWalkContextState();
-          alert("The walk has been completed!");
-          break;
-
-        default:
-          console.log(
-            "Unexpected socket status received in SafewalkerProfileScreen: status " +
-            status
-          );
-      }
-    });
-
-    socket.on("connection lost", (status) => {
-      if (status) {
-        deleteWalk();
-
-        // reset the Walk states
-        // This will bring navigation to InactiveWalk screens
-        resetWalkContextState();
-        alert("Connection lost, walk cancelled.");
-      }
-    });
-
-    // cleanups
-    return () => {
-      socket.off("walker walk status", null);
-      socket.off("connection lost", null);
-      firstFetchloadWalkerProfileController.abort();
-      secondFetchloadWalkerProfileController.abort();
-    };
+      // cleanups
+      return () => {
+        socket.off("walker walk status", null);
+        socket.off("connection lost", null);
+        firstFetchloadWalkerProfileController.abort();
+        secondFetchloadWalkerProfileController.abort();
+      };
+    } catch (error){
+      console.log(error);
+    }
   }, []);
 
   /**
@@ -106,89 +110,93 @@ export default function SafewalkerProfileScreen({ navigation }) {
    * @param signalTwo cancels the second fetch request when component is unmounted.
    */
   async function loadWalkerProfile(signalOne, signalTwo) {
-    // Get Walk API call
-    // retrieve the SAFEwalker email and socket ID
-    const res = await fetch(url + "/api/Walks/" + walkId, {
-      method: "GET",
-      headers: {
-        token: userToken,
-        email: email,
-        isUser: true,
-      },
-      signal: signalOne,
-    }).catch((error) => {
-      // cancel fetch upon component unmount
-      if (signalOne.aborted) {
+    try {
+      // Get Walk API call
+      // retrieve the SAFEwalker email and socket ID
+      const res = await fetch(url + "/api/Walks/" + walkId, {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true,
+        },
+        signal: signalOne,
+      }).catch((error) => {
+        // cancel fetch upon component unmount
+        if (signalOne.aborted) {
+          return; // exit
+        }
+        console.error(
+          "Error in GET SAFEwalker email and walker ID in loadWalkerProfile() in SafewalkerProfileScreen:" +
+          error
+        );
+      });
+
+      if (res == null) {
         return; // exit
       }
-      console.error(
-        "Error in GET SAFEwalker email and walker ID in loadWalkerProfile() in SafewalkerProfileScreen:" +
-        error
-      );
-    });
 
-    if (res == null) {
-      return; // exit
-    }
-
-    let status = res.status;
-    // Upon fetch failure/bad status
-    if (status != 200 && status != 201) {
-      console.log(
-        "get SAFEwalker email & socket ID in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
-        status
-      );
-      return; // exit
-    }
-
-    // Store walker data in Context
-    const data = await res.json();
-    const walkerEmail = data["walkerEmail"];
-    const walkerSocketId = data["walkerSocketId"];
-
-    // store walker data in Context
-    setWalkerInfo(walkerEmail, walkerSocketId);
-
-    // Get Walker API call
-    // Get the SAFEwalker's name and phone number
-    const res1 = await fetch(url + "/api/Safewalkers/" + walkerEmail, {
-      method: "GET",
-      headers: {
-        token: userToken,
-        email: email,
-        isUser: true,
-      },
-      signal: signalTwo,
-    }).catch((error) => {
-      // cancel fetch upon component unmount
-      if (signalTwo.aborted) {
+      let status = res.status;
+      // Upon fetch failure/bad status
+      if (status != 200 && status != 201) {
+        console.log(
+          "get SAFEwalker email & socket ID in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
+          status
+        );
         return; // exit
       }
-      console.error(
-        "Error in retrieving SAFEwalker name and phone number in loadWalkerProfile() in SafewalkerProfileScreen:" +
-        error
-      );
-    });
 
-    if (res1 == null) {
-      return; // exit
+      // Store walker data in Context
+      const data = await res.json();
+      const walkerEmail = data["walkerEmail"];
+      const walkerSocketId = data["walkerSocketId"];
+
+      // store walker data in Context
+      setWalkerInfo(walkerEmail, walkerSocketId);
+
+      // Get Walker API call
+      // Get the SAFEwalker's name and phone number
+      const res1 = await fetch(url + "/api/Safewalkers/" + walkerEmail, {
+        method: "GET",
+        headers: {
+          token: userToken,
+          email: email,
+          isUser: true,
+        },
+        signal: signalTwo,
+      }).catch((error) => {
+        // cancel fetch upon component unmount
+        if (signalTwo.aborted) {
+          return; // exit
+        }
+        console.error(
+          "Error in retrieving SAFEwalker name and phone number in loadWalkerProfile() in SafewalkerProfileScreen:" +
+          error
+        );
+      });
+
+      if (res1 == null) {
+        return; // exit
+      }
+
+      status = res1.status;
+      // Upon fetch failure/bad status
+      if (status != 200 && status != 201) {
+        console.log(
+          "get SAFEwalker name & phone number in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
+          status
+        );
+        return; // exit
+      }
+
+      const data1 = await res1.json();
+      // update retrieved SAFEwalker profile info in local state
+      setFirstname(data1["firstName"]);
+      setLastname(data1["lastName"]);
+      setPhoneNumber(data1["phoneNumber"]);
+    } catch (error) {
+      console.log(error);
     }
-
-    status = res1.status;
-    // Upon fetch failure/bad status
-    if (status != 200 && status != 201) {
-      console.log(
-        "get SAFEwalker name & phone number in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
-        status
-      );
-      return; // exit
-    }
-
-    const data1 = await res1.json();
-    // update retrieved SAFEwalker profile info in local state
-    setFirstname(data1["firstName"]);
-    setLastname(data1["lastName"]);
-    setPhoneNumber(data1["phoneNumber"]);
   }
 
   async function deleteWalk() {
