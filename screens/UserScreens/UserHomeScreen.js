@@ -104,7 +104,7 @@ export default function UserHomeScreen({ navigation }) {
   ]);
 
   const { userToken, email } = useContext(AuthContext);
-  const { setWalkId } = useContext(WalkContext);
+  const { setWalkId, setCoordinates } = useContext(WalkContext);
 
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
@@ -141,7 +141,11 @@ export default function UserHomeScreen({ navigation }) {
       body: JSON.stringify({
         time: new Date(),
         startText: start.text,
+        startLat: start.coordinates.latitude,
+        startLng: start.coordinates.longitude,
         destText: destination.text,
+        destLat: destination.coordinates.latitude,
+        destLng: destination.coordinates.longitude,
         userSocketId: socket.id,
       }),
     }).catch((error) => {
@@ -162,8 +166,13 @@ export default function UserHomeScreen({ navigation }) {
     }
 
     let data = await res.json();
-    // store walkId in the WalkContext
-    setWalkId(data["id"]);
+    setWalkId(data["id"]); // store walkId in the WalkContext
+    setCoordinates(
+      start.coordinates.latitude,
+      start.coordinates.longitude,
+      destination.coordinates.latitude,
+      destination.coordinates.longitude
+    ); // store coordinates in the WalkContext
 
     // send notification to all Safewalkers
     socket.emit("walk status", true);

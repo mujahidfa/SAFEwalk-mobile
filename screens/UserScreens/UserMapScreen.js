@@ -29,6 +29,8 @@ export default function UserMapScreen({ navigation }) {
     text: ""
   });
 
+  console.log(startLat + ", " + startLng);
+
   const [destination, setDestination] = useState({
     coordinates: {
       latitude: +43.081606,
