@@ -5,7 +5,7 @@ import socket from "../../contexts/socket";
 import { WalkContext } from "./../../contexts/WalkProvider";
 
 export default function UserMapScreen({ navigation }) {
-  const { resetWalkContextState } = useContext(WalkContext);
+  const { startLat, startLng, destLat, destLng, resetWalkContextState } = useContext(WalkContext);
 
   /**
    * This effect sets up the socket connection to the User.
