@@ -16,7 +16,7 @@ import { WalkContext } from "./../../contexts/WalkProvider";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
 export default function UserMapScreen({ navigation }) {
-  const { resetWalkContextState } = useContext(WalkContext);
+  const { startLat, startLng, destLat, destLng, resetWalkContextState } = useContext(WalkContext);
 
   const mapRef = useRef(null);
   const pinColor = ["green", "red", "blue"]
