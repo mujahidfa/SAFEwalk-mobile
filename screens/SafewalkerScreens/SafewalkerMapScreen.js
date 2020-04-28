@@ -89,8 +89,8 @@ export default function MapScreen({ navigation }) {
 
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: +43.081606,
-      longitude: -89.376298
+      latitude: destLat,
+      longitude: destLng
     },
     text: "Destination"
   });
@@ -98,8 +98,8 @@ export default function MapScreen({ navigation }) {
   // walk origin
   const [start, setStart] = useState({
     coordinates: {
-      latitude: 43.075143,
-      longitude: -89.400151
+      latitude: startLat,
+      longitude: startLng
     },
     text: "Current Location"
   });
