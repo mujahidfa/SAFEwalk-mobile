@@ -89,8 +89,8 @@ export default function MapScreen({ navigation }) {
 
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: destLat,
-      longitude: destLng
+      latitude: parseFloat(destLat),
+      longitude: parseFloat(destLng)
     },
     text: "Destination"
   });
@@ -98,8 +98,8 @@ export default function MapScreen({ navigation }) {
   // walk origin
   const [start, setStart] = useState({
     coordinates: {
-      latitude: startLat,
-      longitude: startLng
+      latitude: parseFloat(startLat),
+      longitude: parseFloat(startLng)
     },
     text: "Current Location"
   });
@@ -191,7 +191,7 @@ export default function MapScreen({ navigation }) {
   }, []);
 
   async function onMapReady() {
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   };
 
   return (
@@ -203,17 +203,23 @@ export default function MapScreen({ navigation }) {
         ref={mapRef}
         minZoomLevel={10}
         maxZoomLevel={15}
-        onMapReady={onMapReady}
+        // onMapReady={onMapReady}
+        initialRegion={{
+          latitude: 43.075143,
+          longitude: -89.400151,
+          latitudeDelta: 0.0822,
+          longitudeDelta: 0.0421,
+        }}
       >
-        {markers.map((marker) => (
+        {/* {markers.map((marker) => (
           <MapView.Marker
-          key={marker.key}
-          coordinate={{
-          latitude: marker.coordinates.latitude,
-          longitude: marker.coordinates.longitude
-          }}
-          title={marker.title}
-          pinColor={pinColor[marker.key]}
+            key={marker.key}
+            coordinate={{
+              latitude: marker.coordinates.latitude,
+              longitude: marker.coordinates.longitude
+            }}
+            title={marker.title}
+            pinColor={pinColor[marker.key]}
           />
         ))}
         <MapView.Marker
@@ -223,15 +229,15 @@ export default function MapScreen({ navigation }) {
           }}
           title={userMarker.title}
           icon={require('../../assets/walking-solid.png')}
-        />
+        /> */}
       </MapView>
       {/* User Start and End Location input fields */}
       <View style={styles.buttonContainer}>
         <Button
-        title="Mark walk as complete"
-        loading={isLoading}
-        disabled={isLoading}
-        onPress={() => completeWalk()}
+          title="Mark walk as complete"
+          loading={isLoading}
+          disabled={isLoading}
+          onPress={() => completeWalk()}
         />
       </View>
     </View>
@@ -258,7 +264,7 @@ const styles = StyleSheet.create({
   mapStyle: {
     marginTop: 0,
     width: Dimensions.get('window').width,
-    height: hp("81%"),
+    height: hp("83%"),
     justifyContent: 'space-between'
   },
 });

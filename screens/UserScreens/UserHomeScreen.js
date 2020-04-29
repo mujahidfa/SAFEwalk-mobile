@@ -168,10 +168,10 @@ export default function UserHomeScreen({ navigation }) {
     let data = await res.json();
     setWalkId(data["id"]); // store walkId in the WalkContext
     setCoordinates(
-      start.coordinates.latitude,
-      start.coordinates.longitude,
-      destination.coordinates.latitude,
-      destination.coordinates.longitude
+      start.coordinates.latitude + '',
+      start.coordinates.longitude + '',
+      destination.coordinates.latitude + '',
+      destination.coordinates.longitude + ''
     ); // store coordinates in the WalkContext
 
     // send notification to all Safewalkers
@@ -399,7 +399,7 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   }
 
   async function homeAsDest() {
@@ -428,13 +428,13 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   }
 
   async function onMapReady() {
     currentAsStart();
     homeAsDest();
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   };
 
   return (
@@ -449,6 +449,12 @@ export default function UserHomeScreen({ navigation }) {
             minZoomLevel={10}
             maxZoomLevel={15}
             onMapReady={onMapReady}
+            initialRegion={{
+              latitude: 43.075143,
+              longitude: -89.400151,
+              latitudeDelta: 0.0822,
+              longitudeDelta: 0.0421,
+            }}
           >
             {markers.map((marker) => (
               <MapView.Marker
@@ -528,7 +534,10 @@ export default function UserHomeScreen({ navigation }) {
               raised
               type= "material"
               name= "gps-fixed"
-              onPress= {() => {currentAsStart(); mapRef.current.fitToElements();}}
+              onPress= {() => {
+                currentAsStart(); 
+                // mapRef.current.fitToElements();
+              }}
               loading={isLoading}
               disabled={isLoading}
             />

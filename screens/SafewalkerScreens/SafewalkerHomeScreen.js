@@ -194,7 +194,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     socket.emit("walk status", true);
 
     setUserInfo(walkId, userEmail, userSocketId); // save walk info in WalkContext
-    setCoordinates(startLat, startLng, destLat, destLng); // save coordinates in WalkContext
+    setCoordinates(startLat + '', startLng + '', destLat + '', destLng + ''); // save coordinates in WalkContext
     setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
   }
 

@@ -197,10 +197,10 @@ const styles = StyleSheet.create({
     marginHorizontal: style.marginContainerHorizontal,
   },
   titleLogin: {
-    fontSize: wp("6%"),
-    fontWeight: "normal",
-    alignSelf: "center",
-    color: colors.darkgray,
+    fontSize: wp("5.5%"),
+    fontWeight: "bold",
+    textAlign: "center",
+    color: colors.gray,
   },
   inputContainer: {
     height: hp("9.5%"),

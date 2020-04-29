@@ -15,6 +15,10 @@ import {
 import { WalkContext } from "./../../contexts/WalkProvider";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
+// constants
+import colors from "./../../constants/colors";
+import { Card } from "react-native-paper";
+
 export default function UserMapScreen({ navigation }) {
   const { startLat, startLng, destLat, destLng, resetWalkContextState } = useContext(WalkContext);
 
@@ -33,8 +37,8 @@ export default function UserMapScreen({ navigation }) {
 
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: destLat,
-      longitude: destLng
+      latitude: parseFloat(destLat),
+      longitude: parseFloat(destLng)
     },
     text: "Destination"
   });
@@ -42,8 +46,8 @@ export default function UserMapScreen({ navigation }) {
   // walk origin - default to current location
   const [start, setStart] = useState({
     coordinates: {
-      latitude: startLat,
-      longitude: startLng
+      latitude: parseFloat(startLat),
+      longitude: parseFloat(startLng)
     },
     text: "Start"
   });
@@ -107,11 +111,12 @@ export default function UserMapScreen({ navigation }) {
     navigator.geolocation.getCurrentPosition(showLocation);
     var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + location.coordinates.latitude + ", " + location.coordinates.longitude + "&destinations=" + safewalker.coordinates.latitude + ", " + safewalker.coordinates.longitude + "&mode=walking&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
-    .then(res => {
-      setDuration(res.data.rows[0].elements[0].duration.text);
-      setDistance(res.data.rows[0].elements[0].distance.text);
-      convertEta();
-    })
+      .then(res => {
+        console.log(res);
+        setDuration(res.data.rows[0].elements[0].duration.text);
+        setDistance(res.data.rows[0].elements[0].distance.text);
+        convertEta();
+      })
   }
 
   async function convertEta() {
@@ -119,23 +124,23 @@ export default function UserMapScreen({ navigation }) {
     var hours = today.getHours();
     var minutes = today.getMinutes();
     var replaced = duration.split(' ');
-    if(replaced[1].localeCompare("hours") == 0) {
+    if (replaced[1].localeCompare("hours") == 0) {
       hours = parseInt(hours) + parseInt(replaced[0]);
       minutes = parseInt(minutes) + parseInt(replaced[2]);
     }
-    else{
+    else {
       minutes = parseInt(minutes) + parseInt(replaced[0]);
     }
 
-    if(minutes > 59) {
+    if (minutes > 59) {
       minutes = parseInt(minutes) - 60;
       hours = parseInt(hours) + 1;
     }
-    if(hours > 23) {
+    if (hours > 23) {
       hours = parseInt(hours) - 24;
     }
 
-    if(minutes < 10) {
+    if (minutes < 10) {
       minutes = "0" + minutes;
     }
     var returnString = hours + ":" + minutes;
@@ -168,7 +173,7 @@ export default function UserMapScreen({ navigation }) {
           longitude: lng
         }
       })
-      mapRef.current.fitToElements();
+      // mapRef.current.fitToElements();
     });
 
     // socket to listen to walker status change
@@ -213,7 +218,7 @@ export default function UserMapScreen({ navigation }) {
     // GET SAFEwalker coordinates
     getEta();
     convertEta();
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   };
 
   return (
@@ -226,8 +231,14 @@ export default function UserMapScreen({ navigation }) {
         minZoomLevel={10}
         maxZoomLevel={15}
         onMapReady={onMapReady}
+        initialRegion={{
+          latitude: 43.075143,
+          longitude: -89.400151,
+          latitudeDelta: 0.0822,
+          longitudeDelta: 0.0421,
+        }}
       >
-        {markers.map((marker) => (
+        {/* {markers.map((marker) => (
           <MapView.Marker
           key={marker.key}
           coordinate={{
@@ -237,7 +248,7 @@ export default function UserMapScreen({ navigation }) {
           title={marker.title}
           pinColor={pinColor[marker.key]}
           />
-        ))}
+        ))} */}
         <MapView.Marker
           coordinate={{
             latitude: walkerMarker.coordinates.latitude,
@@ -246,12 +257,14 @@ export default function UserMapScreen({ navigation }) {
           title={walkerMarker.title}
           icon={require('../../assets/walking-solid.png')}
         />
-        <Text style={styles.textStyle}>
-          ETA: {duration}
-        </Text>
-        <Text style={styles.textStyle}>
-          Distance: {distance}
-        </Text>
+        <View styles={{ flex: 1, flexDirection: 'column' }}>
+          <Text style={styles.textStyle1}>
+            ETA: {duration}
+          </Text>
+          <Text style={styles.textStyle2}>
+            Distance: {distance} miles
+          </Text>
+        </View>
       </MapView>
     </View>
   );
@@ -267,12 +280,21 @@ const styles = StyleSheet.create({
   mapStyle: {
     marginTop: 0,
     width: Dimensions.get('window').width,
-    height: hp("81%"),
+    height: hp("83%"),
     justifyContent: 'flex-start'
   },
-  textStyle: {
-    marginTop: 10,
+  textStyle1: {
+    fontWeight: 'bold',
+    color: colors.darkgray,
+    marginTop: 15,
     marginLeft: 10,
-    fontSize: 20,
+    fontSize: 18,
+  },
+  textStyle2: {
+    fontWeight: 'bold',
+    color: colors.darkgray,
+    marginTop: 5,
+    marginLeft: 10,
+    fontSize: 18,
   }
 });
