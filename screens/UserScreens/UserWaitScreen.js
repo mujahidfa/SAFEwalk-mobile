@@ -66,13 +66,13 @@ handleNotification: cancels all scheduled notifications
    * This effect sets up the socket connection to the SAFEwalker to listen to walk request responses.
    * This effect is run once upon component mount.
    */
-  useEffect(() => {
+  useEffect( () => {
     socket.removeAllListeners();
     setNotification(30000);
 
     console.log("in useEffect socket of UserWaitScreen");
     // socket to listen to walker status change
-    socket.on("walker walk status", (status) => {
+    socket.on("walker walk status", async (status) => {
       console.log("walk status in UserWaitScreen:" + status);
 
       switch (status) {
@@ -89,16 +89,19 @@ handleNotification: cancels all scheduled notifications
               },
             ],
           });
+          await handleNotification();
           alert("Your request was denied.");
           break;
 
         // Request accepted by SAFEwalker
         case 1:
           setWalkAsActive();
+          await handleNotification();
           alert("A SAFEwalker is on their way!");
           break;
 
         default:
+          await handleNotification();
           console.log(
             "Unexpected socket status received in UserWaitScreen: status " +
             status
