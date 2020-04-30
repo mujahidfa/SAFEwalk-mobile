@@ -4,7 +4,7 @@ import {
   StyleSheet,
   Text,
   Dimensions,
-  View,
+  View, Keyboard,
 } from "react-native";
 import socket from "../../contexts/socket";
 
@@ -186,6 +186,7 @@ export default function UserMapScreen({ navigation }) {
         case -2:
           // reset walk state to change navigation to InactiveWalk Screens
           resetWalkContextState();
+          setSafewalkCancelNotification(1000);
           alert("The SAFEwalker has canceled the walk.");
           break;
         // walk has been marked as completed by the SAFEwalker
@@ -242,6 +243,24 @@ export default function UserMapScreen({ navigation }) {
     getEta();
     convertEta();
     // mapRef.current.fitToElements();
+  };
+
+  /* Notification Setup 2
+setCancelNotification: schedules notification for <time>
+*/
+  const safewalkCancelNotification = { title: 'Walk Cancelled', body: 'SafeWalker has cancelled the walk' };
+  let localSafewalkCancelNotificationId = null;
+  const setSafewalkCancelNotification = time => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localSafewalkCancelNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        safewalkCancelNotification,
+        schedulingOptions,
+    );
   };
 
   return (
