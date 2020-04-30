@@ -39,21 +39,11 @@ const LONGITUDE = -89.401185;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-// temporary - replace with home address API call
-const homePlace = {
-  description: 'Home',
-  text: "",
-  coordinates: {
-    latitude: 43.081606,
-    longitude: -89.376298
-  }
-};
-
 const pinColor = ["green", "red"]
 
 export default function UserHomeScreen({ navigation }) {
 
-  const mapRef = useRef(null);
+  // const mapRef = useRef(null);
 
   // store current user location
   const [location, setLocation] = useState({
@@ -82,26 +72,25 @@ export default function UserHomeScreen({ navigation }) {
     text: "Current Location"
   });
 
-  // markers and locations
-  const [markers, setMarkers] = useState([
+  const [startMarker, setStartMarker] = useState(
     {
-      key: 0,
       title: 'Start',
       coordinates: {
         latitude: start.coordinates.latitude,
         longitude: start.coordinates.longitude
       }
-    },
+    }
+  );
+
+  const [destMarker, setDestMarker] = useState(
     {
-      key: 1,
       title: 'Destination',
       coordinates: {
-        // replace with api to get user's home address
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
       }
     }
-  ]);
+  );
 
   const { userToken, email } = useContext(AuthContext);
   const { setWalkId, setCoordinates } = useContext(WalkContext);
@@ -311,24 +300,13 @@ export default function UserHomeScreen({ navigation }) {
 
     changeLocation("start", start.text);
 
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
+    setStartMarker({
+      title: 'Start',
+      coordinates: {
+        latitude: start.coordinates.latitude,
+        longitude: start.coordinates.longitude
       }
-    ])
+    })
   }
 
   async function updateDestination() {
@@ -337,24 +315,13 @@ export default function UserHomeScreen({ navigation }) {
 
     changeLocation("destination", destination.text);
 
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
+    setDestMarker({
+      title: 'Destination',
+      coordinates: {
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
       }
-    ])
+    })
 
   }
 
@@ -381,59 +348,18 @@ export default function UserHomeScreen({ navigation }) {
       },
       text: "Current Location"
     });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: location.coordinates.latitude,
-          longitude: location.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
-      }
-    ])
-    // mapRef.current.fitToElements();
-  }
-
-  async function homeAsDest() {
-    setDestination({
+    setStartMarker({
+      title: 'Start',
       coordinates: {
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
-      },
-      text: ""
-    });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: homePlace.coordinates.latitude,
-          longitude: homePlace.coordinates.longitude
-        }
+        latitude: start.coordinates.latitude,
+        longitude: start.coordinates.longitude
       }
-    ])
+    })
     // mapRef.current.fitToElements();
   }
 
   async function onMapReady() {
     currentAsStart();
-    homeAsDest();
     // mapRef.current.fitToElements();
   };
 
@@ -456,22 +382,22 @@ export default function UserHomeScreen({ navigation }) {
               longitudeDelta: 0.0421,
             }}
           >
-            {markers.map((marker) => (
-              <MapView.Marker
-                key={marker.key}
-                coordinate={{
-                  latitude: marker.coordinates.latitude,
-                  longitude: marker.coordinates.longitude
-                }}
-                title={marker.title}
-                pinColor={pinColor[marker.key]}
-                icon={{
-                  style: styles.icon,
-                  type: "material",
-                  name: "directions-walk"
-                }}
-              />
-            ))}
+            <MapView.Marker
+              coordinate={{
+                latitude: startMarker.coordinates.latitude,
+                longitude: startMarker.coordinates.longitude
+              }}
+              title={startMarker.title}
+              pinColor={pinColor[0]}
+            />
+            <MapView.Marker
+              coordinate={{
+                latitude: destMarker.coordinates.latitude,
+                longitude: destMarker.coordinates.longitude
+              }}
+              title={destMarker.title}
+              pinColor={pinColor[1]}
+            />
           </MapView>
            {/* User Start and End Location input fields */}
            <View style={styles.inputContainer}>
