@@ -28,7 +28,7 @@ export default function SafewalkerStackNavigation() {
       <Stack.Screen
         name="SafewalkerHome"
         component={SafewalkerHomeScreen}
-        options={{ title: "SAFEwalker Home" }}
+        options={{ title: "Home" }}
       />
     </Stack.Navigator>
   );
