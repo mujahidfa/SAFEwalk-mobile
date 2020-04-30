@@ -61,6 +61,42 @@ handleNotification: cancels all scheduled notifications
     await Notifications.cancelAllScheduledNotificationsAsync();
   };
 
+  /* Notification Setup 2
+setSafewalkCancelNotification: schedules notification for <time>
+*/
+  const safewalkCancelNotification = { title: 'Walk Cancelled', body: 'SafeWalker has cancelled the walk' };
+  let localSafewalkCancelNotificationId = null;
+  const setSafewalkCancelNotification = time => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localSafewalkCancelNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        safewalkCancelNotification,
+        schedulingOptions,
+    );
+  };
+
+  /* Notification Setup 3
+setRequestAcceptedNotification: schedules notification for <time>
+*/
+  const requestAcceptedNotification = { title: 'Walk Approved', body: 'SafeWalker is on the way' };
+  let localRequestAcceptedNotificationId = null;
+  const setRequestAcceptedNotification = time => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localRequestAcceptedNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        requestAcceptedNotification,
+        schedulingOptions,
+    );
+  };
+
   /**
    * This effect sets up the socket connection to the SAFEwalker to listen to walk request responses.
    * This effect is run once upon component mount.
@@ -87,24 +123,24 @@ handleNotification: cancels all scheduled notifications
               },
             ],
           });
-          await handleNotification();
+          await setSafewalkCancelNotification(1);
           alert("Your request was denied.");
           break;
 
         // Request accepted by SAFEwalker
         case 1:
           setWalkAsActive();
-          await handleNotification();
+          await setRequestAcceptedNotification(1);
           alert("A SAFEwalker is on their way!");
           break;
 
         default:
-          await handleNotification();
           console.log(
             "Unexpected socket status received in UserWaitScreen: status " +
             status
           );
       }
+      await handleNotification();
     });
 
     // socket cleanup
