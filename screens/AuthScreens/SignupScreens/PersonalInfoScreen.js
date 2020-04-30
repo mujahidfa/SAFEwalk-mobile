@@ -104,11 +104,11 @@ export default function PersonalInfoScreen({ navigation, route }) {
       }),
     })
       .then((response) => {
-        console.log(JSON.stringify(response.status));
+        // console.log(JSON.stringify(response.status));
         setIsLoading(false);
 
         if (response.status && response.status === 200) {
-          console.log("Email available!");
+          // console.log("Email available!");
 
           // if email not taken, go to next screen
           navigation.reset({
@@ -121,15 +121,15 @@ export default function PersonalInfoScreen({ navigation, route }) {
             ],
           });
         } else if (response.status && response.status === 409) {
-          console.log("captured 409! Cannot use existing account.");
+          // console.log("captured 409! Cannot use existing account.");
           setIsUserNotAvailable(true);
         } else {
-          console.log("Unknown error" + response.status + " Try again");
+          // console.log("Unknown error" + response.status + " Try again");
           setIsSignupError(true);
         }
       })
       .catch((error) => {
-        console.log("Error in login(): " + error);
+        // console.log("Error in login(): " + error);
         setIsSignupError(true);
         setIsLoading(false);
       });
@@ -143,7 +143,10 @@ export default function PersonalInfoScreen({ navigation, route }) {
           style={styles.innerContainer}
         >
           {/* Progress animation */}
-          <View style={styles.progressContainer}>
+          <View
+            accessibilityLabel="loadingComponent"
+            style={styles.progressContainer}
+          >
             <View style={styles.progressCircleContainer}>
               <View
                 style={[styles.progressCircle, styles.progressCurrentCircle]}
@@ -186,13 +189,16 @@ export default function PersonalInfoScreen({ navigation, route }) {
           <View>
             <View style={styles.inputContainer}>
               {errors.firstName && (
-                <ErrorText>First name is required.</ErrorText>
+                <ErrorText accessibilityLabel="invalidFirstname">
+                  First name is required.
+                </ErrorText>
               )}
               {isSignupError && (
                 <ErrorText>There was an error. Please try again.</ErrorText>
               )}
               <TextInput
                 label="First Name"
+                accessibilityLabel="First Name"
                 ref={register({ name: "firstName" }, { required: true })}
                 onChangeText={(text) => setValue("firstName", text, true)}
                 mode="outlined"
@@ -200,9 +206,14 @@ export default function PersonalInfoScreen({ navigation, route }) {
             </View>
 
             <View style={styles.inputContainer}>
-              {errors.lastName && <ErrorText>Last name is required.</ErrorText>}
+              {errors.lastName && (
+                <ErrorText accessibilityLabel="invalidLastname">
+                  Last name is required.
+                </ErrorText>
+              )}
               <TextInput
                 label="Last Name"
+                accessibilityLabel="Last Name"
                 ref={register({ name: "lastName" }, { required: true })}
                 onChangeText={(text) => setValue("lastName", text, true)}
                 mode="outlined"
@@ -211,10 +222,13 @@ export default function PersonalInfoScreen({ navigation, route }) {
 
             <View style={styles.inputContainer}>
               {errors.phoneNumber && (
-                <ErrorText>Valid US phone number is required.</ErrorText>
+                <ErrorText accessibilityLabel="invalidPhoneNumber">
+                  Valid US phone number is required.
+                </ErrorText>
               )}
               <TextInput
                 label="Phone Number"
+                accessibilityLabel="Phone Number"
                 placeholder="(608) - 123 - 4567"
                 ref={register(
                   { name: "phoneNumber" },
@@ -236,6 +250,7 @@ export default function PersonalInfoScreen({ navigation, route }) {
           <View style={styles.footerContainer}>
             <Spacer />
             <Button
+              accessibilityLabel="Create Account"
               title="Create Account"
               loading={isLoading}
               disabled={isLoading}
