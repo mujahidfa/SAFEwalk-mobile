@@ -4,7 +4,7 @@ import { Linking } from "expo";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 // Libraries
-import TimerMixin from 'react-timer-mixin';
+import TimerMixin from "react-timer-mixin";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   widthPercentageToDP as wp,
@@ -39,8 +39,8 @@ export default function UserProfileScreen({ navigation }) {
   const [location, setLocation] = useState({
     coordinates: {
       latitude: 43.081606,
-      longitude: -89.376298
-    }
+      longitude: -89.376298,
+    },
   });
 
   const locationRef = useRef(location);
@@ -73,7 +73,7 @@ export default function UserProfileScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in UserProfileScreen: status " +
-            status
+              status
           );
       }
     });
@@ -97,18 +97,20 @@ export default function UserProfileScreen({ navigation }) {
   }, []);
 
   async function showLocation(position) {
-
-    console.log("Walker location: " + position.coords.latitude + ", " + position.coords.longitude);
-
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        }
-      }
+    console.log(
+      "Walker location: " +
+        position.coords.latitude +
+        ", " +
+        position.coords.longitude
     );
- }
+
+    setLocation({
+      coordinates: {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      },
+    });
+  }
 
   useEffect(() => {
     // send location to user every 5 seconds
@@ -132,7 +134,7 @@ export default function UserProfileScreen({ navigation }) {
 
     return () => {
       clearInterval(interval);
-    }
+    };
   }, [userSocketId]);
 
   /**
@@ -183,7 +185,7 @@ export default function UserProfileScreen({ navigation }) {
       }
       console.error(
         "Error in fetching data from loadUserProfile() in UserProfileScreen:" +
-        error
+          error
       );
     });
 
@@ -196,7 +198,7 @@ export default function UserProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "retrieving user info in loadUserProfile() in UserProfileScreen failed: status " +
-        status
+          status
       );
       return; // exit
     }
@@ -220,9 +222,8 @@ export default function UserProfileScreen({ navigation }) {
       },
     }).catch((error) => {
       console.error(
-        "Error in DELETE walk from cancelWalk() in UserProfileScreen:" +
-        error
-      )
+        "Error in DELETE walk from cancelWalk() in UserProfileScreen:" + error
+      );
     });
 
     let status = res.status;
@@ -230,10 +231,9 @@ export default function UserProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "deleting walk failed in cancelWalk() in UserProfileScreen: status " +
-        status
+          status
       );
     }
-
   }
 
   /**
@@ -310,9 +310,8 @@ export default function UserProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.buttonCancelContainer}>
-          <BButton title="Cancel" onPress={() => cancelWalk()} />
+          <BButton title="Cancel" onPress={() => cancelWalk()} color="red" />
         </View>
-        <Spacer />
       </View>
     </SafeAreaView>
   );
@@ -336,6 +335,7 @@ const styles = StyleSheet.create({
   profilePicture: {},
   textName: {
     fontSize: wp("9%"), //30,
+    color: colors.gray,
   },
   buttonContactContainer: {
     flex: 1,
