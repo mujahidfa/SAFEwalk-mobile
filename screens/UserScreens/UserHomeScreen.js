@@ -15,7 +15,7 @@ import { Button as ButtonE, Input, Icon } from "react-native-elements";
 import { useForm } from "react-hook-form";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  heightPercentageToDP as hp,
+  heightPercentageToDP as hp, widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
 
 // Components
@@ -31,6 +31,9 @@ import style from "./../../constants/style"
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
+import {Notifications} from "expo";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -38,16 +41,6 @@ const LATITUDE = 43.076492;
 const LONGITUDE = -89.401185;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-
-// temporary - replace with home address API call
-const homePlace = {
-  description: 'Home',
-  text: "",
-  coordinates: {
-    latitude: 43.081606,
-    longitude: -89.376298
-  }
-};
 
 const pinColor = ["green", "red"]
 
@@ -64,44 +57,71 @@ export default function UserHomeScreen({ navigation }) {
     text: ""
   });
 
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
+  function showLocation(position) {
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        },
+        text: "Current Location"
+      }
+    );
+    console.log("Current location: " + locationRef.current.coordinates.latitude + ", " + locationRef.current.coordinates.longitude);
+ }
+
   // destination
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: +43.081606,
-      longitude: -89.376298
+      latitude: 43.071974,
+      longitude: -89.408064
     },
     text: ""
   });
 
+  const destinationRef = useRef(destination);
+  destinationRef.current = destination;
+
   // walk origin - default to current location
   const [start, setStart] = useState({
     coordinates: {
-      latitude: 43.075143,
-      longitude: -89.400151
+      latitude: locationRef.current.coordinates.latitude,
+      longitude: locationRef.current.coordinates.longitude
     },
     text: "Current Location"
   });
 
-  // markers and locations
-  const [markers, setMarkers] = useState([
+  const startRef = useRef(start);
+  startRef.current = start;
+
+  const [startMarker, setStartMarker] = useState(
     {
-      key: 0,
       title: 'Start',
       coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
-      }
-    },
-    {
-      key: 1,
-      title: 'Destination',
-      coordinates: {
-        // replace with api to get user's home address
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
+        latitude: locationRef.current.coordinates.latitude,
+        longitude: locationRef.current.coordinates.longitude
       }
     }
-  ]);
+  );
+
+  const startMarkerRef = useRef(startMarker);
+  startMarkerRef.current = startMarker;
+
+  const [destMarker, setDestMarker] = useState(
+    {
+      title: 'Destination',
+      coordinates: {
+        latitude: destinationRef.current.coordinates.latitude,
+        longitude: destinationRef.current.coordinates.longitude
+      }
+    }
+  );
+
+  const destMarkerRef = useRef(destMarker);
+  destMarkerRef.current = destMarker;
 
   const { userToken, email } = useContext(AuthContext);
   const { setWalkId, setCoordinates } = useContext(WalkContext);
@@ -127,7 +147,7 @@ export default function UserHomeScreen({ navigation }) {
       return; // exit
     }
 
-    console.log(destination.text);
+    console.log(destinationRef.current.text);
 
     // Add Walk API call
     // Create a walk in the database
@@ -140,12 +160,12 @@ export default function UserHomeScreen({ navigation }) {
       },
       body: JSON.stringify({
         time: new Date(),
-        startText: start.text,
-        startLat: start.coordinates.latitude,
-        startLng: start.coordinates.longitude,
-        destText: destination.text,
-        destLat: destination.coordinates.latitude,
-        destLng: destination.coordinates.longitude,
+        startText: startRef.current.text,
+        startLat: startRef.current.coordinates.latitude,
+        startLng: startRef.current.coordinates.longitude,
+        destText: destinationRef.current.text,
+        destLat: destinationRef.current.coordinates.latitude,
+        destLng: destinationRef.current.coordinates.longitude,
         userSocketId: socket.id,
       }),
     }).catch((error) => {
@@ -168,10 +188,10 @@ export default function UserHomeScreen({ navigation }) {
     let data = await res.json();
     setWalkId(data["id"]); // store walkId in the WalkContext
     setCoordinates(
-      start.coordinates.latitude + '',
-      start.coordinates.longitude + '',
-      destination.coordinates.latitude + '',
-      destination.coordinates.longitude + ''
+      startRef.current.coordinates.latitude + '',
+      startRef.current.coordinates.longitude + '',
+      destinationRef.current.coordinates.latitude + '',
+      destinationRef.current.coordinates.longitude + ''
     ); // store coordinates in the WalkContext
 
     // send notification to all Safewalkers
@@ -193,8 +213,8 @@ export default function UserHomeScreen({ navigation }) {
       setValue("startLocation", location, true);
       setStart({
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
+          latitude: startRef.current.coordinates.latitude,
+          longitude: startRef.current.coordinates.longitude
         },
         text: location
       });
@@ -202,41 +222,41 @@ export default function UserHomeScreen({ navigation }) {
       setValue("endLocation", location, true);
       setDestination({
         coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
+          latitude: destinationRef.current.coordinates.latitude,
+          longitude: destinationRef.current.coordinates.longitude
         },
         text: location
       });
     }
   };
 
-  async function onStartTextChange(textValue) {
+  function onStartTextChange(textValue) {
     setStart({
       coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
+        latitude: startRef.current.coordinates.latitude,
+        longitude: startRef.current.coordinates.longitude
       },
       text: textValue
     });
   }
 
-  async function onDestinationTextChange(textValue) {
+  function onDestinationTextChange(textValue) {
     setDestination({
       coordinates: {
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
+        latitude: destinationRef.current.coordinates.latitude,
+        longitude: destinationRef.current.coordinates.longitude
       },
       text: textValue
     });
   }
 
-  async function getStartCoordinates(text) {
+  function getStartCoordinates(text) {
     if(text == "Current Location") {
       navigator.geolocation.getCurrentPosition(showLocation);
       setStart({
         coordinates: {
-          latitude: location.coordinates.latitude,
-          longitude: location.coordinates.longitude
+          latitude: locationRef.current.coordinates.latitude,
+          longitude: locationRef.current.coordinates.longitude
         },
         text: text
       });
@@ -258,7 +278,7 @@ export default function UserHomeScreen({ navigation }) {
       })
   }
 
-  async function getDestinationCoordinates(text) {
+  function getDestinationCoordinates(text) {
     var replaced = text.split(' ').join('+');
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
@@ -275,14 +295,14 @@ export default function UserHomeScreen({ navigation }) {
       })
   }
 
-  async function getStartAddress(coordinates) {
+  function getStartAddress(coordinates) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
     .then(res => {
       setStart({
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
+          latitude: startRef.current.coordinates.latitude,
+          longitude: startRef.current.coordinates.longitude
         },
         text: res.data.results[0].formatted_address
       })
@@ -290,14 +310,14 @@ export default function UserHomeScreen({ navigation }) {
     })
   }
 
-  async function getDestinationAddress(coordinates) {
+  function getDestinationAddress(coordinates) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
     .then(res => {
       setDestination({
         coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
+          latitude: destinationRef.current.coordinates.latitude,
+          longitude: destinationRef.current.coordinates.longitude
         },
         text: res.data.results[0].formatted_address
       })
@@ -305,137 +325,78 @@ export default function UserHomeScreen({ navigation }) {
     })
   }
 
-  async function updateStart() {
+  function updateStart() {
 
-    getStartCoordinates(start.text);
+    getStartCoordinates(startRef.current.text);
 
-    changeLocation("start", start.text);
+    changeLocation("start", startRef.current.text);
 
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
+    setStartMarker({
+      title: 'Start',
+      coordinates: {
+        latitude: startRef.current.coordinates.latitude,
+        longitude: startRef.current.coordinates.longitude
       }
-    ])
+    })
   }
 
-  async function updateDestination() {
+  function updateDestination() {
 
-    getDestinationCoordinates(destination.text);
+    getDestinationCoordinates(destinationRef.current.text);
 
-    changeLocation("destination", destination.text);
+    changeLocation("destination", destinationRef.current.text);
 
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
+    setDestMarker({
+      title: 'Destination',
+      coordinates: {
+        latitude: destinationRef.current.coordinates.latitude,
+        longitude: destinationRef.current.coordinates.longitude
       }
-    ])
+    })
 
   }
 
-  async function showLocation(position) {
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        },
-        text: "Current Location"
-      }
-    )
- }
-
-  async function currentAsStart() {
+  function currentAsStart() {
 
     navigator.geolocation.getCurrentPosition(showLocation);
 
     setStart({
       coordinates: {
-        latitude: location.coordinates.latitude,
-        longitude: location.coordinates.longitude
+        latitude: locationRef.current.coordinates.latitude,
+        longitude: locationRef.current.coordinates.longitude
       },
       text: "Current Location"
     });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: location.coordinates.latitude,
-          longitude: location.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
-      }
-    ])
-    // mapRef.current.fitToElements();
-  }
-
-  async function homeAsDest() {
-    setDestination({
+    setStartMarker({
+      title: 'Start',
       coordinates: {
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
-      },
-      text: ""
-    });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: homePlace.coordinates.latitude,
-          longitude: homePlace.coordinates.longitude
-        }
+        latitude: locationRef.current.coordinates.latitude,
+        longitude: locationRef.current.coordinates.longitude
       }
-    ])
-    // mapRef.current.fitToElements();
+    })
+
+    changeLocation("start", startRef.current.text);
   }
 
-  async function onMapReady() {
+  function onMapReady() {
     currentAsStart();
-    homeAsDest();
     // mapRef.current.fitToElements();
   };
+
+  /* Notification Setup
+askNotification (only for starting screens): Asks iOS for notification permissions
+*/
+
+  const askNotification = async () => {
+    // We need to ask for Notification permissions for ios devices
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+    if (Constants.isDevice && status === 'granted')
+      console.log('Notification permissions granted.');
+  };
+
+  useEffect(() => {
+    askNotification();
+  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -456,27 +417,27 @@ export default function UserHomeScreen({ navigation }) {
               longitudeDelta: 0.0421,
             }}
           >
-            {markers.map((marker) => (
-              <MapView.Marker
-                key={marker.key}
-                coordinate={{
-                  latitude: marker.coordinates.latitude,
-                  longitude: marker.coordinates.longitude
-                }}
-                title={marker.title}
-                pinColor={pinColor[marker.key]}
-                icon={{
-                  style: styles.icon,
-                  type: "material",
-                  name: "directions-walk"
-                }}
-              />
-            ))}
+            <MapView.Marker
+              coordinate={{
+                latitude: startMarkerRef.current.coordinates.latitude,
+                longitude: startMarkerRef.current.coordinates.longitude
+              }}
+              title={startMarkerRef.current.title}
+              pinColor={pinColor[0]}
+            />
+            <MapView.Marker
+              coordinate={{
+                latitude: destMarkerRef.current.coordinates.latitude,
+                longitude: destMarkerRef.current.coordinates.longitude
+              }}
+              title={destMarkerRef.current.title}
+              pinColor={pinColor[1]}
+            />
           </MapView>
            {/* User Start and End Location input fields */}
            <View style={styles.inputContainer}>
               {errors.startLocation && (
-                <Text style={style.textError}>Start location is required.</Text>
+                <Text style={styles.textError}>Start location is required.</Text>
               )}
               <Input
                 inputStyle={styles.inputStyle}
@@ -484,7 +445,7 @@ export default function UserHomeScreen({ navigation }) {
                 containerStyle={styles.containerStyle}
                 placeholder="Start Location"
                 ref={register({ name: "startLocation" }, { required: true })}
-                value={start.text}
+                value={startRef.current.text}
                 returnKeyType='search'
                 onChangeText={onStartTextChange}
                 onSubmitEditing={updateStart}
@@ -502,7 +463,7 @@ export default function UserHomeScreen({ navigation }) {
                 */
               />
               {errors.endLocation && (
-                <Text style={style.textError}>Destination is required.</Text>
+                <Text style={styles.textError}>Destination is required.</Text>
               )}
               <Input
                 inputStyle={styles.inputStyle}
@@ -510,7 +471,7 @@ export default function UserHomeScreen({ navigation }) {
                 containerStyle={styles.containerStyle}
                 placeholder="Destination"
                 ref={register({ name: "endLocation" }, { required: true })}
-                value={destination.text}
+                value={destinationRef.current.text}
                 onChangeText={onDestinationTextChange}
                 onSubmitEditing={updateDestination}
                 returnKeyType='search'
@@ -643,4 +604,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     position: "absolute",
   },
+  textError : {
+    color: colors.red,
+    fontSize: wp("4%"),
+    paddingBottom:5
+  }
 });

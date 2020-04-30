@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Linking } from "expo";
+import { Keyboard,StyleSheet, Text, View } from "react-native";
+import {Linking, Notifications} from "expo";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 // Libraries
@@ -66,6 +66,7 @@ export default function UserProfileScreen({ navigation }) {
         // user canceled the walk
         case -2:
           resetWalkContextState();
+          setUserCancelNotification(1000);
           alert("The user canceled the walk.");
           console.log("listened to user walk - cancelled request");
           break;
@@ -85,6 +86,7 @@ export default function UserProfileScreen({ navigation }) {
         // reset the Walk states
         // This will bring navigation to InactiveWalk screens
         resetWalkContextState();
+        setCancelNotification(1000);
         alert("Connection lost, walk cancelled.");
       }
     });
@@ -160,6 +162,44 @@ export default function UserProfileScreen({ navigation }) {
      * therefore ensures that the API call is made for the correct User.
      */
   }, [userEmail]);
+
+
+  /* Notification Setup 1
+setCancelNotification: schedules notification for <time>
+*/
+  const CancelNotification = { title: 'Connection is Lost', body: 'Connection lost, walk cancelled.' };
+  let localCancelNotificationId = null;
+  const setCancelNotification = time => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localCancelNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        CancelNotification,
+        schedulingOptions,
+    );
+  };
+
+  /* Notification Setup 2
+setCancelNotification: schedules notification for <time>
+*/
+  const userCancelNotification = { title: 'Walk Cancelled', body: 'User canceled the walk' };
+  let localUserCancelNotificationId = null;
+  const setUserCancelNotification = time => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localUserCancelNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        userCancelNotification,
+        schedulingOptions,
+    );
+  };
+
 
   /**
    * Loads the user profile from the database based on the user's email

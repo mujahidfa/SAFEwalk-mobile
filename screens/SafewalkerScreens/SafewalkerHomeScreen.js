@@ -18,12 +18,14 @@ import style from "./../../constants/style";
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const [requests, setRequests] = useState([]);
   const { userToken, email } = useContext(AuthContext);
   const { setUserInfo, setCoordinates, setWalkAsActive } = useContext(WalkContext);
-  
+
   /**
    * This effect sets up the socket connection to the User to listen to new walk requests.
    * This effect is run once upon component mount.
@@ -32,7 +34,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     // this is to fix memory leak error: Promise cleanup
     const loadWalkAbortController = new AbortController();
     const signal = loadWalkAbortController.signal;
-
+    askNotification();
     loadWalk(signal);
 
     socket.removeAllListeners();
@@ -54,6 +56,17 @@ export default function SafewalkerHomeScreen({ navigation }) {
       loadWalkAbortController.abort();
     };
   }, []);
+
+  /* Notification Setup
+askNotification (only for starting screens): Asks iOS for notification permissions
+*/
+
+  const askNotification = async () => {
+    // We need to ask for Notification permissions for ios devices
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+    if (Constants.isDevice && status === 'granted')
+      console.log('Notification permissions granted.');
+  };
 
   /**
    * Loads the walk requests from the database and fills them in local state (i.e. in "requests")

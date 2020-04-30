@@ -13,6 +13,9 @@ import {
 } from "react-native-responsive-screen";
 
 import { WalkContext } from "./../../contexts/WalkProvider";
+import {Notifications} from "expo";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
 // constants
@@ -33,6 +36,9 @@ export default function UserMapScreen({ navigation }) {
     text: ""
   });
 
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
   console.log(startLat + ", " + startLng);
 
   const [destination, setDestination] = useState({
@@ -40,7 +46,7 @@ export default function UserMapScreen({ navigation }) {
       latitude: parseFloat(destLat),
       longitude: parseFloat(destLng)
     },
-    text: "Destination"
+    title: "Destination"
   });
 
   // walk origin - default to current location
@@ -49,51 +55,34 @@ export default function UserMapScreen({ navigation }) {
       latitude: parseFloat(startLat),
       longitude: parseFloat(startLng)
     },
-    text: "Start"
+    title: "Start"
   });
 
   const [safewalker, setSafewalker] = useState({
     coordinates: {
-      latitude: 43.075143,
-      longitude: -89.400151
+      latitude: start.coordinates.latitude,
+      longitude: start.coordinates.longitude
     },
-    text: "SAFEwalker"
+    title: "SAFEwalker"
   });
 
-  const [markers, setMarkers] = useState([
-    {
-      key: 0,
-      title: 'Start',
-      coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
-      }
-    },
-    {
-      key: 1,
-      title: 'Destination',
-      coordinates: {
-        // replace with api to get user's home address
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
-      }
-    }
-  ]);
-
-  const [walkerMarker, setWalkerMarker] = useState(
-    {
-      title: 'SAFEwalker',
-      coordinates: {
-        // replace with api to get user's home address
-        latitude: safewalker.coordinates.latitude,
-        longitude: safewalker.coordinates.longitude
-      }
-    }
-  );
+  const destRef = useRef(destination);
+  destRef.current = destination;
+  const startRef = useRef(start);
+  startRef.current = start;
+  const walkerRef = useRef(safewalker);
+  walkerRef.current = safewalker;
 
   const [duration, setDuration] = useState("0 minutes");
   const [distance, setDistance] = useState("0");
   const [eta, setEta] = useState("0");
+
+  const durRef = useRef(duration);
+  durRef.current = duration;
+  const distRef = useRef(distance);
+  distRef.current = distance;
+  const etaRef = useRef(eta);
+  etaRef.current = eta;
 
   async function showLocation(position) {
     setLocation(
@@ -109,7 +98,12 @@ export default function UserMapScreen({ navigation }) {
 
   async function getEta() {
     navigator.geolocation.getCurrentPosition(showLocation);
-    var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + location.coordinates.latitude + ", " + location.coordinates.longitude + "&destinations=" + safewalker.coordinates.latitude + ", " + safewalker.coordinates.longitude + "&mode=walking&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    var axiosURL =
+      "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins="
+        + locationRef.current.coordinates.latitude + ", "
+        + locationRef.current.coordinates.longitude + "&destinations="
+        + walkerRef.current.coordinates.latitude + ", "
+        + walkerRef.current.coordinates.longitude + "&mode=walking&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
       .then(res => {
         console.log(res);
@@ -165,7 +159,7 @@ export default function UserMapScreen({ navigation }) {
       //     text: "SAFEwalker"
       //   }
       // );
-      setWalkerMarker({
+      setSafewalker({
         title: 'SAFEwalker',
         coordinates: {
           // replace with api to get user's home address
@@ -173,6 +167,7 @@ export default function UserMapScreen({ navigation }) {
           longitude: lng
         }
       })
+      getEta();
       // mapRef.current.fitToElements();
     });
 
@@ -201,6 +196,7 @@ export default function UserMapScreen({ navigation }) {
 
     socket.on("connection lost", (status) => {
       if (status) {
+        setNotification(1000);
         alert("Connection Lost");
         // TODO: button to cancel walk, call cancelWalk()
       }
@@ -213,6 +209,25 @@ export default function UserMapScreen({ navigation }) {
       socket.off("connection lost", null);
     };
   }, []);
+
+  /* Notification Setup
+  setNotification: schedules notification for <time>
+  */
+  const connectionNotification = { title: 'Connection Error', body: 'Connection Lost' };
+  let localNotificationId = null;
+  const setNotification = time => {
+    Keyboard.dismiss();
+    console.log("Notification set for " + time);
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        connectionNotification,
+        schedulingOptions,
+    );
+  };
 
   async function onMapReady() {
     // GET SAFEwalker coordinates
@@ -227,7 +242,6 @@ export default function UserMapScreen({ navigation }) {
         provider={PROVIDER_GOOGLE}
         style={styles.mapStyle}
         showsUserLocation={true}
-        ref={mapRef}
         minZoomLevel={10}
         maxZoomLevel={15}
         onMapReady={onMapReady}
@@ -238,31 +252,36 @@ export default function UserMapScreen({ navigation }) {
           longitudeDelta: 0.0421,
         }}
       >
-        {markers.map((marker) => (
-          <MapView.Marker
-          key={marker.key}
-          coordinate={{
-          latitude: marker.coordinates.latitude,
-          longitude: marker.coordinates.longitude
-          }}
-          title={marker.title}
-          pinColor={pinColor[marker.key]}
-          />
-        ))}
         <MapView.Marker
           coordinate={{
-            latitude: walkerMarker.coordinates.latitude,
-            longitude: walkerMarker.coordinates.longitude
+            latitude: startRef.current.coordinates.latitude,
+            longitude: startRef.current.coordinates.longitude
           }}
-          title={walkerMarker.title}
+          title={startRef.current.title}
+          pinColor={pinColor[0]}
+        />
+        <MapView.Marker
+          coordinate={{
+            latitude: destRef.current.coordinates.latitude,
+            longitude: destRef.current.coordinates.longitude
+          }}
+          title={destRef.current.title}
+          pinColor={pinColor[1]}
+        />
+        <MapView.Marker
+          coordinate={{
+            latitude: walkerRef.current.coordinates.latitude,
+            longitude: walkerRef.current.coordinates.longitude
+          }}
+          title={walkerRef.title}
           icon={require('../../assets/walking-solid.png')}
         />
         <View styles={{ flex: 1, flexDirection: 'column' }}>
           <Text style={styles.textStyle1}>
-            ETA: {duration}
+            ETA: {durRef.current}
           </Text>
           <Text style={styles.textStyle2}>
-            Distance: {distance}
+            Distance: {distRef.current}
           </Text>
         </View>
       </MapView>

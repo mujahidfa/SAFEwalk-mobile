@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Text, View, StyleSheet } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet, Keyboard,
+} from "react-native";
 import LottieView from "lottie-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   heightPercentageToDP as hp
 } from "react-native-responsive-screen";
+import {Notifications} from "expo";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
 // Components
 import Button from "./../../components/Button";
@@ -31,16 +38,39 @@ export default function UserHomeScreen({ navigation }) {
     WalkContext
   );
 
+  /* Notification Setup
+setNotification: schedules notification for <time>
+handleNotification: cancels all scheduled notifications
+*/
+  const requestTimeOutNotification = { title: 'Request Error', body: 'Request Timed Out' };
+  let localNotificationId = null;
+  const setNotification = text => {
+    Keyboard.dismiss();
+    console.log("Notification set for " + text);
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(text),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        requestTimeOutNotification,
+        schedulingOptions,
+    );
+  };
+  const handleNotification = async () => {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  };
+
   /**
    * This effect sets up the socket connection to the SAFEwalker to listen to walk request responses.
    * This effect is run once upon component mount.
    */
   useEffect(() => {
     socket.removeAllListeners();
-
+    setNotification(30000);
     console.log("in useEffect socket of UserWaitScreen");
     // socket to listen to walker status change
-    socket.on("walker walk status", (status) => {
+    socket.on("walker walk status", async (status) => {
       console.log("walk status in UserWaitScreen:" + status);
 
       switch (status) {
@@ -57,16 +87,19 @@ export default function UserHomeScreen({ navigation }) {
               },
             ],
           });
+          await handleNotification();
           alert("Your request was denied.");
           break;
 
         // Request accepted by SAFEwalker
         case 1:
           setWalkAsActive();
+          await handleNotification();
           alert("A SAFEwalker is on their way!");
           break;
 
         default:
+          await handleNotification();
           console.log(
             "Unexpected socket status received in UserWaitScreen: status " +
             status
@@ -161,6 +194,7 @@ export default function UserHomeScreen({ navigation }) {
       setIsTimeout(false);
       alert("Your request was timed out.");
     } else {
+      await handleNotification();
       alert("Request canceled.");
     }
   }

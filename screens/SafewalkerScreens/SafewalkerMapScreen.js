@@ -23,6 +23,7 @@ import style from "./../../constants/style";
 // Contexts
 import { AuthContext } from "../../contexts/AuthProvider";
 import { WalkContext } from "../../contexts/WalkProvider";
+import {Notifications} from "expo";
 
 import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
@@ -32,6 +33,68 @@ export default function MapScreen({ navigation }) {
   const { walkId, startLat, startLng, destLat, destLng, userSocketId, resetWalkContextState } = useContext(
     WalkContext
   );
+
+  // /**
+  //  * This effect sets up the socket connection to the User.
+  //  * This effect is run once upon component mount.
+  //  */
+  useEffect(() => {
+    socket.removeAllListeners();
+
+    // socket to listen to user status change
+    socket.on("user walk status", (status) => {
+      console.log("user walk status in SWMapScreen:" + status);
+
+      switch (status) {
+        // User cancelled the walk
+        case -2:
+          // walk has ended, we reset the walk state and return to InactiveWalk screens
+          resetWalkContextState();
+          alert("The SAFEwalker canceled the walk.");
+          break;
+
+        default:
+          console.log(
+            "Unexpected socket status received in SafewalkerMapScreen: status " +
+            status
+          );
+      }
+    });
+
+    socket.on("connection lost", (status) => {
+      if (status) {
+        setDisconnectNotification(1000);
+        alert("Connection Lost");
+        // TODO: button to cancel walk, call cancelWalk()
+      }
+    });
+
+    // socket cleanup
+    return () => {
+      socket.off("user walk status", null);
+      socket.off("connection lost", null);
+    };
+  }, []);
+
+
+  /* Notification Setup
+setDisconnectNotification: schedules notification for <time>
+*/
+  const disconnectionNotification = { title: 'Walk Cancelled', body: 'SAFEwalker canceled the walk' };
+  let localDisconnectNotificationId = null;
+  const setDisconnectNotification = time => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localDisconnectNotificationId  = Notifications.scheduleLocalNotificationAsync(
+        disconnectionNotification,
+        schedulingOptions,
+    );
+  };
+
 
   /**
    * Upon complete button press, update the current walk status in the database as completed
@@ -112,32 +175,25 @@ export default function MapScreen({ navigation }) {
     text: "User"
   });
 
-  const [markers, setMarkers] = useState([
+  const [startMarker, setStartMarker] = useState(
     {
-      key: 0,
       title: 'Start',
       coordinates: {
         latitude: start.coordinates.latitude,
         longitude: start.coordinates.longitude
       }
-    },
+    }
+  );
+
+  const [destMarker, setDestMarker] = useState(
     {
-      key: 1,
       title: 'Destination',
       coordinates: {
         latitude: destination.coordinates.latitude,
         longitude: destination.coordinates.longitude
       }
-    },
-    // {
-    //   key: 2,
-    //   title: 'User',
-    //   coordinates: {
-    //     latitude: user.coordinates.latitude,
-    //     longitude: user.coordinates.longitude
-    //   }
-    // }
-  ]);
+    }
+  );
 
   const [userMarker, setUserMarkekr] = useState(
     {
@@ -200,7 +256,7 @@ export default function MapScreen({ navigation }) {
         provider={PROVIDER_GOOGLE}
         style={styles.mapStyle}
         showsUserLocation={true}
-        ref={mapRef}
+        /*ref={mapRef}*/
         minZoomLevel={10}
         maxZoomLevel={15}
         // onMapReady={onMapReady}
@@ -211,22 +267,27 @@ export default function MapScreen({ navigation }) {
           longitudeDelta: 0.0421,
         }}
       >
-        {markers.map((marker) => (
-          <MapView.Marker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.coordinates.latitude,
-              longitude: marker.coordinates.longitude
-            }}
-            title={marker.title}
-            pinColor={pinColor[marker.key]}
-          />
-        ))}
+        <MapView.Marker
+          coordinate={{
+            latitude: startMarker.coordinates.latitude,
+            longitude: startMarker.coordinates.longitude
+          }}
+          title={startMarker.title}
+          pinColor={pinColor[0]}
+        />
+        <MapView.Marker
+          coordinate={{
+            latitude: destMarker.coordinates.latitude,
+            longitude: destMarker.coordinates.longitude
+          }}
+          title={destMarker.title}
+          pinColor={pinColor[1]}
+        />
       </MapView>
       {/* User Start and End Location input fields */}
       <View style={styles.buttonContainer}>
         <Button
-          title="Mark walk as complete"
+          title="Complete Walk"
           loading={isLoading}
           disabled={isLoading}
           onPress={() => completeWalk()}

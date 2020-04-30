@@ -9,8 +9,14 @@ npm-debug.*
 *.orig.*
 web-build/
 web-report/
+.idea/*
 .jest/*
 coverage
 
 # macOS
 .DS_Store
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/SAFEwalk-mobile.iml
+/.idea/vcs.xml
+/yarn-error.log
