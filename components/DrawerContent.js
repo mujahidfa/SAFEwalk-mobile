@@ -148,6 +148,6 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     height: hp("80%"),
     paddingLeft: wp("1%"),
-    paddingTop: wp("1%"),
+    paddingTop: wp("5.5%"),
   },
 });
