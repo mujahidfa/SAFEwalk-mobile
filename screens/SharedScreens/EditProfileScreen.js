@@ -152,7 +152,7 @@ export default function EditProfileScreen() {
       })
       .catch((error) => {
         console.log(error.message);
-        console.log("Error in saving profile information. Please try again.");
+        //console.log("Error in saving profile information. Please try again.");
       });
   };
 
@@ -171,6 +171,7 @@ export default function EditProfileScreen() {
               {!image ? (
                 <Avatar
                   rounded
+                  accessibilityLabel="NoImageAvatar"
                   size={150}
                   title={firstName[0] + lastName[0]}
                   containerStyle={styles.avatar}
@@ -179,23 +180,24 @@ export default function EditProfileScreen() {
               ) : (
                 <Avatar
                   rounded
+                  accessibilityLabel="ImageAvatar"
                   source={{ uri: image }}
                   size={150}
                   containerStyle={styles.avatar}
                 />
               )}
             </View>
-            <Divider style={styles.divider} />
-            <Text style={styles.text}>Name: {firstName + " " + lastName}</Text>
-            <Divider style={styles.divider} />
-            <Text style={styles.text}>Phone Number: {formatPhone()}</Text>
-            <Divider style={styles.divider} />
-            <Text style={styles.text}>Interests: {interests}</Text>
-            <Divider style={styles.divider} />
+            <Divider accessibilityLabel="Divider 1" style={styles.divider} />
+            <Text accessibilityLabel="Name" style={styles.text}>Name: {firstName + " " + lastName}</Text>
+            <Divider accessibilityLabel="Divider 2" style={styles.divider} />
+            <Text accessibilityLabel="Phone" style={styles.text}>Phone Number: {formatPhone()}</Text>
+            <Divider accessibilityLabel="Divider 3" style={styles.divider} />
+            <Text accessibilityLabel="Interests" style={styles.text}>Interests: {interests}</Text>
+            <Divider accessibilityLabel="Divider 4" style={styles.divider} />
 
             {/* Button to Edit Profile */}
             <View style={styles.buttonContainer}>
-              <Button title="Edit" onPress={() => setEdit(true)} />
+              <Button accessibilityLabel="EditButton" title="Edit" onPress={() => setEdit(true)} />
             </View>
           </SafeAreaView>
         </ScrollView>
@@ -206,6 +208,7 @@ export default function EditProfileScreen() {
               {!image ? (
                 <Avatar
                   rounded
+                  accessibilityLabel="NoImageAvatarEdit"
                   size={150}
                   title={firstName[0] + lastName[0]}
                   containerStyle={styles.avatar}
@@ -216,6 +219,7 @@ export default function EditProfileScreen() {
               ) : (
                 <Avatar
                   rounded
+                  accessibilityLabel="ImageAvatarEdit"
                   source={{ uri: image }}
                   size={150}
                   containerStyle={styles.avatar}
@@ -227,6 +231,7 @@ export default function EditProfileScreen() {
             <View style={{backgroundColor: colors.white}}>
               <TextInput
                   label="First Name"
+                  accessibilityLabel="FirstName"
                   defaultValue={firstName}
                   onChangeText={setFirstName}
                   mode="outlined"
@@ -235,6 +240,7 @@ export default function EditProfileScreen() {
               />
               <TextInput
                   label="Last Name"
+                  accessibilityLabel="LastName"
                   defaultValue={lastName}
                   onChangeText={setLastName}
                   mode="outlined"
@@ -250,6 +256,7 @@ export default function EditProfileScreen() {
               <RNTextInput
                   label="Phone Number"
                   defaultValue={phoneNumber}
+                  accessibilityLabel="PhoneNumber"
                   ref={register(
                       { name: "phoneNumber" },
                       {
@@ -267,6 +274,7 @@ export default function EditProfileScreen() {
               />
               <TextInput
                   label="Interests"
+                  accessibilityLabel="InterestsInput"
                   defaultValue={interests}
                   placeholder={interests}
                   onChangeText={setInterests}
@@ -279,7 +287,7 @@ export default function EditProfileScreen() {
 
               {/* Button to Edit Profile */}
               <View style={styles.buttonContainer}>
-                <Button title="Save" onPress={handleSubmit(onSubmit)} />
+                <Button accessibilityLabel="saveButton" title="Save" onPress={handleSubmit(onSubmit)} />
               </View>
             </View>
 
