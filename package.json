@@ -5,7 +5,11 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "eject": "expo eject"
+    "eject": "expo eject",
+    "test": "jest --watch --coverage=true",
+    "testDebug": "jest -o --watch --coverage=false",
+    "testFinal": "jest",
+    "updateSnapshots": "jest -u --coverage=false"
   },
   "dependencies": {
     "@react-native-community/datetimepicker": "2.1.0",
@@ -46,7 +50,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
-    "babel-preset-expo": "~8.0.0"
+    "@testing-library/react-native": "^5.0.3",
+    "abort-controller": "^3.0.0",
+    "babel-preset-expo": "~8.0.0",
+    "jest-expo": "^37.0.0",
+    "react-test-renderer": "^16.13.1"
   },
   "private": true
 }

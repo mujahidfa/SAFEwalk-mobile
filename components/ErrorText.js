@@ -9,8 +9,12 @@ import {
 import colors from "../constants/colors";
 import style from "../constants/style";
 
-export default function ErrorText({ children }) {
-  return <Text style={styles.textError}>{children}</Text>;
+export default function ErrorText({ accessibilityLabel, children }) {
+  return (
+    <Text accessibilityLabel={accessibilityLabel} style={styles.textError}>
+      {children}
+    </Text>
+  );
 }
 
 const styles = StyleSheet.create({
