@@ -6,6 +6,7 @@ import {
   NativeTestEvent,
   act,
   wait,
+  waitForElement,
   waitForElementToBeRemoved,
   render,
 } from "@testing-library/react-native";
@@ -81,7 +82,7 @@ describe("SuccessScreen ", () => {
     expect(screen.getByLabelText("Go to main screen")).toBeTruthy();
   });
 
-  it("succeeds if email and password is valid", async () => {
+  it("succeeds if email and password is valid", () => {
     let finishButton = screen.getByLabelText("Go to main screen");
     act(() => {
       fireEvent.press(finishButton);
@@ -99,6 +100,11 @@ describe("SuccessScreen ", () => {
     act(() => {
       fireEvent.press(finishButton);
     });
+
+    // wait for Error appearance
+    // await wait(() => {
+    //   expect(screen.queryByLabelText("isUserNotAvailable")).toBeNull();
+    // });
   });
 
   it("shows error if input is empty", async () => {
@@ -121,6 +127,11 @@ describe("SuccessScreen ", () => {
     let finishButton = screen.getByLabelText("Go to main screen");
     act(() => {
       fireEvent.press(finishButton);
+    });
+
+    // wait for Error appearance
+    await wait(() => {
+      expect(screen.getByLabelText("isLoginError")).toBeTruthy();
     });
   });
 });
