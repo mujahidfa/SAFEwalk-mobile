@@ -1,5 +1,14 @@
-import React, { useEffect, useState, useContext } from "react";
-import {Keyboard, StyleSheet, Text, View} from "react-native";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import {
+  StyleSheet,
+  Text,
+  Dimensions,
+  View,
+} from "react-native";
+
+import {
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 // Custom components
 import Button from "./../../components/Button";
@@ -15,6 +24,8 @@ import style from "./../../constants/style";
 import { AuthContext } from "../../contexts/AuthProvider";
 import { WalkContext } from "../../contexts/WalkProvider";
 import {Notifications} from "expo";
+
+import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
 
 export default function MapScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -136,18 +147,151 @@ setDisconnectNotification: schedules notification for <time>
     resetWalkContextState();
   }
 
+  const mapRef = useRef(null);
+  const pinColor = ["green", "red", "blue"];
+
+  const [destination, setDestination] = useState({
+    coordinates: {
+      latitude: parseFloat(destLat),
+      longitude: parseFloat(destLng)
+    },
+    text: "Destination"
+  });
+
+  // walk origin
+  const [start, setStart] = useState({
+    coordinates: {
+      latitude: parseFloat(startLat),
+      longitude: parseFloat(startLng)
+    },
+    text: "Current Location"
+  });
+
+  const [user, setUser] = useState({
+    coordinates: {
+      latitude: 43.075143,
+      longitude: -89.400151
+    },
+    text: "User"
+  });
+
+  const [startMarker, setStartMarker] = useState(
+    {
+      title: 'Start',
+      coordinates: {
+        latitude: start.coordinates.latitude,
+        longitude: start.coordinates.longitude
+      }
+    }
+  );
+
+  const [destMarker, setDestMarker] = useState(
+    {
+      title: 'Destination',
+      coordinates: {
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
+      }
+    }
+  );
+
+  const [userMarker, setUserMarkekr] = useState(
+    {
+      title: 'User',
+      coordinates: {
+        latitude: user.coordinates.latitude,
+        longitude: user.coordinates.longitude
+      }
+    }
+  );
+
+  // /**
+  //  * This effect sets up the socket connection to the User.
+  //  * This effect is run once upon component mount.
+  //  */
+  useEffect(() => {
+    socket.removeAllListeners();
+
+    // socket to listen to user status change
+    socket.on("user walk status", (status) => {
+      console.log("user walk status in SWMapScreen:" + status);
+
+      switch (status) {
+        // User cancelled the walk
+        case -2:
+          // walk has ended, we reset the walk state and return to InactiveWalk screens
+          resetWalkContextState();
+          alert("The SAFEwalker canceled the walk.");
+          break;
+
+        default:
+          console.log(
+            "Unexpected socket status received in SafewalkerMapScreen: status " +
+            status
+          );
+      }
+    });
+
+    socket.on("connection lost", (status) => {
+      if (status) {
+        alert("Connection Lost");
+        // TODO: button to cancel walk, call cancelWalk()
+      }
+    });
+
+    // socket cleanup
+    return () => {
+      socket.off("user walk status", null);
+      socket.off("connection lost", null);
+    };
+  }, []);
+
+  async function onMapReady() {
+    // mapRef.current.fitToElements();
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.innerContainer}>
-        <Text>SAFEwalker Map Screen</Text>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Mark walk as complete"
-            loading={isLoading}
-            disabled={isLoading}
-            onPress={() => completeWalk()}
-          />
-        </View>
+      <MapView
+        provider={PROVIDER_GOOGLE}
+        style={styles.mapStyle}
+        showsUserLocation={true}
+        /*ref={mapRef}*/
+        minZoomLevel={10}
+        maxZoomLevel={15}
+        // onMapReady={onMapReady}
+        initialRegion={{
+          latitude: 43.075143,
+          longitude: -89.400151,
+          latitudeDelta: 0.0822,
+          longitudeDelta: 0.0421,
+        }}
+      >
+        <MapView.Marker
+          coordinate={{
+            latitude: startMarker.coordinates.latitude,
+            longitude: startMarker.coordinates.longitude
+          }}
+          title={startMarker.title}
+          pinColor={pinColor[0]}
+        />
+        <MapView.Marker
+          coordinate={{
+            latitude: destMarker.coordinates.latitude,
+            longitude: destMarker.coordinates.longitude
+          }}
+          title={destMarker.title}
+          pinColor={pinColor[1]}
+        />
+      </MapView>
+      {/* User Start and End Location input fields */}
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Mark walk as complete"
+          loading={isLoading}
+          disabled={isLoading}
+          onPress={() => completeWalk()}
+        />
       </View>
     </View>
   );
@@ -165,8 +309,15 @@ const styles = StyleSheet.create({
     marginHorizontal: style.marginContainerHorizontal,
   },
   buttonContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-    marginBottom: style.marginContainerHorizontal,
+    position: "absolute",
+    bottom: 20,
+    right: 75,
+    left: 75,
+  },
+  mapStyle: {
+    marginTop: 0,
+    width: Dimensions.get('window').width,
+    height: hp("83%"),
+    justifyContent: 'space-between'
   },
 });

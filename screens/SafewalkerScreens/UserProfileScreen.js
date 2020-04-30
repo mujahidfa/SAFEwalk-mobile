@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
-import {Keyboard, StyleSheet, Text, View} from "react-native";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import { Keyboard,StyleSheet, Text, View } from "react-native";
 import {Linking, Notifications} from "expo";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
@@ -35,6 +35,16 @@ export default function UserProfileScreen({ navigation }) {
   const [address, setAddress] = useState("728 State St");
   const [postalCode, setPostalCode] = useState("53715");
   const [city, setCity] = useState("Madison");
+
+  const [location, setLocation] = useState({
+    coordinates: {
+      latitude: 43.081606,
+      longitude: -89.376298
+    }
+  });
+
+  const locationRef = useRef(location);
+  locationRef.current = location;
 
   const { userToken, email } = useContext(AuthContext);
   const { walkId, userEmail, userSocketId, resetWalkContextState } = useContext(
@@ -88,6 +98,20 @@ export default function UserProfileScreen({ navigation }) {
     };
   }, []);
 
+  async function showLocation(position) {
+
+    console.log("Walker location: " + position.coords.latitude + ", " + position.coords.longitude);
+
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        }
+      }
+    );
+ }
+
   useEffect(() => {
     // send location to user every 5 seconds
     const interval = setInterval(() => {
@@ -96,10 +120,14 @@ export default function UserProfileScreen({ navigation }) {
       if (userSocketId != null) {
         console.log("sending");
         // send location to user
+
+        navigator.geolocation.getCurrentPosition(showLocation);
+
+        // console.log("Updated state: " + location.coordinates.latitude + ", " + location.coordinates.longitude);
         socket.emit("walker location", {
           userId: userSocketId,
-          lat: 0,
-          lng: 0,
+          lat: locationRef.current.coordinates.latitude,
+          lng: locationRef.current.coordinates.longitude,
         });
       }
     }, 5000); // 5 seconds

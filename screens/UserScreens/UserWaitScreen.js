@@ -26,7 +26,6 @@ import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
 import style from "../../constants/style";
 
-
 export default function UserHomeScreen({ navigation }) {
   const [isTimeout, setIsTimeout] = useState(false);
 
@@ -66,10 +65,9 @@ handleNotification: cancels all scheduled notifications
    * This effect sets up the socket connection to the SAFEwalker to listen to walk request responses.
    * This effect is run once upon component mount.
    */
-  useEffect( () => {
+  useEffect(() => {
     socket.removeAllListeners();
     setNotification(30000);
-
     console.log("in useEffect socket of UserWaitScreen");
     // socket to listen to walker status change
     socket.on("walker walk status", async (status) => {
@@ -214,21 +212,22 @@ handleNotification: cancels all scheduled notifications
           autoSize={true}
           style={styles.animation}
         />
-
-        {/* Informational Text to the User */}
-        <Text style={styles.textHeader}>
-          Waiting for SAFEwalker
-        </Text>
-        <Text style={styles.text}>
-          {'\n'}Your request has been submitted and is pending approval by the next available SAFEwalker.
-        </Text>
+        <View>
+          {/* Informational Text to the User */}
+          <Text style={styles.textHeader}>
+            Waiting for SAFEwalker
+          </Text>
+          <Text style={styles.text}>
+            {'\n'}Your request has been submitted and is pending approval by the next available SAFEwalker.
+          </Text>
+        </View>
 
         {/* Button to Submit Request */}
         <View style={styles.buttonContainer}>
           <Button
-              title="Cancel"
-              onPress={() => cancelRequest()}
-              color="red"
+            title="Cancel"
+            onPress={() => cancelRequest()}
+            color="red"
           />
         </View>
       </SafeAreaView>
@@ -243,25 +242,25 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     marginHorizontal: style.marginContainerHorizontal
   },
   animation: {
     height: hp("35%"),
     alignSelf: "center",
     justifyContent: "center",
+    marginTop: hp("9%")
   },
   textHeader: {
     textAlign: "center",
     fontSize: hp("3%"),
-    color: "black",
+    color: colors.gray,
     fontWeight: "bold",
   },
   text: {
     textAlign: "center",
     fontSize: style.fontSize,
-    color: "black",
-    fontWeight: "bold",
+    color: colors.gray,
   },
   buttonContainer: {
     height: hp("17%"),

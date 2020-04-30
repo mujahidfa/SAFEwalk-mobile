@@ -9,6 +9,7 @@ export default function WrapperTextInput(props) {
   return (
     <TextInput
       label={props.label}
+      accessibilityLabel={props.accessibilityLabel}
       value={props.defaultValue}
       placeholder={props.placeholder}
       defaultValue={props.defaultValue}

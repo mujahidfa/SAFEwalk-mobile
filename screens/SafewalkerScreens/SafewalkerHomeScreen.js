@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
-import { StyleSheet, Text, View, FlatList, totalResults, Alert  } from "react-native";
+import { StyleSheet, Text, View, FlatList, totalResults, Alert } from "react-native";
 
 // 3rd party libraries
 import Swipeable from "react-native-gesture-handler/Swipeable";
@@ -208,7 +208,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
     socket.emit("walk status", true);
 
     setUserInfo(walkId, userEmail, userSocketId); // save walk info in WalkContext
-    setCoordinates(startLat, startLng, destLat, destLng); // save coordinates in WalkContext
+    setCoordinates(startLat + '', startLng + '', destLat + '', destLng + ''); // save coordinates in WalkContext
     setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
   }
 
@@ -231,8 +231,8 @@ askNotification (only for starting screens): Asks iOS for notification permissio
       'Deny SAFEwalk Request',
       '',
       [
-        {text: 'Deny', onPress: () => deleteRequest(request.id)},
-        {text: 'Cancel', onPress: () => closeSwipeable()},
+        { text: 'Deny', onPress: () => deleteRequest(request.id) },
+        { text: 'Cancel', onPress: () => closeSwipeable() },
       ],
       { cancelable: false }
     )
@@ -316,7 +316,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
 
   function requestCount() {
     var total = requests.length;
-    return total;
+    return (total == 1) ? "1 Request" : total + " Requests";
   }
 
   const listEmptyComponent = () => (
@@ -330,18 +330,16 @@ askNotification (only for starting screens): Asks iOS for notification permissio
           marginTop: 60,
         }}
       >
-
-        </Text>
+      </Text>
     </View>
   );
 
   const ListHeaderComponent = () => (
-      <View style={styles.header}>
-        <Text style={styles.textTitle}>
-          <Text>Requests: </Text>
-          <Text style={{fontWeight: "bold"}}>{requestCount()}</Text>
-        </Text>
-      </View>
+    <View style={styles.header}>
+      <Text style={styles.textTitle}>
+        <Text style={{ fontWeight: "bold" }}>{requestCount()}</Text>
+      </Text>
+    </View>
   );
 
 
@@ -368,7 +366,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
                 <Text style={styles.location}>{request.startText}</Text>
               </View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={{ color: "red", fontWeight: "bold", fontSize: 15,}}><Icon name="map-marker" size={15} color="red" />  </Text>
+                <Text style={{ color: "red", fontWeight: "bold", fontSize: 15, }}><Icon name="map-marker" size={15} color="red" />  </Text>
                 <Text style={styles.location}>{request.endText}</Text>
               </View>
             </View>
@@ -463,9 +461,10 @@ const styles = StyleSheet.create({
   },
   textTitle: {
     color: colors.darkgray,
-    fontSize: 16,
+    fontSize: 15,
     justifyContent: "flex-start",
     marginLeft: 15,
-    padding: 1
+    padding: 1,
+    marginBottom: 3
   },
 });

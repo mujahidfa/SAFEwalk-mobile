@@ -8,7 +8,7 @@ const style = {
   buttonFontSize: hp("2%"),
   buttonHeight: hp("6%"),
   inputHeight: hp("6%"),
-  fontSize: hp("2%"),
+  fontSize: hp("2.2%"),
 };
 
 export default style;

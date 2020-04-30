@@ -42,21 +42,11 @@ const LONGITUDE = -89.401185;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-// temporary - replace with home address API call
-const homePlace = {
-  description: 'Home',
-  text: "",
-  coordinates: {
-    latitude: 43.081606,
-    longitude: -89.376298
-  }
-};
-
 const pinColor = ["green", "red"]
 
 export default function UserHomeScreen({ navigation }) {
 
-  const mapRef = useRef(null);
+  // const mapRef = useRef(null);
 
   // store current user location
   const [location, setLocation] = useState({
@@ -85,28 +75,25 @@ export default function UserHomeScreen({ navigation }) {
     text: "Current Location"
   });
 
-  const [duration, setDuration] = useState("0 minutes");
-
-  // markers and locations
-  const [markers, setMarkers] = useState([
+  const [startMarker, setStartMarker] = useState(
     {
-      key: 0,
       title: 'Start',
       coordinates: {
         latitude: start.coordinates.latitude,
         longitude: start.coordinates.longitude
       }
-    },
+    }
+  );
+
+  const [destMarker, setDestMarker] = useState(
     {
-      key: 1,
       title: 'Destination',
       coordinates: {
-        // replace with api to get user's home address
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
       }
     }
-  ]);
+  );
 
   const { userToken, email } = useContext(AuthContext);
   const { setWalkId, setCoordinates } = useContext(WalkContext);
@@ -146,11 +133,11 @@ export default function UserHomeScreen({ navigation }) {
       body: JSON.stringify({
         time: new Date(),
         startText: start.text,
-        startLat: 0,
-        startLng: 0,
+        startLat: start.coordinates.latitude,
+        startLng: start.coordinates.longitude,
         destText: destination.text,
-        destLat: 0,
-        destLng: 0,
+        destLat: destination.coordinates.latitude,
+        destLng: destination.coordinates.longitude,
         userSocketId: socket.id,
       }),
     }).catch((error) => {
@@ -172,7 +159,12 @@ export default function UserHomeScreen({ navigation }) {
 
     let data = await res.json();
     setWalkId(data["id"]); // store walkId in the WalkContext
-    setCoordinates(0, 0, 0, 0); // store coordinates in the WalkContext
+    setCoordinates(
+      start.coordinates.latitude + '',
+      start.coordinates.longitude + '',
+      destination.coordinates.latitude + '',
+      destination.coordinates.longitude + ''
+    ); // store coordinates in the WalkContext
 
     // send notification to all Safewalkers
     socket.emit("walk status", true);
@@ -311,24 +303,13 @@ export default function UserHomeScreen({ navigation }) {
 
     changeLocation("start", start.text);
 
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
+    setStartMarker({
+      title: 'Start',
+      coordinates: {
+        latitude: start.coordinates.latitude,
+        longitude: start.coordinates.longitude
       }
-    ])
+    })
   }
 
   async function updateDestination() {
@@ -337,24 +318,13 @@ export default function UserHomeScreen({ navigation }) {
 
     changeLocation("destination", destination.text);
 
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
+    setDestMarker({
+      title: 'Destination',
+      coordinates: {
+        latitude: destination.coordinates.latitude,
+        longitude: destination.coordinates.longitude
       }
-    ])
+    })
 
   }
 
@@ -381,62 +351,19 @@ export default function UserHomeScreen({ navigation }) {
       },
       text: "Current Location"
     });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
-      }
-    ])
-    mapRef.current.fitToElements();
-  }
-
-  async function homeAsDest() {
-    setDestination({
+    setStartMarker({
+      title: 'Start',
       coordinates: {
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
-      },
-      text: ""
-    });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: homePlace.coordinates.latitude,
-          longitude: homePlace.coordinates.longitude
-        }
+        latitude: start.coordinates.latitude,
+        longitude: start.coordinates.longitude
       }
-    ])
-    mapRef.current.fitToElements();
+    })
+    // mapRef.current.fitToElements();
   }
 
   async function onMapReady() {
     currentAsStart();
-    currentAsStart();
-    currentAsStart();
-    homeAsDest();
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   };
 
   /* Notification Setup
@@ -462,22 +389,33 @@ askNotification (only for starting screens): Asks iOS for notification permissio
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
             showsUserLocation={true}
-            ref={mapRef}
+            /*ref={mapRef}*/
             minZoomLevel={10}
             maxZoomLevel={15}
             onMapReady={onMapReady}
+            initialRegion={{
+              latitude: 43.075143,
+              longitude: -89.400151,
+              latitudeDelta: 0.0822,
+              longitudeDelta: 0.0421,
+            }}
           >
-            {markers.map((marker) => (
-              <MapView.Marker
-                key={marker.key}
-                coordinate={{
-                  latitude: marker.coordinates.latitude,
-                  longitude: marker.coordinates.longitude
-                }}
-                title={marker.title}
-                pinColor={pinColor[marker.key]}
-              />
-            ))}
+            <MapView.Marker
+              coordinate={{
+                latitude: startMarker.coordinates.latitude,
+                longitude: startMarker.coordinates.longitude
+              }}
+              title={startMarker.title}
+              pinColor={pinColor[0]}
+            />
+            <MapView.Marker
+              coordinate={{
+                latitude: destMarker.coordinates.latitude,
+                longitude: destMarker.coordinates.longitude
+              }}
+              title={destMarker.title}
+              pinColor={pinColor[1]}
+            />
           </MapView>
            {/* User Start and End Location input fields */}
            <View style={styles.inputContainer}>
@@ -540,7 +478,10 @@ askNotification (only for starting screens): Asks iOS for notification permissio
               raised
               type= "material"
               name= "gps-fixed"
-              onPress= {() => {currentAsStart(); mapRef.current.fitToElements();}}
+              onPress= {() => {
+                currentAsStart();
+                // mapRef.current.fitToElements();
+              }}
               loading={isLoading}
               disabled={isLoading}
             />
@@ -635,7 +576,7 @@ const styles = StyleSheet.create({
   mapStyle: {
     marginTop: 0,
     width: Dimensions.get('window').width,
-    height: hp("100%"),
+    height: hp("90%"),
     justifyContent: 'space-between'
   },
   icons: {

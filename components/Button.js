@@ -8,6 +8,7 @@ import style from "./../constants/style";
 export default function WrapperButton(props) {
   return (
     <Button
+      accessibilityLabel={props.accessibilityLabel}
       title={props.title}
       loading={props.loading}
       disabled={props.disabled}
