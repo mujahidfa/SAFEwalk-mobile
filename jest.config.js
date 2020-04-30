@@ -12,6 +12,9 @@ module.exports = {
   collectCoverageFrom: [
     "**/*.{js,jsx}",
     "!**/coverage/**",
+    "!**/contexts/**",
+    "!**/components/UWLogo.js",
+    "!**/example.js",
     "!**/node_modules/**",
     "!**/babel.config.js",
     "!**/jest.config.js",
