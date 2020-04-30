@@ -57,43 +57,71 @@ export default function UserHomeScreen({ navigation }) {
     text: ""
   });
 
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
+  function showLocation(position) {
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        },
+        text: "Current Location"
+      }
+    );
+    console.log("Current location: " + locationRef.current.coordinates.latitude + ", " + locationRef.current.coordinates.longitude);
+ }
+
   // destination
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: +43.081606,
-      longitude: -89.376298
+      latitude: 43.071974,
+      longitude: -89.408064
     },
     text: ""
   });
 
+  const destinationRef = useRef(destination);
+  destinationRef.current = destination;
+
   // walk origin - default to current location
   const [start, setStart] = useState({
     coordinates: {
-      latitude: 43.075143,
-      longitude: -89.400151
+      latitude: locationRef.current.coordinates.latitude,
+      longitude: locationRef.current.coordinates.longitude
     },
     text: "Current Location"
   });
+
+  const startRef = useRef(start);
+  startRef.current = start;
 
   const [startMarker, setStartMarker] = useState(
     {
       title: 'Start',
       coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
+        latitude: locationRef.current.coordinates.latitude,
+        longitude: locationRef.current.coordinates.longitude
       }
     }
   );
+
+  const startMarkerRef = useRef(startMarker);
+  startMarkerRef.current = startMarker;
 
   const [destMarker, setDestMarker] = useState(
     {
       title: 'Destination',
       coordinates: {
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
+        latitude: destinationRef.current.coordinates.latitude,
+        longitude: destinationRef.current.coordinates.longitude
       }
     }
   );
+
+  const destMarkerRef = useRef(destMarker);
+  destMarkerRef.current = destMarker;
 
   const { userToken, email } = useContext(AuthContext);
   const { setWalkId, setCoordinates } = useContext(WalkContext);
@@ -119,7 +147,7 @@ export default function UserHomeScreen({ navigation }) {
       return; // exit
     }
 
-    console.log(destination.text);
+    console.log(destinationRef.current.text);
 
     // Add Walk API call
     // Create a walk in the database
@@ -132,12 +160,12 @@ export default function UserHomeScreen({ navigation }) {
       },
       body: JSON.stringify({
         time: new Date(),
-        startText: start.text,
-        startLat: start.coordinates.latitude,
-        startLng: start.coordinates.longitude,
-        destText: destination.text,
-        destLat: destination.coordinates.latitude,
-        destLng: destination.coordinates.longitude,
+        startText: startRef.current.text,
+        startLat: startRef.current.coordinates.latitude,
+        startLng: startRef.current.coordinates.longitude,
+        destText: destinationRef.current.text,
+        destLat: destinationRef.current.coordinates.latitude,
+        destLng: destinationRef.current.coordinates.longitude,
         userSocketId: socket.id,
       }),
     }).catch((error) => {
@@ -160,10 +188,10 @@ export default function UserHomeScreen({ navigation }) {
     let data = await res.json();
     setWalkId(data["id"]); // store walkId in the WalkContext
     setCoordinates(
-      start.coordinates.latitude + '',
-      start.coordinates.longitude + '',
-      destination.coordinates.latitude + '',
-      destination.coordinates.longitude + ''
+      startRef.current.coordinates.latitude + '',
+      startRef.current.coordinates.longitude + '',
+      destinationRef.current.coordinates.latitude + '',
+      destinationRef.current.coordinates.longitude + ''
     ); // store coordinates in the WalkContext
 
     // send notification to all Safewalkers
@@ -185,8 +213,8 @@ export default function UserHomeScreen({ navigation }) {
       setValue("startLocation", location, true);
       setStart({
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
+          latitude: startRef.current.coordinates.latitude,
+          longitude: startRef.current.coordinates.longitude
         },
         text: location
       });
@@ -194,53 +222,41 @@ export default function UserHomeScreen({ navigation }) {
       setValue("endLocation", location, true);
       setDestination({
         coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
+          latitude: destinationRef.current.coordinates.latitude,
+          longitude: destinationRef.current.coordinates.longitude
         },
         text: location
       });
     }
   };
 
-  async function onStartTextChange(textValue) {
+  function onStartTextChange(textValue) {
     setStart({
       coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
+        latitude: startRef.current.coordinates.latitude,
+        longitude: startRef.current.coordinates.longitude
       },
       text: textValue
     });
   }
 
-  async function onDestinationTextChange(textValue) {
+  function onDestinationTextChange(textValue) {
     setDestination({
       coordinates: {
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
+        latitude: destinationRef.current.coordinates.latitude,
+        longitude: destinationRef.current.coordinates.longitude
       },
       text: textValue
     });
   }
 
-  async function showLocation(position) {
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        },
-        text: "Current Location"
-      }
-    )
- }
-
-  async function getStartCoordinates(text) {
+  function getStartCoordinates(text) {
     if(text == "Current Location") {
       navigator.geolocation.getCurrentPosition(showLocation);
       setStart({
         coordinates: {
-          latitude: location.coordinates.latitude,
-          longitude: location.coordinates.longitude
+          latitude: locationRef.current.coordinates.latitude,
+          longitude: locationRef.current.coordinates.longitude
         },
         text: text
       });
@@ -262,7 +278,7 @@ export default function UserHomeScreen({ navigation }) {
       })
   }
 
-  async function getDestinationCoordinates(text) {
+  function getDestinationCoordinates(text) {
     var replaced = text.split(' ').join('+');
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
@@ -279,14 +295,14 @@ export default function UserHomeScreen({ navigation }) {
       })
   }
 
-  async function getStartAddress(coordinates) {
+  function getStartAddress(coordinates) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
     .then(res => {
       setStart({
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
+          latitude: startRef.current.coordinates.latitude,
+          longitude: startRef.current.coordinates.longitude
         },
         text: res.data.results[0].formatted_address
       })
@@ -294,14 +310,14 @@ export default function UserHomeScreen({ navigation }) {
     })
   }
 
-  async function getDestinationAddress(coordinates) {
+  function getDestinationAddress(coordinates) {
     var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
     axios.get(axiosURL)
     .then(res => {
       setDestination({
         coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
+          latitude: destinationRef.current.coordinates.latitude,
+          longitude: destinationRef.current.coordinates.longitude
         },
         text: res.data.results[0].formatted_address
       })
@@ -309,59 +325,60 @@ export default function UserHomeScreen({ navigation }) {
     })
   }
 
-  async function updateStart() {
+  function updateStart() {
 
-    getStartCoordinates(start.text);
+    getStartCoordinates(startRef.current.text);
 
-    changeLocation("start", start.text);
+    changeLocation("start", startRef.current.text);
 
     setStartMarker({
       title: 'Start',
       coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
+        latitude: startRef.current.coordinates.latitude,
+        longitude: startRef.current.coordinates.longitude
       }
     })
   }
 
-  async function updateDestination() {
+  function updateDestination() {
 
-    getDestinationCoordinates(destination.text);
+    getDestinationCoordinates(destinationRef.current.text);
 
-    changeLocation("destination", destination.text);
+    changeLocation("destination", destinationRef.current.text);
 
     setDestMarker({
       title: 'Destination',
       coordinates: {
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
+        latitude: destinationRef.current.coordinates.latitude,
+        longitude: destinationRef.current.coordinates.longitude
       }
     })
 
   }
 
-  async function currentAsStart() {
+  function currentAsStart() {
 
     navigator.geolocation.getCurrentPosition(showLocation);
 
     setStart({
       coordinates: {
-        latitude: location.coordinates.latitude,
-        longitude: location.coordinates.longitude
+        latitude: locationRef.current.coordinates.latitude,
+        longitude: locationRef.current.coordinates.longitude
       },
       text: "Current Location"
     });
     setStartMarker({
       title: 'Start',
       coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
+        latitude: locationRef.current.coordinates.latitude,
+        longitude: locationRef.current.coordinates.longitude
       }
     })
-    // mapRef.current.fitToElements();
+
+    changeLocation("start", startRef.current.text);
   }
 
-  async function onMapReady() {
+  function onMapReady() {
     currentAsStart();
     // mapRef.current.fitToElements();
   };
@@ -402,18 +419,18 @@ askNotification (only for starting screens): Asks iOS for notification permissio
           >
             <MapView.Marker
               coordinate={{
-                latitude: startMarker.coordinates.latitude,
-                longitude: startMarker.coordinates.longitude
+                latitude: startMarkerRef.current.coordinates.latitude,
+                longitude: startMarkerRef.current.coordinates.longitude
               }}
-              title={startMarker.title}
+              title={startMarkerRef.current.title}
               pinColor={pinColor[0]}
             />
             <MapView.Marker
               coordinate={{
-                latitude: destMarker.coordinates.latitude,
-                longitude: destMarker.coordinates.longitude
+                latitude: destMarkerRef.current.coordinates.latitude,
+                longitude: destMarkerRef.current.coordinates.longitude
               }}
-              title={destMarker.title}
+              title={destMarkerRef.current.title}
               pinColor={pinColor[1]}
             />
           </MapView>
@@ -428,7 +445,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
                 containerStyle={styles.containerStyle}
                 placeholder="Start Location"
                 ref={register({ name: "startLocation" }, { required: true })}
-                value={start.text}
+                value={startRef.current.text}
                 returnKeyType='search'
                 onChangeText={onStartTextChange}
                 onSubmitEditing={updateStart}
@@ -454,7 +471,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
                 containerStyle={styles.containerStyle}
                 placeholder="Destination"
                 ref={register({ name: "endLocation" }, { required: true })}
-                value={destination.text}
+                value={destinationRef.current.text}
                 onChangeText={onDestinationTextChange}
                 onSubmitEditing={updateDestination}
                 returnKeyType='search'
