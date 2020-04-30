@@ -23,6 +23,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
   const [requests, setRequests] = useState([]);
   const { userToken, email } = useContext(AuthContext);
   const { setUserInfo, setCoordinates, setWalkAsActive } = useContext(WalkContext);
+  
   /**
    * This effect sets up the socket connection to the User to listen to new walk requests.
    * This effect is run once upon component mount.
