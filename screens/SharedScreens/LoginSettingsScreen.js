@@ -3,14 +3,11 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
 } from "react-native";
-import { Avatar } from "react-native-elements";
-//import { TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
 import {
@@ -71,7 +68,6 @@ export default function LoginSettingsScreen({ navigation }) {
       }
     });
 
-    //await setPassword(data.confirmPassword);
     endpoint = "/api/Users/";
     if (userType == "safewalker") {
       endpoint = "/api/Safewalkers/";
@@ -125,7 +121,7 @@ export default function LoginSettingsScreen({ navigation }) {
         <SafeAreaView style={styles.container2}>
           {/* Top View */}
           <View style={styles.containerTop}>
-            <Text style={styles.textTitle}> Update Password:</Text>
+            <Text style={styles.textTitle}> Update Password</Text>
           </View>
 
           {/* Inner View */}
@@ -175,7 +171,7 @@ export default function LoginSettingsScreen({ navigation }) {
               style={styles.textInput}
             />
 
-            {/* Bottom */}
+            {/* Bottom/Button */}
             <View style={styles.containerButton}>
               <Button
                 title="Confirm Password Change"
@@ -197,8 +193,7 @@ const styles = StyleSheet.create({
   container2: {
     flex: 1,
     marginHorizontal: style.marginContainerHorizontal,
-    //justifyContent: "center",
-    marginVertical: hp("6%"),
+    marginVertical: hp("10%"),
   },
   containerTop: {
     height: hp("10%"),
@@ -220,7 +215,7 @@ const styles = StyleSheet.create({
   },
   textTitle: {
     color: colors.orange,
-    fontSize: style.fontSize,
+    fontSize: 28,
     fontWeight: "bold",
   },
   textInput: {

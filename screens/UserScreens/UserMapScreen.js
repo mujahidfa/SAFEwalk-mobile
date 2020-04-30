@@ -8,7 +8,7 @@ import * as Permissions from "expo-permissions";
 import Constants from "expo-constants";
 
 export default function UserMapScreen({ navigation }) {
-  const { resetWalkContextState } = useContext(WalkContext);
+  const { startLat, startLng, destLat, destLng, resetWalkContextState } = useContext(WalkContext);
 
   /**
    * This effect sets up the socket connection to the User.
@@ -81,7 +81,27 @@ export default function UserMapScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text>User Map Screen</Text>
+      <MapView
+        provider={PROVIDER_GOOGLE}
+        style={styles.mapStyle}
+        showsUserLocation={true}
+        ref={mapRef}
+        minZoomLevel={10}
+        maxZoomLevel={15}
+        onMapReady={onMapReady}
+      >
+        {markers.map((marker) => (
+          <MapView.Marker
+            key={marker.key}
+            coordinate={{
+              latitude: marker.coordinates.latitude,
+              longitude: marker.coordinates.longitude
+            }}
+            title={marker.title}
+            pinColor={pinColor[marker.key]}
+          />
+        ))}
+      </MapView>
     </View>
   );
 }

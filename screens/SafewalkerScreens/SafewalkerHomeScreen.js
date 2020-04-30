@@ -24,7 +24,7 @@ import Constants from "expo-constants";
 export default function SafewalkerHomeScreen({ navigation }) {
   const [requests, setRequests] = useState([]);
   const { userToken, email } = useContext(AuthContext);
-  const { setUserInfo, setWalkAsActive } = useContext(WalkContext);
+  const { setUserInfo, setCoordinates, setWalkAsActive } = useContext(WalkContext);
 
   /**
    * This effect sets up the socket connection to the User to listen to new walk requests.
@@ -197,6 +197,10 @@ askNotification (only for starting screens): Asks iOS for notification permissio
     const data1 = await res1.json();
     const userEmail = data1["userEmail"];
     const userSocketId = data1["userSocketId"];
+    const startLat = data1["startLat"];
+    const startLng = data1["startLng"];
+    const destLat = data1["destLat"];
+    const destLng = data1["destLng"];
 
     // Let user know request has been accepted
     socket.emit("walker walk status", { userId: userSocketId, status: 1 });
@@ -204,6 +208,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
     socket.emit("walk status", true);
 
     setUserInfo(walkId, userEmail, userSocketId); // save walk info in WalkContext
+    setCoordinates(startLat, startLng, destLat, destLng); // save coordinates in WalkContext
     setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
   }
 
@@ -213,7 +218,14 @@ askNotification (only for starting screens): Asks iOS for notification permissio
     swipeableRef.current.close();
   }
 
-  // helper funtion to confirm delete
+  /**
+   * Helper function for swipe to delete. Adds in the confirm to delete functionality.
+   *
+   * Calls deleteRequest upon confirm
+   * Closes the swipeable upon cancel
+   *
+   * @param request the request to either be deleted or closed
+   */
   function deleteRequest2(request) {
     Alert.alert(
       'Deny SAFEwalk Request',

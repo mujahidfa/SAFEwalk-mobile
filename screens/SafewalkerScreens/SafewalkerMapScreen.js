@@ -19,7 +19,7 @@ import {Notifications} from "expo";
 export default function MapScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const { userToken, email } = useContext(AuthContext);
-  const { walkId, userSocketId, resetWalkContextState } = useContext(
+  const { walkId, startLat, startLng, destLat, destLng, userSocketId, resetWalkContextState } = useContext(
     WalkContext
   );
 
