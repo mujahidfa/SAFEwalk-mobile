@@ -127,7 +127,9 @@ export default function SafewalkerLoginScreen({ navigation }) {
                 </ErrorText>
               )}
               {isLoginError && (
-                <ErrorText>There was an error. Please try again.</ErrorText>
+                <ErrorText accessibilityLabel="serverError">
+                  There was an error. Please try again.
+                </ErrorText>
               )}
               <TextInput
                 label="Email"
