@@ -219,6 +219,18 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
+  async function showLocation(position) {
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        },
+        text: "Current Location"
+      }
+    )
+ }
+
   async function getStartCoordinates(text) {
     if(text == "Current Location") {
       navigator.geolocation.getCurrentPosition(showLocation);
@@ -324,18 +336,6 @@ export default function UserHomeScreen({ navigation }) {
     })
 
   }
-
-  async function showLocation(position) {
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        },
-        text: "Current Location"
-      }
-    )
- }
 
   async function currentAsStart() {
 
