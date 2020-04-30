@@ -60,11 +60,11 @@ export default function CredentialsSignupScreen({ navigation }) {
     // check if email is taken. just check, do not create an account yet.
     fetch(url + "/api/Login/" + formData.email, { method: "GET" })
       .then((response) => {
-        console.log(JSON.stringify(response.status));
+        // console.log(JSON.stringify(response.status));
         setIsLoading(false);
 
         if (response.status && response.status === 200) {
-          console.log("Email available!");
+          // console.log("Email available!");
 
           // if email not taken, go to next screen
           navigation.navigate("PersonalInfo", {
@@ -72,15 +72,15 @@ export default function CredentialsSignupScreen({ navigation }) {
             password: formData.password,
           });
         } else if (response.status && response.status === 409) {
-          console.log("captured 409! User not available.");
+          // console.log("captured 409! User not available.");
           setIsUserNotAvailable(true);
         } else {
-          console.log("Unknown error" + response.status + " Try again");
+          // console.log("Unknown error" + response.status + " Try again");
           setIsLoginError(true);
         }
       })
       .catch((error) => {
-        console.log("Error: " + error);
+        // console.log("Error: " + error);
         setIsLoginError(true);
         setIsLoading(false);
       });
@@ -94,7 +94,10 @@ export default function CredentialsSignupScreen({ navigation }) {
           style={styles.innerContainer}
         >
           {/* Progress animation */}
-          <View style={styles.progressContainer}>
+          <View
+            accessibilityLabel="loadingComponent"
+            style={styles.progressContainer}
+          >
             <View style={styles.progressCircleContainer}>
               <View
                 style={[styles.progressCircle, styles.progressCurrentCircle]}
@@ -129,16 +132,23 @@ export default function CredentialsSignupScreen({ navigation }) {
           <View>
             <View style={styles.inputContainer}>
               {errors.email && (
-                <ErrorText>wisc.edu email is required.</ErrorText>
+                <ErrorText accessibilityLabel="emailRequired">
+                  wisc.edu email is required.
+                </ErrorText>
               )}
               {isLoginError && (
-                <ErrorText>There was an error. Please try again.</ErrorText>
+                <ErrorText accessibilityLabel="serverError">
+                  There was an error. Please try again.
+                </ErrorText>
               )}
               {isUserNotAvailable && (
-                <ErrorText>Email is taken. Use a different email.</ErrorText>
+                <ErrorText accessibilityLabel="invalidEmail">
+                  Email is taken. Use a different email.
+                </ErrorText>
               )}
               <TextInput
                 label="Email"
+                accessibilityLabel="Email"
                 placeholder="netid@wisc.edu"
                 ref={register(
                   { name: "email" },
@@ -152,9 +162,14 @@ export default function CredentialsSignupScreen({ navigation }) {
             </View>
 
             <View style={styles.inputContainer}>
-              {errors.password && <ErrorText>Password is required.</ErrorText>}
+              {errors.password && (
+                <ErrorText accessibilityLabel="passwordRequired">
+                  Password is required.
+                </ErrorText>
+              )}
               <TextInput
                 label="Password"
+                accessibilityLabel="Password"
                 placeholder="Password"
                 ref={register({ name: "password" }, { required: true })}
                 onChangeText={(text) => setValue("password", text, true)}
@@ -165,10 +180,13 @@ export default function CredentialsSignupScreen({ navigation }) {
 
             <View style={styles.inputContainer}>
               {errors.confirmPassword && (
-                <ErrorText>The passwords do not match.</ErrorText>
+                <ErrorText accessibilityLabel="invalidConfirmPassword">
+                  The passwords do not match.
+                </ErrorText>
               )}
               <TextInput
                 label="Confirm password"
+                accessibilityLabel="Confirm password"
                 ref={register(
                   { name: "confirmPassword" },
                   {
@@ -190,6 +208,7 @@ export default function CredentialsSignupScreen({ navigation }) {
             <Spacer />
             <Button
               title="Next"
+              accessibilityLabel="Next"
               loading={isLoading}
               disabled={isLoading}
               onPress={handleSubmit(onSubmit)}

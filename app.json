@@ -18,7 +18,13 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.uw.SAFEwalk",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "package": "com.uw.SAFEwalk",
+      "versionCode": 1
     }
   }
 }

@@ -82,8 +82,6 @@ export default function UserHomeScreen({ navigation }) {
     text: "Current Location"
   });
 
-  const [duration, setDuration] = useState("0 minutes");
-
   // markers and locations
   const [markers, setMarkers] = useState([
     {
@@ -98,7 +96,7 @@ export default function UserHomeScreen({ navigation }) {
       key: 1,
       title: 'Destination',
       coordinates: {
-        // replace with api to get user's home addre
+        // replace with api to get user's home address
         latitude: homePlace.coordinates.latitude,
         longitude: homePlace.coordinates.longitude
       }
@@ -106,7 +104,7 @@ export default function UserHomeScreen({ navigation }) {
   ]);
 
   const { userToken, email } = useContext(AuthContext);
-  const { setWalkId } = useContext(WalkContext);
+  const { setWalkId, setCoordinates } = useContext(WalkContext);
 
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
@@ -143,7 +141,11 @@ export default function UserHomeScreen({ navigation }) {
       body: JSON.stringify({
         time: new Date(),
         startText: start.text,
+        startLat: start.coordinates.latitude,
+        startLng: start.coordinates.longitude,
         destText: destination.text,
+        destLat: destination.coordinates.latitude,
+        destLng: destination.coordinates.longitude,
         userSocketId: socket.id,
       }),
     }).catch((error) => {
@@ -164,8 +166,13 @@ export default function UserHomeScreen({ navigation }) {
     }
 
     let data = await res.json();
-    // store walkId in the WalkContext
-    setWalkId(data["id"]);
+    setWalkId(data["id"]); // store walkId in the WalkContext
+    setCoordinates(
+      start.coordinates.latitude + '',
+      start.coordinates.longitude + '',
+      destination.coordinates.latitude + '',
+      destination.coordinates.longitude + ''
+    ); // store coordinates in the WalkContext
 
     // send notification to all Safewalkers
     socket.emit("walk status", true);
@@ -379,8 +386,8 @@ export default function UserHomeScreen({ navigation }) {
         key: 0,
         title: 'Start',
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
+          latitude: location.coordinates.latitude,
+          longitude: location.coordinates.longitude
         }
       },
       {
@@ -392,7 +399,7 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   }
 
   async function homeAsDest() {
@@ -421,15 +428,13 @@ export default function UserHomeScreen({ navigation }) {
         }
       }
     ])
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   }
 
   async function onMapReady() {
     currentAsStart();
-    currentAsStart();
-    currentAsStart();
     homeAsDest();
-    mapRef.current.fitToElements();
+    // mapRef.current.fitToElements();
   };
 
   return (
@@ -444,6 +449,12 @@ export default function UserHomeScreen({ navigation }) {
             minZoomLevel={10}
             maxZoomLevel={15}
             onMapReady={onMapReady}
+            initialRegion={{
+              latitude: 43.075143,
+              longitude: -89.400151,
+              latitudeDelta: 0.0822,
+              longitudeDelta: 0.0421,
+            }}
           >
             {markers.map((marker) => (
               <MapView.Marker
@@ -454,6 +465,11 @@ export default function UserHomeScreen({ navigation }) {
                 }}
                 title={marker.title}
                 pinColor={pinColor[marker.key]}
+                icon={{
+                  style: styles.icon,
+                  type: "material",
+                  name: "directions-walk"
+                }}
               />
             ))}
           </MapView>
@@ -511,14 +527,17 @@ export default function UserHomeScreen({ navigation }) {
                 }}
                 */
               />
-            
+
           <View style={styles.icons}>
             <Icon
               style={styles.icon}
               raised
               type= "material"
               name= "gps-fixed"
-              onPress= {() => {currentAsStart(); mapRef.current.fitToElements();}}
+              onPress= {() => {
+                currentAsStart();
+                // mapRef.current.fitToElements();
+              }}
               loading={isLoading}
               disabled={isLoading}
             />
@@ -613,7 +632,7 @@ const styles = StyleSheet.create({
   mapStyle: {
     marginTop: 0,
     width: Dimensions.get('window').width,
-    height: hp("100%"),
+    height: hp("90%"),
     justifyContent: 'space-between'
   },
   icons: {

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
-import { StyleSheet, Text, View, FlatList, totalResults, Alert  } from "react-native";
+import { StyleSheet, Text, View, FlatList, totalResults, Alert } from "react-native";
 
 // 3rd party libraries
 import Swipeable from "react-native-gesture-handler/Swipeable";
@@ -22,8 +22,8 @@ import { WalkContext } from "./../../contexts/WalkProvider";
 export default function SafewalkerHomeScreen({ navigation }) {
   const [requests, setRequests] = useState([]);
   const { userToken, email } = useContext(AuthContext);
-  const { setUserInfo, setWalkAsActive } = useContext(WalkContext);
-
+  const { setUserInfo, setCoordinates, setWalkAsActive } = useContext(WalkContext);
+  
   /**
    * This effect sets up the socket connection to the User to listen to new walk requests.
    * This effect is run once upon component mount.
@@ -184,6 +184,10 @@ export default function SafewalkerHomeScreen({ navigation }) {
     const data1 = await res1.json();
     const userEmail = data1["userEmail"];
     const userSocketId = data1["userSocketId"];
+    const startLat = data1["startLat"];
+    const startLng = data1["startLng"];
+    const destLat = data1["destLat"];
+    const destLng = data1["destLng"];
 
     // Let user know request has been accepted
     socket.emit("walker walk status", { userId: userSocketId, status: 1 });
@@ -191,6 +195,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     socket.emit("walk status", true);
 
     setUserInfo(walkId, userEmail, userSocketId); // save walk info in WalkContext
+    setCoordinates(startLat + '', startLng + '', destLat + '', destLng + ''); // save coordinates in WalkContext
     setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
   }
 
@@ -213,8 +218,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
       'Deny SAFEwalk Request',
       '',
       [
-        {text: 'Deny', onPress: () => deleteRequest(request.id)},
-        {text: 'Cancel', onPress: () => closeSwipeable()},
+        { text: 'Deny', onPress: () => deleteRequest(request.id) },
+        { text: 'Cancel', onPress: () => closeSwipeable() },
       ],
       { cancelable: false }
     )
@@ -298,7 +303,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   function requestCount() {
     var total = requests.length;
-    return total;
+    return (total == 1) ? "1 Request" : total + " Requests";
   }
 
   const listEmptyComponent = () => (
@@ -312,18 +317,16 @@ export default function SafewalkerHomeScreen({ navigation }) {
           marginTop: 60,
         }}
       >
-       
-        </Text>
+      </Text>
     </View>
   );
 
   const ListHeaderComponent = () => (
-      <View style={styles.header}>
-        <Text style={styles.textTitle}>
-          <Text>Requests: </Text>
-          <Text style={{fontWeight: "bold"}}>{requestCount()}</Text>
-        </Text>
-      </View>
+    <View style={styles.header}>
+      <Text style={styles.textTitle}>
+        <Text style={{ fontWeight: "bold" }}>{requestCount()}</Text>
+      </Text>
+    </View>
   );
 
 
@@ -350,7 +353,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
                 <Text style={styles.location}>{request.startText}</Text>
               </View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={{ color: "red", fontWeight: "bold", fontSize: 15,}}><Icon name="map-marker" size={15} color="red" />  </Text>
+                <Text style={{ color: "red", fontWeight: "bold", fontSize: 15, }}><Icon name="map-marker" size={15} color="red" />  </Text>
                 <Text style={styles.location}>{request.endText}</Text>
               </View>
             </View>
@@ -445,9 +448,10 @@ const styles = StyleSheet.create({
   },
   textTitle: {
     color: colors.darkgray,
-    fontSize: 16,
+    fontSize: 15,
     justifyContent: "flex-start",
     marginLeft: 15,
-    padding: 1
+    padding: 1,
+    marginBottom: 3
   },
 });
