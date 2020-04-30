@@ -238,7 +238,7 @@ export default function UserMapScreen({ navigation }) {
           longitudeDelta: 0.0421,
         }}
       >
-        {/* {markers.map((marker) => (
+        {markers.map((marker) => (
           <MapView.Marker
           key={marker.key}
           coordinate={{
@@ -248,7 +248,7 @@ export default function UserMapScreen({ navigation }) {
           title={marker.title}
           pinColor={pinColor[marker.key]}
           />
-        ))} */}
+        ))}
         <MapView.Marker
           coordinate={{
             latitude: walkerMarker.coordinates.latitude,
@@ -262,7 +262,7 @@ export default function UserMapScreen({ navigation }) {
             ETA: {duration}
           </Text>
           <Text style={styles.textStyle2}>
-            Distance: {distance} miles
+            Distance: {distance}
           </Text>
         </View>
       </MapView>
