@@ -73,8 +73,8 @@ describe("SafewalkerLoginScreen ", () => {
     expect(screen.getByLabelText("Login")).toBeTruthy();
   });
 
-  it('has a "Go to User login" button', () => {
-    expect(screen.getByLabelText("Go to User login")).toBeTruthy();
+  it('has a "Login as User" button', () => {
+    expect(screen.getByLabelText("Login as User")).toBeTruthy();
   });
 
   it("shows error if input is empty", async () => {
@@ -130,8 +130,8 @@ describe("SafewalkerLoginScreen ", () => {
     });
   });
 
-  it('navigate to User login screen when user press the "Go to User login" button', () => {
-    let userButton = screen.getByLabelText("Go to User login");
+  it('navigate to User login screen when user press the "Login as User" button', () => {
+    let userButton = screen.getByLabelText("Login as User");
     act(() => {
       fireEvent.press(userButton);
     });
