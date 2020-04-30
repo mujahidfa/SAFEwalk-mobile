@@ -287,7 +287,7 @@ setDisconnectNotification: schedules notification for <time>
       {/* User Start and End Location input fields */}
       <View style={styles.buttonContainer}>
         <Button
-          title="Mark walk as complete"
+          title="Complete Walk"
           loading={isLoading}
           disabled={isLoading}
           onPress={() => completeWalk()}
