@@ -15,7 +15,7 @@ import { Button as ButtonE, Input, Icon } from "react-native-elements";
 import { useForm } from "react-hook-form";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  heightPercentageToDP as hp,
+  heightPercentageToDP as hp, widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
 
 // Components
@@ -420,7 +420,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
            {/* User Start and End Location input fields */}
            <View style={styles.inputContainer}>
               {errors.startLocation && (
-                <Text style={style.textError}>Start location is required.</Text>
+                <Text style={styles.textError}>Start location is required.</Text>
               )}
               <Input
                 inputStyle={styles.inputStyle}
@@ -446,7 +446,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
                 */
               />
               {errors.endLocation && (
-                <Text style={style.textError}>Destination is required.</Text>
+                <Text style={styles.textError}>Destination is required.</Text>
               )}
               <Input
                 inputStyle={styles.inputStyle}
@@ -587,4 +587,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     position: "absolute",
   },
+  textError : {
+    color: colors.red,
+    fontSize: wp("4%"),
+    paddingBottom:5
+  }
 });
