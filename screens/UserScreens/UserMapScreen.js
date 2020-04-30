@@ -54,31 +54,31 @@ export default function UserMapScreen({ navigation }) {
 
   const [safewalker, setSafewalker] = useState({
     coordinates: {
-      latitude: 43.075143,
-      longitude: -89.400151
+      latitude: start.coordinates.latitude,
+      longitude: start.coordinates.longitude
     },
     text: "SAFEwalker"
   });
 
-  const [markers, setMarkers] = useState([
+  const [startMarker, setStartMarker] = useState(
     {
-      key: 0,
       title: 'Start',
       coordinates: {
         latitude: start.coordinates.latitude,
         longitude: start.coordinates.longitude
       }
-    },
+    }
+  );
+
+  const [destMarker, setDestMarker] = useState(
     {
-      key: 1,
       title: 'Destination',
       coordinates: {
-        // replace with api to get user's home address
         latitude: destination.coordinates.latitude,
         longitude: destination.coordinates.longitude
       }
     }
-  ]);
+  );
 
   const [walkerMarker, setWalkerMarker] = useState(
     {
@@ -238,17 +238,22 @@ export default function UserMapScreen({ navigation }) {
           longitudeDelta: 0.0421,
         }}
       >
-        {markers.map((marker) => (
-          <MapView.Marker
-          key={marker.key}
+        <MapView.Marker
           coordinate={{
-          latitude: marker.coordinates.latitude,
-          longitude: marker.coordinates.longitude
+            latitude: startMarker.coordinates.latitude,
+            longitude: startMarker.coordinates.longitude
           }}
-          title={marker.title}
-          pinColor={pinColor[marker.key]}
-          />
-        ))}
+          title={startMarker.title}
+          pinColor={pinColor[0]}
+        />
+        <MapView.Marker
+          coordinate={{
+            latitude: destMarker.coordinates.latitude,
+            longitude: destMarker.coordinates.longitude
+          }}
+          title={destMarker.title}
+          pinColor={pinColor[1]}
+        />
         <MapView.Marker
           coordinate={{
             latitude: walkerMarker.coordinates.latitude,

@@ -112,32 +112,25 @@ export default function MapScreen({ navigation }) {
     text: "User"
   });
 
-  const [markers, setMarkers] = useState([
+  const [startMarker, setStartMarker] = useState(
     {
-      key: 0,
       title: 'Start',
       coordinates: {
         latitude: start.coordinates.latitude,
         longitude: start.coordinates.longitude
       }
-    },
+    }
+  );
+
+  const [destMarker, setDestMarker] = useState(
     {
-      key: 1,
       title: 'Destination',
       coordinates: {
         latitude: destination.coordinates.latitude,
         longitude: destination.coordinates.longitude
       }
-    },
-    // {
-    //   key: 2,
-    //   title: 'User',
-    //   coordinates: {
-    //     latitude: user.coordinates.latitude,
-    //     longitude: user.coordinates.longitude
-    //   }
-    // }
-  ]);
+    }
+  );
 
   const [userMarker, setUserMarkekr] = useState(
     {
@@ -211,17 +204,22 @@ export default function MapScreen({ navigation }) {
           longitudeDelta: 0.0421,
         }}
       >
-        {markers.map((marker) => (
-          <MapView.Marker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.coordinates.latitude,
-              longitude: marker.coordinates.longitude
-            }}
-            title={marker.title}
-            pinColor={pinColor[marker.key]}
-          />
-        ))}
+        <MapView.Marker
+          coordinate={{
+            latitude: startMarker.coordinates.latitude,
+            longitude: startMarker.coordinates.longitude
+          }}
+          title={startMarker.title}
+          pinColor={pinColor[0]}
+        />
+        <MapView.Marker
+          coordinate={{
+            latitude: destMarker.coordinates.latitude,
+            longitude: destMarker.coordinates.longitude
+          }}
+          title={destMarker.title}
+          pinColor={pinColor[1]}
+        />
       </MapView>
       {/* User Start and End Location input fields */}
       <View style={styles.buttonContainer}>
