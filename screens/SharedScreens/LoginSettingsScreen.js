@@ -193,16 +193,18 @@ const styles = StyleSheet.create({
   container2: {
     flex: 1,
     marginHorizontal: style.marginContainerHorizontal,
-    marginVertical: hp("10%"),
+    marginVertical: hp("1%"),
   },
   containerTop: {
+    marginVertical: hp("3%"),
     height: hp("10%"),
     justifyContent: "space-around",
     fontSize: wp("4%"),
   },
   containerButton: {
     height: hp("10%"),
-    justifyContent: "space-around",
+    justifyContent: "flex-end",
+    marginTop: hp("4%")
   },
   innerContainer: {
     justifyContent: "space-around",
@@ -215,8 +217,10 @@ const styles = StyleSheet.create({
   },
   textTitle: {
     color: colors.orange,
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 40,
   },
   textInput: {
     marginBottom: 20,
