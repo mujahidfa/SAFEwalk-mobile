@@ -166,21 +166,21 @@ export default function EditProfileScreen() {
       {!edit ? (
         <ScrollView style={styles.container}>
           <SafeAreaView style={styles.innerContainer}>
-            <View style={{ alignItems: "center", marginBottom: 40 }}>
+            <View style={{ alignItems: "center", marginBottom: 40, marginTop: 40 }}>
               {/* Fix so avatar does not move when clicking edit button */}
               {!image ? (
                 <Avatar
                   rounded
-                  size={200}
+                  size={150}
                   title={firstName[0] + lastName[0]}
                   containerStyle={styles.avatar}
-                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  overlayContainerStyle={{ backgroundColor: colors.medlightgray }}
                 />
               ) : (
                 <Avatar
                   rounded
                   source={{ uri: image }}
-                  size={200}
+                  size={150}
                   containerStyle={styles.avatar}
                 />
               )}
@@ -200,16 +200,16 @@ export default function EditProfileScreen() {
           </SafeAreaView>
         </ScrollView>
       ) : (
-        <KeyboardAvoidingView style={styles.container} behavior={"padding"}>
+        <KeyboardAvoidingView style={styles.container} >
           <SafeAreaView style={styles.innerContainer}>
-            <View style={{ flex: 1, alignItems: "center", marginBottom: 40 }}>
+            <View style={{ flex: 1, alignItems: "center", marginBottom: 40, marginTop: 40}}>
               {!image ? (
                 <Avatar
                   rounded
-                  size={200}
+                  size={150}
                   title={firstName[0] + lastName[0]}
                   containerStyle={styles.avatar}
-                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  overlayContainerStyle={{ backgroundColor: colors.medlightgray }}
                   showEditButton
                   onEditPress={() => uploadImage()}
                 />
@@ -217,7 +217,7 @@ export default function EditProfileScreen() {
                 <Avatar
                   rounded
                   source={{ uri: image }}
-                  size={200}
+                  size={150}
                   containerStyle={styles.avatar}
                   showEditButton
                   onEditPress={() => uploadImage()}
@@ -309,6 +309,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: style.fontSize,
+    color: colors.gray,
     marginBottom: 20,
     marginLeft: 20,
   },
