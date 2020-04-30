@@ -535,7 +535,7 @@ export default function UserHomeScreen({ navigation }) {
               type= "material"
               name= "gps-fixed"
               onPress= {() => {
-                currentAsStart(); 
+                currentAsStart();
                 // mapRef.current.fitToElements();
               }}
               loading={isLoading}

@@ -211,7 +211,7 @@ export default function MapScreen({ navigation }) {
           longitudeDelta: 0.0421,
         }}
       >
-        {/* {markers.map((marker) => (
+        {markers.map((marker) => (
           <MapView.Marker
             key={marker.key}
             coordinate={{
@@ -222,14 +222,6 @@ export default function MapScreen({ navigation }) {
             pinColor={pinColor[marker.key]}
           />
         ))}
-        <MapView.Marker
-          coordinate={{
-            latitude: userMarker.coordinates.latitude,
-            longitude: userMarker.coordinates.longitude
-          }}
-          title={userMarker.title}
-          icon={require('../../assets/walking-solid.png')}
-        /> */}
       </MapView>
       {/* User Start and End Location input fields */}
       <View style={styles.buttonContainer}>
