@@ -43,7 +43,7 @@ const pinColor = ["green", "red"]
 
 export default function UserHomeScreen({ navigation }) {
 
-  // const mapRef = useRef(null);
+  const mapRef = useRef(null);
 
   // store current user location
   const [location, setLocation] = useState({
@@ -371,7 +371,7 @@ export default function UserHomeScreen({ navigation }) {
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
             showsUserLocation={true}
-            /*ref={mapRef}*/
+            ref={mapRef}
             minZoomLevel={10}
             maxZoomLevel={15}
             onMapReady={onMapReady}
