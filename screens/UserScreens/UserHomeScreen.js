@@ -46,7 +46,7 @@ const pinColor = ["green", "red"]
 
 export default function UserHomeScreen({ navigation }) {
 
-  // const mapRef = useRef(null);
+  const mapRef = useRef(null);
 
   // store current user location
   const [location, setLocation] = useState({
@@ -222,6 +222,18 @@ export default function UserHomeScreen({ navigation }) {
     });
   }
 
+  async function showLocation(position) {
+    setLocation(
+      {
+        coordinates: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        },
+        text: "Current Location"
+      }
+    )
+ }
+
   async function getStartCoordinates(text) {
     if(text == "Current Location") {
       navigator.geolocation.getCurrentPosition(showLocation);
@@ -328,18 +340,6 @@ export default function UserHomeScreen({ navigation }) {
 
   }
 
-  async function showLocation(position) {
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        },
-        text: "Current Location"
-      }
-    )
- }
-
   async function currentAsStart() {
 
     navigator.geolocation.getCurrentPosition(showLocation);
@@ -389,7 +389,7 @@ askNotification (only for starting screens): Asks iOS for notification permissio
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
             showsUserLocation={true}
-            /*ref={mapRef}*/
+            ref={mapRef}
             minZoomLevel={10}
             maxZoomLevel={15}
             onMapReady={onMapReady}
