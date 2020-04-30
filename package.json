@@ -6,8 +6,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "test": "jest --watch --coverage=true",
-    "testDebug": "jest -o --watch --coverage=false",
+    "test": "jest --watch --collectCoverage",
+    "testDebug": "jest -o --watch",
     "testFinal": "jest",
     "updateSnapshots": "jest -u --coverage=false"
   },
