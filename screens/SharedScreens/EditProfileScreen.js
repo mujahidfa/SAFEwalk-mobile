@@ -175,7 +175,7 @@ export default function EditProfileScreen() {
                   rounded
                   accessibilityLabel="NoImageAvatar"
                   size={150}
-                  title={firstName[0] + lastName[0]}
+                  title={firstName[0].toString() + lastName[0].toString()}
                   containerStyle={styles.avatar}
                   overlayContainerStyle={{
                     backgroundColor: colors.medlightgray,
@@ -231,7 +231,7 @@ export default function EditProfileScreen() {
                   rounded
                   accessibilityLabel="NoImageAvatarEdit"
                   size={150}
-                  title={firstName[0] + lastName[0]}
+                  title={firstName[0].toString() + lastName[0].toString()}
                   containerStyle={styles.avatar}
                   overlayContainerStyle={{
                     backgroundColor: colors.medlightgray,
