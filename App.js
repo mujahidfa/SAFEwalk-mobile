@@ -4,6 +4,8 @@ import Main from "./Main";
 import { AuthProvider } from "./contexts/AuthProvider";
 import ErrorBoundary from "react-native-error-boundary";
 
+console.disableYellowBox = true;
+
 const CustomFallback = (props) => (
   <View>
     <Text>Something happened!</Text>
