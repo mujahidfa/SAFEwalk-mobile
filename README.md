@@ -2,6 +2,13 @@
 
 A mobile app for the University of Wisconsin's SAFEwalk service on campus.
 
+Required Repos:
+UI - https://github.com/mujahidfa/SAFEwalk-mobile
+APIs - https://github.com/justinztan11/SAFEwalkAPI
+Socket Server - https://github.com/justinztan11/SAFEwalk-backend
+
+NOTE: This repository only contain the UI, database is deployed to Azure
+
 ## Background
 The safety of our students and our faculty is paramount. With Safewalk, a free walking companionship service, students and staff can safely get from one place to another. However, currently to schedule a Safewalk, users must call or text a phone number to speak with a dispatcher. The dispatcher has to first determine eligibility for a Safewalk by getting information manually, including one’s name, phone number, and location before dispatching a team over. This cumbersome exchange of information can often take over a minute. That long minute is especially concerning when considering that someone requiring a Safewalk may be in immediate need of it. Furthermore, the time and personnel to receive the calls are also costly. The current solution is just not scalable and efficient enough when time is a factor of safety.
 
