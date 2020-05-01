@@ -78,7 +78,7 @@ yarn # or npm install
 expo start #or yarn start
 ```
 
-7. Scan Expo QR Code through the Expo App (or run on anAndroid/ios emulator).
+7. Scan Expo QR Code through the Expo App (or run on an Android/ios emulator).
 
 ### Tests
 
