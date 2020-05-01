@@ -357,12 +357,15 @@ export default function UserHomeScreen({ navigation }) {
 
     navigator.geolocation.getCurrentPosition(showLocation);
 
+    startRef.current.text = "Current Location";
+    startRef.current.coordinates.latitude = locationRef.current.coordinates.latitude;
+    startRef.current.coordinates.longitude = locationRef.current.coordinates.longitude;
     setStart({
+      text: "Current Location",
       coordinates: {
         latitude: locationRef.current.coordinates.latitude,
         longitude: locationRef.current.coordinates.longitude
-      },
-      text: "Current Location"
+      }
     });
     setStartMarker({
       title: 'Start',
@@ -427,7 +430,7 @@ export default function UserHomeScreen({ navigation }) {
                 containerStyle={styles.containerStyle}
                 placeholder="Start Location"
                 ref={register({ name: "startLocation" }, { required: true })}
-                value={startRef.current.text}
+                value={start.text}
                 returnKeyType='search'
                 onChangeText={onStartTextChange}
                 onSubmitEditing={updateStart}
