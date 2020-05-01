@@ -371,14 +371,16 @@ export default function UserHomeScreen({ navigation }) {
     navigator.geolocation.getCurrentPosition(showLocation);
 
     startRef.current.text = "Current Location";
-    startRef.current.coordinates.latitude = locationRef.current.coordinates.latitude;
-    startRef.current.coordinates.longitude = locationRef.current.coordinates.longitude;
+    startRef.current.coordinates.latitude =
+      locationRef.current.coordinates.latitude;
+    startRef.current.coordinates.longitude =
+      locationRef.current.coordinates.longitude;
     setStart({
       text: "Current Location",
       coordinates: {
         latitude: locationRef.current.coordinates.latitude,
-        longitude: locationRef.current.coordinates.longitude
-      }
+        longitude: locationRef.current.coordinates.longitude,
+      },
     });
     setStartMarker({
       title: "Start",
@@ -447,28 +449,28 @@ askNotification (only for starting screens): Asks iOS for notification permissio
               pinColor={pinColor[1]}
             />
           </MapView>
-    
-           {/* User Start and End Location input fields */}
-           <View style={styles.inputContainer}>
-              {errors.startLocation && (
-                <Text style={styles.textError}>Start location is required.</Text>
-              )}
-              <Input
-                inputStyle={styles.inputStyle}
-                inputContainerStyle={styles.inputContainerStyleTop}
-                containerStyle={styles.containerStyle}
-                placeholder="Start Location"
-                ref={register({ name: "startLocation" }, { required: true })}
-                value={start.text}
-                returnKeyType='search'
-                onChangeText={onStartTextChange}
-                onSubmitEditing={updateStart}
-                leftIcon={{
-                  type: "font-awesome",
-                  name: "map-marker",
-                  color: "green"
-                }}
-                /*
+
+          {/* User Start and End Location input fields */}
+          <View style={styles.inputContainer}>
+            {errors.startLocation && (
+              <Text style={styles.textError}>Start location is required.</Text>
+            )}
+            <Input
+              inputStyle={styles.inputStyle}
+              inputContainerStyle={styles.inputContainerStyleTop}
+              containerStyle={styles.containerStyle}
+              placeholder="Start Location"
+              ref={register({ name: "startLocation" }, { required: true })}
+              value={start.text}
+              returnKeyType="search"
+              onChangeText={onStartTextChange}
+              onSubmitEditing={updateStart}
+              leftIcon={{
+                type: "font-awesome",
+                name: "map-marker",
+                color: "green",
+              }}
+              /*
                 rightIcon={{
                   type: "material",
                   name: "gps-fixed",
