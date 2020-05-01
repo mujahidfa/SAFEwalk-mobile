@@ -101,3 +101,7 @@ To run tests, enter the following command:
 ```sh
 yarn test
 ```
+
+## Disclaimer
+
+This app is submission for University of Wisconsin-Madison's CS 506 - Software Engineering for Spring 2020 semester. Teammates are [Katie Bajkowski](https://github.com/Bajkowski), [Alex Deuman](https://github.com/adeuman), [Yoon Cho](https://github.com/yoon172), [Tadao Shimura](https://github.com/tshimura10), [Justin Tan](https://github.com/justinztan11) and [Mujahid Anuar](https://github.com/mujahidfa). At the time of the submission, all are students at the University of Wisconsin-Madison.
