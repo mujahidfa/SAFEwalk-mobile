@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { View, StyleSheet } from "react-native";
-import { DrawerItem, DrawerContentScrollView } from "@react-navigation/drawer";
+import {
+  DrawerItem,
+  DrawerContentScrollView,
+  useIsDrawerOpen,
+} from "@react-navigation/drawer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Avatar, Title, Caption } from "react-native-paper";
 
@@ -23,6 +27,8 @@ export default function DrawerContent(props) {
   const [image, setImage] = useState("");
   const { signout } = useContext(AuthContext);
   const { userToken, email, userType } = useContext(AuthContext);
+
+  const isDrawerOpen = useIsDrawerOpen();
 
   useEffect(() => {
     const getProfileInfo = async () => {
@@ -57,8 +63,10 @@ export default function DrawerContent(props) {
       setImage(response.photo);
     };
 
-    getProfileInfo();
-  }, []);
+    if (isDrawerOpen === true) {
+      getProfileInfo();
+    }
+  }, [isDrawerOpen]);
 
   return (
     <DrawerContentScrollView {...props}>
