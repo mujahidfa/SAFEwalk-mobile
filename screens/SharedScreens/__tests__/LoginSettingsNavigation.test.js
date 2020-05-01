@@ -4,7 +4,7 @@ import { render } from "@testing-library/react-native";
 
 import { NavigationContainer } from "@react-navigation/native";
 
-import SafewalkerHomeNavigation from "../SafewalkerHomeNavigation";
+import LoginSettingsNavigation from "../LoginSettingsNavigation";
 import { AuthProvider } from "../../../contexts/AuthProvider";
 import { WalkProvider } from "../../../contexts/WalkProvider";
 
@@ -14,14 +14,14 @@ jest.mock("abort-controller", () => {
   return { AbortController: () => jest.fn() };
 });
 
- //jest.mock("AbortController");
+// jest.mock("AbortController");
 
 const createTestProps = () => ({});
 
 let props;
 let component;
 
-describe("SafewalkerHomeNavigation ", () => {
+describe("LoginSettingsNavigation ", () => {
   beforeEach(() => {
     props = createTestProps();
 
@@ -29,23 +29,25 @@ describe("SafewalkerHomeNavigation ", () => {
       <AuthProvider>
         <WalkProvider>
           <NavigationContainer>
-            <SafewalkerHomeNavigation />
+            <LoginSettingsNavigation />
           </NavigationContainer>
         </WalkProvider>
       </AuthProvider>
     );
   });
 
-  it("placeholder", () => {});
+  //it("placeholder", () => {});
 
   it("renders correctly", () => {
-     const tree = renderer.create(component).toJSON();
-     expect(tree).toMatchSnapshot();
+    const tree = renderer.create(component).toJSON();
+    expect(tree).toMatchSnapshot();
   });
 
   it("contains the correct header", () => {
-     const { getByText } = render(component);
+    const { getByText } = render(component);
 
-     expect(getByText("SAFEwalker Home")).toBeTruthy();
+    const header = getByText("Login Settings");
+    expect(header).toBeTruthy();
   });
+
 });

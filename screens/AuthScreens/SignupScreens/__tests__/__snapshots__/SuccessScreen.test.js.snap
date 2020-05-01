@@ -1,0 +1,368 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SuccessScreen  renders correctly 1`] = `
+Array [
+  <View
+    accessibilityLabel="loadingComponent"
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "#C45312",
+            "borderRadius": 50,
+            "borderWidth": 3,
+            "height": 50,
+            "justifyContent": "center",
+            "width": 50,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#C45312",
+            }
+          }
+        >
+          ✓
+        </Text>
+      </View>
+      <Text
+        style={
+          Object {
+            "marginTop": 10,
+          }
+        }
+      >
+        Credentials
+      </Text>
+    </View>
+    <View
+      style={
+        Array [
+          Object {
+            "borderColor": "#C45312",
+            "borderWidth": 1,
+            "marginBottom": 20,
+            "width": 40,
+          },
+          Object {
+            "marginRight": 3,
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "#C45312",
+            "borderRadius": 50,
+            "borderWidth": 3,
+            "height": 50,
+            "justifyContent": "center",
+            "width": 50,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#C45312",
+            }
+          }
+        >
+          ✓
+        </Text>
+      </View>
+      <Text
+        style={
+          Object {
+            "marginTop": 10,
+          }
+        }
+      >
+        Basic Info
+      </Text>
+    </View>
+    <View
+      style={
+        Array [
+          Object {
+            "borderColor": "#C45312",
+            "borderWidth": 1,
+            "marginBottom": 20,
+            "width": 40,
+          },
+          Object {
+            "marginLeft": 5,
+            "marginRight": 10,
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "borderColor": "#C45312",
+            "borderRadius": 50,
+            "borderWidth": 3,
+            "height": 50,
+            "justifyContent": "center",
+            "width": 50,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#C45312",
+            }
+          }
+        >
+          ✓
+        </Text>
+      </View>
+      <Text
+        style={
+          Object {
+            "marginTop": 10,
+          }
+        }
+      >
+        Finish
+      </Text>
+    </View>
+  </View>,
+  <View>
+    <Text
+      style={
+        Object {
+          "alignSelf": "center",
+          "fontSize": 66.5,
+        }
+      }
+    >
+      Success!
+    </Text>
+    <View
+      style={
+        Array [
+          Object {
+            "paddingVertical": 22.5,
+          },
+          undefined,
+        ]
+      }
+    />
+    <View
+      accessibilityIgnoresInvertColors={true}
+      style={
+        Object {
+          "backgroundColor": "transparent",
+          "position": "relative",
+        }
+      }
+    >
+      <Image
+        accessibilityLabel="successImage"
+        onLoad={[Function]}
+        source={
+          Object {
+            "canInstrument": true,
+            "createTransformer": [Function],
+            "getCacheKey": [Function],
+            "process": [Function],
+          }
+        }
+        style={
+          Array [
+            Object {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            },
+            Object {
+              "height": 440,
+              "width": undefined,
+            },
+          ]
+        }
+        testID="RNE__Image"
+        theme={
+          Object {
+            "colors": Object {
+              "disabled": "hsl(208, 8%, 90%)",
+              "divider": "#bcbbc1",
+              "error": "#ff190c",
+              "grey0": "#393e42",
+              "grey1": "#43484d",
+              "grey2": "#5e6977",
+              "grey3": "#86939e",
+              "grey4": "#bdc6cf",
+              "grey5": "#e1e8ee",
+              "greyOutline": "#bbb",
+              "platform": Object {
+                "android": Object {
+                  "error": "#f44336",
+                  "primary": "#2196f3",
+                  "secondary": "#9C27B0",
+                  "success": "#4caf50",
+                  "warning": "#ffeb3b",
+                },
+                "ios": Object {
+                  "error": "#ff3b30",
+                  "primary": "#007aff",
+                  "secondary": "#5856d6",
+                  "success": "#4cd964",
+                  "warning": "#ffcc00",
+                },
+              },
+              "primary": "#2089dc",
+              "searchBg": "#303337",
+              "secondary": "#8F0CE8",
+              "success": "#52c41a",
+              "warning": "#faad14",
+            },
+          }
+        }
+      />
+      <View
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no-hide-descendants"
+        pointerEvents="none"
+        style={
+          Object {
+            "bottom": 0,
+            "left": 0,
+            "opacity": 1,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#bdbdbd",
+              "height": 440,
+              "justifyContent": "center",
+            }
+          }
+          testID="RNE__Image__placeholder"
+        >
+          <ActivityIndicator
+            animating={true}
+            color="#999999"
+            hidesWhenStopped={true}
+            size="small"
+          />
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "height": 440,
+          }
+        }
+      />
+    </View>
+  </View>,
+  <View
+    style={
+      Object {
+        "marginHorizontal": 75,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "borderRadius": 3,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityLabel="Go to main screen"
+        activeOpacity={0.3}
+        disabled={false}
+        onPress={[Function]}
+      >
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#fd6e11",
+              "borderColor": "#2089dc",
+              "borderRadius": 5,
+              "borderWidth": 0,
+              "flexDirection": "row",
+              "height": 80,
+              "justifyContent": "center",
+              "padding": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "white",
+                "fontSize": 26.5,
+                "paddingBottom": 1,
+                "paddingTop": 2,
+                "textAlign": "center",
+              }
+            }
+          >
+            Go to main screen
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  </View>,
+  <View
+    style={
+      Array [
+        Object {
+          "paddingVertical": 22.5,
+        },
+        undefined,
+      ]
+    }
+  />,
+]
+`;
