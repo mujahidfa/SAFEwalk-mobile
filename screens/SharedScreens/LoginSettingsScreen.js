@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   containerButton: {
     height: hp("10%"),
     justifyContent: "flex-end",
-    marginTop: hp("4%")
+    marginTop: hp("4%"),
   },
   innerContainer: {
     justifyContent: "space-around",

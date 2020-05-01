@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import {
-  Text,
-  View,
-  StyleSheet, Keyboard,
-} from "react-native";
+import { Text, View, StyleSheet, Keyboard } from "react-native";
 import LottieView from "lottie-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  heightPercentageToDP as hp
-} from "react-native-responsive-screen";
-import {Notifications} from "expo";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { Notifications } from "expo";
 import * as Permissions from "expo-permissions";
 import Constants from "expo-constants";
 
@@ -42,9 +36,12 @@ export default function UserHomeScreen({ navigation }) {
 setNotification: schedules notification for <time>
 handleNotification: cancels all scheduled notifications
 */
-  const requestTimeOutNotification = { title: 'Request Error', body: 'Request Timed Out' };
+  const requestTimeOutNotification = {
+    title: "Request Error",
+    body: "Request Timed Out",
+  };
   let localNotificationId = null;
-  const setNotification = text => {
+  const setNotification = (text) => {
     Keyboard.dismiss();
     console.log("Notification set for " + text);
     const schedulingOptions = {
@@ -52,9 +49,9 @@ handleNotification: cancels all scheduled notifications
     };
     // Notifications show only when app is not active.
     // (ie. another app being used or device's screen is locked)
-    localNotificationId  = Notifications.scheduleLocalNotificationAsync(
-        requestTimeOutNotification,
-        schedulingOptions,
+    localNotificationId = Notifications.scheduleLocalNotificationAsync(
+      requestTimeOutNotification,
+      schedulingOptions
     );
   };
   const handleNotification = async () => {
@@ -102,7 +99,7 @@ handleNotification: cancels all scheduled notifications
           await handleNotification();
           console.log(
             "Unexpected socket status received in UserWaitScreen: status " +
-            status
+              status
           );
       }
     });
@@ -158,8 +155,7 @@ handleNotification: cancels all scheduled notifications
       },
     }).catch((error) => {
       console.error(
-        "Error in DELETE walk from cancelRequest() in UserWaitScreen:" +
-        error
+        "Error in DELETE walk from cancelRequest() in UserWaitScreen:" + error
       );
     });
 
@@ -168,7 +164,7 @@ handleNotification: cancels all scheduled notifications
     if (status !== 200 && status !== 201) {
       console.log(
         "deleting requested walk failed in cancelRequest() in UserWaitScreen: status " +
-        status
+          status
       );
     }
 
@@ -214,21 +210,16 @@ handleNotification: cancels all scheduled notifications
         />
         <View>
           {/* Informational Text to the User */}
-          <Text style={styles.textHeader}>
-            Waiting for SAFEwalker
-          </Text>
+          <Text style={styles.textHeader}>Waiting for SAFEwalker</Text>
           <Text style={styles.text}>
-            {'\n'}Your request has been submitted and is pending approval by the next available SAFEwalker.
+            {"\n"}Your request has been submitted and is pending approval by the
+            next available SAFEwalker.
           </Text>
         </View>
 
         {/* Button to Submit Request */}
         <View style={styles.buttonContainer}>
-          <Button
-            title="Cancel"
-            onPress={() => cancelRequest()}
-            color="red"
-          />
+          <Button title="Cancel" onPress={() => cancelRequest()} color="red" />
         </View>
       </SafeAreaView>
     </View>
@@ -242,14 +233,14 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    justifyContent: 'space-between',
-    marginHorizontal: style.marginContainerHorizontal
+    justifyContent: "space-between",
+    marginHorizontal: style.marginContainerHorizontal,
   },
   animation: {
     height: hp("35%"),
     alignSelf: "center",
     justifyContent: "center",
-    marginTop: hp("9%")
+    marginTop: hp("9%"),
   },
   textHeader: {
     textAlign: "center",

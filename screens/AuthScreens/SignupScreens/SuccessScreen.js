@@ -135,12 +135,12 @@ export default function SuccessSignupScreen({ route }) {
       {/* Button go to main screen */}
       <View style={styles.buttonContainer}>
         {isLoginError && (
-          <ErrorText>
+          <ErrorText accessibilityLabel="isLoginError">
             There was an error. Please try again. (isLoginError)
           </ErrorText>
         )}
         {isUserNotAvailable && (
-          <ErrorText>
+          <ErrorText accessibilityLabel="isUserNotAvailable">
             There was an error. Please try again. (isUserNotAvailable)
           </ErrorText>
         )}

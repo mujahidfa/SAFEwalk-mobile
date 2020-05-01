@@ -7,6 +7,7 @@ import {
   NativeTestEvent,
   act,
   wait,
+  waitForElement,
   waitForElementToBeRemoved,
   render,
 } from "@testing-library/react-native";
@@ -87,74 +88,119 @@ describe("UserLoginScreen ", () => {
       fireEvent.press(loginButton);
     });
 
-    // wait for appearance
+    // wait for Error appearance
     await wait(() => {
       expect(screen.getByLabelText("emailRequired")).toBeTruthy();
       expect(screen.getByLabelText("passwordRequired")).toBeTruthy();
     });
   });
 
-  it("shows error if email is not wisc.edu", () => {
+  it("shows error if email is not wisc.edu", async () => {
+    // Text input
     act(() => {
       fireEvent.changeText(screen.getByLabelText("Email"), "test@gmail.com");
+    });
+    act(() => {
+      fireEvent.changeText(screen.getByLabelText("Password"), "asdf");
+    });
+
+    // press Login button
+    let loginButton = screen.getByLabelText("Login");
+    act(() => {
+      fireEvent.press(loginButton);
+    });
+
+    // wait for Error appearance
+    await wait(() => {
+      expect(screen.getByLabelText("emailRequired")).toBeTruthy();
+    });
+  });
+
+  // it("navigates to LoggedInScreen if Wisc email is valid and registered", () => {
+  //   global.fetch = jest.fn(() => Promise.resolve());
+
+  //   // text input
+  //   act(() => {
+  //     fireEvent.changeText(screen.getByLabelText("Email"), "l@wisc.com");
+  //   });
+  //   act(() => {
+  //     fireEvent.changeText(screen.getByLabelText("Password"), "l");
+  //   });
+
+  //   // button press
+  //   let loginButton = screen.getByLabelText("Login");
+  //   act(() => {
+  //     fireEvent.press(loginButton);
+  //   });
+  // });
+
+  it("shows error if Wisc email is not registered (404)", async () => {
+    let response = {
+      status: 404,
+    };
+
+    global.fetch = jest.fn(() => Promise.resolve(response));
+
+    act(() => {
+      fireEvent.changeText(screen.getByLabelText("Email"), "blabla@wisc.com");
     });
 
     act(() => {
       fireEvent.changeText(screen.getByLabelText("Password"), "asdf");
+    });
+
+    let loginButton = screen.getByLabelText("Login");
+    act(() => {
+      fireEvent.press(loginButton);
+    });
+
+    // wait for Error appearance
+    await wait(() => {
+      expect(screen.queryByLabelText("invalidEmail")).toBeNull();
+      expect(screen.queryByLabelText("invalidPassword")).toBeNull();
+    });
+  });
+
+  it("shows error if there is server error", async () => {
+    global.fetch = jest.fn(() => Promise.reject());
+
+    // Change inputs
+    act(() => {
+      fireEvent.changeText(screen.getByLabelText("Email"), "l@wisc.edu");
+    });
+    act(() => {
+      fireEvent.changeText(screen.getByLabelText("Password"), "asdfg");
+    });
+
+    // press Login button
+    let loginButton = screen.getByLabelText("Login");
+    act(() => {
+      fireEvent.press(loginButton);
+    });
+
+    // wait for error appearance
+    await wait(() => {
+      expect(screen.getByLabelText("serverError")).toBeTruthy();
     });
   });
 
   it("navigates to Signup screens upon pressing the sign up button", () => {
     let signupButton = screen.getByLabelText("signup");
-    expect(signupButton).toBeTruthy();
 
     act(() => {
       fireEvent.press(signupButton);
     });
 
-    // expect(props.navigation.replace)
-    //   .toHaveBeenCalledWith("SignupStack")
+    expect(props.navigation.replace).toHaveBeenCalledWith("SignupStack");
   });
 
-  it("shows error if Wisc email is not registered", () => {
-    act(() => {
-      fireEvent.changeText(screen.getByLabelText("Email"), "test@wisc.com");
-    });
-
-    act(() => {
-      fireEvent.changeText(screen.getByLabelText("Password"), "asdf");
-    });
-
-    let loginButton = screen.getByLabelText("Login");
-    act(() => {
-      fireEvent.press(loginButton);
-    });
-  });
-
-  it("navigates to LoggedInScreen if Wisc email is valid and registered", () => {
-    act(() => {
-      fireEvent.changeText(screen.getByLabelText("Email"), "l@wisc.com");
-    });
-
-    act(() => {
-      fireEvent.changeText(screen.getByLabelText("Password"), "l");
-    });
-
-    let loginButton = screen.getByLabelText("Login");
-    act(() => {
-      fireEvent.press(loginButton);
-    });
-  });
-
-  it('navigate to SAFEwalker login screen when user press the "Login as SAFEwalker" button', () => {
+  it('navigates to SAFEwalker login screen when user press the "Login as SAFEwalker" button', () => {
     let safewalkerButton = screen.getByLabelText("Login as SAFEwalker");
+
     act(() => {
       fireEvent.press(safewalkerButton);
     });
-  });
 
-  // it("renders correctly", () => {
-  //   const tree = renderer.create(component).toJSON();
-  //   expect(tree).toMatchSnapshot();
-  // });
+    expect(props.navigation.replace).toHaveBeenCalledWith("SafewalkerLogin");
+  });
 });

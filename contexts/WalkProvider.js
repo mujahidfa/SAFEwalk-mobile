@@ -80,7 +80,7 @@ export function WalkProvider({ children }) {
         startLat: startLat,
         startLng: startLng,
         destLat: destLat,
-        destLng: destLng
+        destLng: destLng,
       });
     } catch (error) {
       console.error("Error in setCoordinates(): " + error);
@@ -190,7 +190,7 @@ function walkReducer(prevState, action) {
         startLat: action.startLat,
         startLng: action.startLng,
         destLat: action.destLat,
-        destLng: action.destLng
+        destLng: action.destLng,
       };
     case "SET_WALK_ACTIVE":
       return {
@@ -213,14 +213,14 @@ function walkReducer(prevState, action) {
         startLat: action.startLat,
         startLng: action.startLng,
         destLat: action.destLat,
-        destLng: action.destLng
+        destLng: action.destLng,
       };
     case "SET_USER_INFO":
       return {
         ...prevState,
         userEmail: action.userEmail,
         userSocketId: action.userSocketId,
-        walkId: action.walkId
+        walkId: action.walkId,
       };
     case "SET_WALKER_INFO":
       return {
@@ -241,7 +241,7 @@ function walkReducer(prevState, action) {
         startLat: null,
         startLng: null,
         destLat: null,
-        destLng: null
+        destLng: null,
       };
 
     default: {

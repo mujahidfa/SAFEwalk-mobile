@@ -127,7 +127,9 @@ export default function SafewalkerLoginScreen({ navigation }) {
                 </ErrorText>
               )}
               {isLoginError && (
-                <ErrorText>There was an error. Please try again.</ErrorText>
+                <ErrorText accessibilityLabel="serverError">
+                  There was an error. Please try again.
+                </ErrorText>
               )}
               <TextInput
                 label="Email"
@@ -201,7 +203,7 @@ const styles = StyleSheet.create({
   },
   innerFooterContainer: {
     marginHorizontal: style.marginContainerHorizontal,
-    marginTop: hp("4%")
+    marginTop: hp("4%"),
   },
   titleLogin: {
     fontSize: wp("5.5%"),

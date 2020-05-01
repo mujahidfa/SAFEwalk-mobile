@@ -1,39 +1,42 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import axios from 'axios';
-import {
-  StyleSheet,
-  Text,
-  Dimensions,
-  View,
-} from "react-native";
+import axios from "axios";
+import { StyleSheet, Text, Dimensions, View } from "react-native";
 import socket from "../../contexts/socket";
 
-import {
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 import { WalkContext } from "./../../contexts/WalkProvider";
-import {Notifications} from "expo";
+import { Notifications } from "expo";
 import * as Permissions from "expo-permissions";
 import Constants from "expo-constants";
-import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
+import MapView, {
+  Marker,
+  PROVIDER_GOOGLE,
+  fitToElements,
+} from "react-native-maps";
 
 // constants
 import colors from "./../../constants/colors";
 import { Card } from "react-native-paper";
 
 export default function UserMapScreen({ navigation }) {
-  const { startLat, startLng, destLat, destLng, resetWalkContextState } = useContext(WalkContext);
+  const {
+    startLat,
+    startLng,
+    destLat,
+    destLng,
+    resetWalkContextState,
+  } = useContext(WalkContext);
 
   const mapRef = useRef(null);
-  const pinColor = ["green", "red", "blue"]
+  const pinColor = ["green", "red", "blue"];
 
   const [location, setLocation] = useState({
     coordinates: {
       latitude: 43.081606,
-      longitude: -89.376298
+      longitude: -89.376298,
     },
-    text: ""
+    text: "",
   });
 
   const locationRef = useRef(location);
@@ -44,26 +47,26 @@ export default function UserMapScreen({ navigation }) {
   const [destination, setDestination] = useState({
     coordinates: {
       latitude: parseFloat(destLat),
-      longitude: parseFloat(destLng)
+      longitude: parseFloat(destLng),
     },
-    title: "Destination"
+    title: "Destination",
   });
 
   // walk origin - default to current location
   const [start, setStart] = useState({
     coordinates: {
       latitude: parseFloat(startLat),
-      longitude: parseFloat(startLng)
+      longitude: parseFloat(startLng),
     },
-    title: "Start"
+    title: "Start",
   });
 
   const [safewalker, setSafewalker] = useState({
     coordinates: {
       latitude: start.coordinates.latitude,
-      longitude: start.coordinates.longitude
+      longitude: start.coordinates.longitude,
     },
-    title: "SAFEwalker"
+    title: "SAFEwalker",
   });
 
   const destRef = useRef(destination);
@@ -85,44 +88,44 @@ export default function UserMapScreen({ navigation }) {
   etaRef.current = eta;
 
   async function showLocation(position) {
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        },
-        text: "Current Location"
-      }
-    )
+    setLocation({
+      coordinates: {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      },
+      text: "Current Location",
+    });
   }
 
   async function getEta() {
     navigator.geolocation.getCurrentPosition(showLocation);
     var axiosURL =
-      "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins="
-        + locationRef.current.coordinates.latitude + ", "
-        + locationRef.current.coordinates.longitude + "&destinations="
-        + walkerRef.current.coordinates.latitude + ", "
-        + walkerRef.current.coordinates.longitude + "&mode=walking&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
-    axios.get(axiosURL)
-      .then(res => {
-        console.log(res);
-        setDuration(res.data.rows[0].elements[0].duration.text);
-        setDistance(res.data.rows[0].elements[0].distance.text);
-        convertEta();
-      })
+      "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" +
+      locationRef.current.coordinates.latitude +
+      ", " +
+      locationRef.current.coordinates.longitude +
+      "&destinations=" +
+      walkerRef.current.coordinates.latitude +
+      ", " +
+      walkerRef.current.coordinates.longitude +
+      "&mode=walking&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL).then((res) => {
+      console.log(res);
+      setDuration(res.data.rows[0].elements[0].duration.text);
+      setDistance(res.data.rows[0].elements[0].distance.text);
+      convertEta();
+    });
   }
 
   async function convertEta() {
     var today = new Date();
     var hours = today.getHours();
     var minutes = today.getMinutes();
-    var replaced = duration.split(' ');
+    var replaced = duration.split(" ");
     if (replaced[1].localeCompare("hours") == 0) {
       hours = parseInt(hours) + parseInt(replaced[0]);
       minutes = parseInt(minutes) + parseInt(replaced[2]);
-    }
-    else {
+    } else {
       minutes = parseInt(minutes) + parseInt(replaced[0]);
     }
 
@@ -160,13 +163,13 @@ export default function UserMapScreen({ navigation }) {
       //   }
       // );
       setSafewalker({
-        title: 'SAFEwalker',
+        title: "SAFEwalker",
         coordinates: {
           // replace with api to get user's home address
           latitude: lat,
-          longitude: lng
-        }
-      })
+          longitude: lng,
+        },
+      });
       getEta();
       // mapRef.current.fitToElements();
     });
@@ -189,7 +192,7 @@ export default function UserMapScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in UserMapScreen: status " +
-            status
+              status
           );
       }
     });
@@ -213,9 +216,12 @@ export default function UserMapScreen({ navigation }) {
   /* Notification Setup
   setNotification: schedules notification for <time>
   */
-  const connectionNotification = { title: 'Connection Error', body: 'Connection Lost' };
+  const connectionNotification = {
+    title: "Connection Error",
+    body: "Connection Lost",
+  };
   let localNotificationId = null;
-  const setNotification = time => {
+  const setNotification = (time) => {
     Keyboard.dismiss();
     console.log("Notification set for " + time);
     const schedulingOptions = {
@@ -223,9 +229,9 @@ export default function UserMapScreen({ navigation }) {
     };
     // Notifications show only when app is not active.
     // (ie. another app being used or device's screen is locked)
-    localNotificationId  = Notifications.scheduleLocalNotificationAsync(
-        connectionNotification,
-        schedulingOptions,
+    localNotificationId = Notifications.scheduleLocalNotificationAsync(
+      connectionNotification,
+      schedulingOptions
     );
   };
 
@@ -234,7 +240,7 @@ export default function UserMapScreen({ navigation }) {
     getEta();
     convertEta();
     // mapRef.current.fitToElements();
-  };
+  }
 
   return (
     <View style={styles.container}>
@@ -255,7 +261,7 @@ export default function UserMapScreen({ navigation }) {
         <MapView.Marker
           coordinate={{
             latitude: startRef.current.coordinates.latitude,
-            longitude: startRef.current.coordinates.longitude
+            longitude: startRef.current.coordinates.longitude,
           }}
           title={startRef.current.title}
           pinColor={pinColor[0]}
@@ -263,7 +269,7 @@ export default function UserMapScreen({ navigation }) {
         <MapView.Marker
           coordinate={{
             latitude: destRef.current.coordinates.latitude,
-            longitude: destRef.current.coordinates.longitude
+            longitude: destRef.current.coordinates.longitude,
           }}
           title={destRef.current.title}
           pinColor={pinColor[1]}
@@ -271,18 +277,14 @@ export default function UserMapScreen({ navigation }) {
         <MapView.Marker
           coordinate={{
             latitude: walkerRef.current.coordinates.latitude,
-            longitude: walkerRef.current.coordinates.longitude
+            longitude: walkerRef.current.coordinates.longitude,
           }}
           title={walkerRef.title}
-          icon={require('../../assets/walking-solid.png')}
+          icon={require("../../assets/walking-solid.png")}
         />
-        <View styles={{ flex: 1, flexDirection: 'column' }}>
-          <Text style={styles.textStyle1}>
-            ETA: {durRef.current}
-          </Text>
-          <Text style={styles.textStyle2}>
-            Distance: {distRef.current}
-          </Text>
+        <View styles={{ flex: 1, flexDirection: "column" }}>
+          <Text style={styles.textStyle1}>ETA: {durRef.current}</Text>
+          <Text style={styles.textStyle2}>Distance: {distRef.current}</Text>
         </View>
       </MapView>
     </View>
@@ -298,22 +300,22 @@ const styles = StyleSheet.create({
   },
   mapStyle: {
     marginTop: 0,
-    width: Dimensions.get('window').width,
+    width: Dimensions.get("window").width,
     height: hp("83%"),
-    justifyContent: 'flex-start'
+    justifyContent: "flex-start",
   },
   textStyle1: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.darkgray,
     marginTop: 15,
     marginLeft: 10,
     fontSize: 18,
   },
   textStyle2: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.darkgray,
     marginTop: 5,
     marginLeft: 10,
     fontSize: 18,
-  }
+  },
 });
