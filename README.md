@@ -20,6 +20,9 @@ Safewalkers can:
 - Accept/Deny/Cancel walk request
 - Update Profile
 
+## Screens
+![SAFEwalk App Flow](https://github.com/mujahidfa/SAFEwalk-mobile/blob/master/flowpic.JPG)
+
 ## Installation
 
 In order to run on your machine, you will need to run two applications on 2 separate command lines. Here's how you would do it:
