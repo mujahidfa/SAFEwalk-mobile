@@ -70,7 +70,7 @@ npm install -g expo-cli
 yarn # or npm install
 ```
 
-5. Go `./contexts/socket.js` and change the IP address according to your local IP address.
+5. Go to `/contexts/socket.js` and change the IP address according to your local IP address.
 
 6. Finally, run the app:
 
