@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Keyboard,StyleSheet, Text, View } from "react-native";
-import {Linking, Notifications} from "expo";
+import { Keyboard, StyleSheet, Text, View } from "react-native";
+import { Linking, Notifications } from "expo";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 // Libraries
@@ -163,43 +163,47 @@ export default function UserProfileScreen({ navigation }) {
      */
   }, [userEmail]);
 
-
   /* Notification Setup 1
 setCancelNotification: schedules notification for <time>
 */
-  const CancelNotification = { title: 'Connection is Lost', body: 'Connection lost, walk cancelled.' };
+  const CancelNotification = {
+    title: "Connection is Lost",
+    body: "Connection lost, walk cancelled.",
+  };
   let localCancelNotificationId = null;
-  const setCancelNotification = time => {
+  const setCancelNotification = (time) => {
     Keyboard.dismiss();
     const schedulingOptions = {
       time: new Date().getTime() + Number(time),
     };
     // Notifications show only when app is not active.
     // (ie. another app being used or device's screen is locked)
-    localCancelNotificationId  = Notifications.scheduleLocalNotificationAsync(
-        CancelNotification,
-        schedulingOptions,
+    localCancelNotificationId = Notifications.scheduleLocalNotificationAsync(
+      CancelNotification,
+      schedulingOptions
     );
   };
 
   /* Notification Setup 2
 setCancelNotification: schedules notification for <time>
 */
-  const userCancelNotification = { title: 'Walk Cancelled', body: 'User canceled the walk' };
+  const userCancelNotification = {
+    title: "Walk Cancelled",
+    body: "User canceled the walk",
+  };
   let localUserCancelNotificationId = null;
-  const setUserCancelNotification = time => {
+  const setUserCancelNotification = (time) => {
     Keyboard.dismiss();
     const schedulingOptions = {
       time: new Date().getTime() + Number(time),
     };
     // Notifications show only when app is not active.
     // (ie. another app being used or device's screen is locked)
-    localUserCancelNotificationId  = Notifications.scheduleLocalNotificationAsync(
-        userCancelNotification,
-        schedulingOptions,
+    localUserCancelNotificationId = Notifications.scheduleLocalNotificationAsync(
+      userCancelNotification,
+      schedulingOptions
     );
   };
-
 
   /**
    * Loads the user profile from the database based on the user's email

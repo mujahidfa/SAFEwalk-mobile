@@ -166,7 +166,9 @@ export default function EditProfileScreen() {
       {!edit ? (
         <ScrollView style={styles.container}>
           <SafeAreaView style={styles.innerContainer}>
-            <View style={{ alignItems: "center", marginBottom: 40, marginTop: 40 }}>
+            <View
+              style={{ alignItems: "center", marginBottom: 40, marginTop: 40 }}
+            >
               {/* Fix so avatar does not move when clicking edit button */}
               {!image ? (
                 <Avatar
@@ -175,7 +177,9 @@ export default function EditProfileScreen() {
                   size={150}
                   title={firstName[0] + lastName[0]}
                   containerStyle={styles.avatar}
-                  overlayContainerStyle={{ backgroundColor: colors.medlightgray }}
+                  overlayContainerStyle={{
+                    backgroundColor: colors.medlightgray,
+                  }}
                 />
               ) : (
                 <Avatar
@@ -188,23 +192,40 @@ export default function EditProfileScreen() {
               )}
             </View>
             <Divider accessibilityLabel="Divider 1" style={styles.divider} />
-            <Text accessibilityLabel="Name" style={styles.text}>Name: {firstName + " " + lastName}</Text>
+            <Text accessibilityLabel="Name" style={styles.text}>
+              Name: {firstName + " " + lastName}
+            </Text>
             <Divider accessibilityLabel="Divider 2" style={styles.divider} />
-            <Text accessibilityLabel="Phone" style={styles.text}>Phone Number: {formatPhone()}</Text>
+            <Text accessibilityLabel="Phone" style={styles.text}>
+              Phone Number: {formatPhone()}
+            </Text>
             <Divider accessibilityLabel="Divider 3" style={styles.divider} />
-            <Text accessibilityLabel="Interests" style={styles.text}>Interests: {interests}</Text>
+            <Text accessibilityLabel="Interests" style={styles.text}>
+              Interests: {interests}
+            </Text>
             <Divider accessibilityLabel="Divider 4" style={styles.divider} />
 
             {/* Button to Edit Profile */}
             <View style={styles.buttonContainer}>
-              <Button accessibilityLabel="EditButton" title="Edit" onPress={() => setEdit(true)} />
+              <Button
+                accessibilityLabel="EditButton"
+                title="Edit"
+                onPress={() => setEdit(true)}
+              />
             </View>
           </SafeAreaView>
         </ScrollView>
       ) : (
-        <KeyboardAvoidingView style={styles.container} >
+        <KeyboardAvoidingView style={styles.container}>
           <SafeAreaView style={styles.innerContainer}>
-            <View style={{ flex: 1, alignItems: "center", marginBottom: 40, marginTop: 40}}>
+            <View
+              style={{
+                flex: 1,
+                alignItems: "center",
+                marginBottom: 40,
+                marginTop: 40,
+              }}
+            >
               {!image ? (
                 <Avatar
                   rounded
@@ -212,7 +233,9 @@ export default function EditProfileScreen() {
                   size={150}
                   title={firstName[0] + lastName[0]}
                   containerStyle={styles.avatar}
-                  overlayContainerStyle={{ backgroundColor: colors.medlightgray }}
+                  overlayContainerStyle={{
+                    backgroundColor: colors.medlightgray,
+                  }}
                   showEditButton
                   onEditPress={() => uploadImage()}
                 />
@@ -228,69 +251,72 @@ export default function EditProfileScreen() {
                 />
               )}
             </View>
-            <View style={{backgroundColor: colors.white}}>
+            <View style={{ backgroundColor: colors.white }}>
               <TextInput
-                  label="First Name"
-                  accessibilityLabel="FirstName"
-                  defaultValue={firstName}
-                  onChangeText={setFirstName}
-                  mode="outlined"
-                  theme={{ colors: { primary: colors.orange } }}
-                  style={styles.inputContainer}
+                label="First Name"
+                accessibilityLabel="FirstName"
+                defaultValue={firstName}
+                onChangeText={setFirstName}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
               />
               <TextInput
-                  label="Last Name"
-                  accessibilityLabel="LastName"
-                  defaultValue={lastName}
-                  onChangeText={setLastName}
-                  mode="outlined"
-                  theme={{ colors: { primary: colors.orange } }}
-                  style={styles.inputContainer}
+                label="Last Name"
+                accessibilityLabel="LastName"
+                defaultValue={lastName}
+                onChangeText={setLastName}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
               />
 
               {errors.phoneNumber && (
-                  <Text style={style.textError}>
-                    Valid US phone number is required.
-                  </Text>
+                <Text style={style.textError}>
+                  Valid US phone number is required.
+                </Text>
               )}
               <RNTextInput
-                  label="Phone Number"
-                  defaultValue={phoneNumber}
-                  accessibilityLabel="PhoneNumber"
-                  ref={register(
-                      { name: "phoneNumber" },
-                      {
-                        required: false,
-                        minLength: 10,
-                        maxLength: 10,
-                        pattern: /^[0-9]+$/,
-                      }
-                  )}
-                  onChangeText={(text) => setValue("phoneNumber", text, true)}
-                  mode="outlined"
-                  theme={{ colors: { primary: colors.orange } }}
-                  style={styles.inputContainer}
-                  keyboardType={"numeric"}
+                label="Phone Number"
+                defaultValue={phoneNumber}
+                accessibilityLabel="PhoneNumber"
+                ref={register(
+                  { name: "phoneNumber" },
+                  {
+                    required: false,
+                    minLength: 10,
+                    maxLength: 10,
+                    pattern: /^[0-9]+$/,
+                  }
+                )}
+                onChangeText={(text) => setValue("phoneNumber", text, true)}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+                keyboardType={"numeric"}
               />
               <TextInput
-                  label="Interests"
-                  accessibilityLabel="InterestsInput"
-                  defaultValue={interests}
-                  placeholder={interests}
-                  onChangeText={setInterests}
-                  mode="outlined"
-                  multiline={true}
-                  numberOfLines={3}
-                  theme={{ colors: { primary: colors.orange } }}
-                  style={styles.inputContainer}
+                label="Interests"
+                accessibilityLabel="InterestsInput"
+                defaultValue={interests}
+                placeholder={interests}
+                onChangeText={setInterests}
+                mode="outlined"
+                multiline={true}
+                numberOfLines={3}
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
               />
 
               {/* Button to Edit Profile */}
               <View style={styles.buttonContainer}>
-                <Button accessibilityLabel="saveButton" title="Save" onPress={handleSubmit(onSubmit)} />
+                <Button
+                  accessibilityLabel="saveButton"
+                  title="Save"
+                  onPress={handleSubmit(onSubmit)}
+                />
               </View>
             </View>
-
           </SafeAreaView>
         </KeyboardAvoidingView>
       )}

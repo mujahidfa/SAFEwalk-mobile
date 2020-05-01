@@ -1,14 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import {
-  StyleSheet,
-  Text,
-  Dimensions,
-  View,
-} from "react-native";
+import { StyleSheet, Text, Dimensions, View } from "react-native";
 
-import {
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 // Custom components
 import Button from "./../../components/Button";
@@ -23,16 +16,26 @@ import style from "./../../constants/style";
 // Contexts
 import { AuthContext } from "../../contexts/AuthProvider";
 import { WalkContext } from "../../contexts/WalkProvider";
-import {Notifications} from "expo";
+import { Notifications } from "expo";
 
-import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
+import MapView, {
+  Marker,
+  PROVIDER_GOOGLE,
+  fitToElements,
+} from "react-native-maps";
 
 export default function MapScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const { userToken, email } = useContext(AuthContext);
-  const { walkId, startLat, startLng, destLat, destLng, userSocketId, resetWalkContextState } = useContext(
-    WalkContext
-  );
+  const {
+    walkId,
+    startLat,
+    startLng,
+    destLat,
+    destLng,
+    userSocketId,
+    resetWalkContextState,
+  } = useContext(WalkContext);
 
   // /**
   //  * This effect sets up the socket connection to the User.
@@ -56,7 +59,7 @@ export default function MapScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in SafewalkerMapScreen: status " +
-            status
+              status
           );
       }
     });
@@ -76,25 +79,26 @@ export default function MapScreen({ navigation }) {
     };
   }, []);
 
-
   /* Notification Setup
 setDisconnectNotification: schedules notification for <time>
 */
-  const disconnectionNotification = { title: 'Walk Cancelled', body: 'SAFEwalker canceled the walk' };
+  const disconnectionNotification = {
+    title: "Walk Cancelled",
+    body: "SAFEwalker canceled the walk",
+  };
   let localDisconnectNotificationId = null;
-  const setDisconnectNotification = time => {
+  const setDisconnectNotification = (time) => {
     Keyboard.dismiss();
     const schedulingOptions = {
       time: new Date().getTime() + Number(time),
     };
     // Notifications show only when app is not active.
     // (ie. another app being used or device's screen is locked)
-    localDisconnectNotificationId  = Notifications.scheduleLocalNotificationAsync(
-        disconnectionNotification,
-        schedulingOptions,
+    localDisconnectNotificationId = Notifications.scheduleLocalNotificationAsync(
+      disconnectionNotification,
+      schedulingOptions
     );
   };
-
 
   /**
    * Upon complete button press, update the current walk status in the database as completed
@@ -116,12 +120,12 @@ setDisconnectNotification: schedules notification for <time>
       },
       body: JSON.stringify({
         status: 2,
-      })
+      }),
     }).catch((error) => {
       console.error(
         "Error in PUT walk request in completeWalk() in SafewalkerHomeScreen:" +
-        error
-      )
+          error
+      );
     });
 
     let status = res.status;
@@ -129,7 +133,7 @@ setDisconnectNotification: schedules notification for <time>
     if (status != 200 && status != 201) {
       console.log(
         "complete walk in completeWalk() in SafewalkerMapScreen failed: status " +
-        status
+          status
       );
       return; //exit
     }
@@ -153,57 +157,51 @@ setDisconnectNotification: schedules notification for <time>
   const [destination, setDestination] = useState({
     coordinates: {
       latitude: parseFloat(destLat),
-      longitude: parseFloat(destLng)
+      longitude: parseFloat(destLng),
     },
-    text: "Destination"
+    text: "Destination",
   });
 
   // walk origin
   const [start, setStart] = useState({
     coordinates: {
       latitude: parseFloat(startLat),
-      longitude: parseFloat(startLng)
+      longitude: parseFloat(startLng),
     },
-    text: "Current Location"
+    text: "Current Location",
   });
 
   const [user, setUser] = useState({
     coordinates: {
       latitude: 43.075143,
-      longitude: -89.400151
+      longitude: -89.400151,
     },
-    text: "User"
+    text: "User",
   });
 
-  const [startMarker, setStartMarker] = useState(
-    {
-      title: 'Start',
-      coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
-      }
-    }
-  );
+  const [startMarker, setStartMarker] = useState({
+    title: "Start",
+    coordinates: {
+      latitude: start.coordinates.latitude,
+      longitude: start.coordinates.longitude,
+    },
+  });
 
-  const [destMarker, setDestMarker] = useState(
-    {
-      title: 'Destination',
-      coordinates: {
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
-      }
-    }
-  );
+  const [destMarker, setDestMarker] = useState({
+    title: "Destination",
+    coordinates: {
+      latitude: destination.coordinates.latitude,
+      longitude: destination.coordinates.longitude,
+    },
+  });
 
-  const [userMarker, setUserMarkekr] = useState(
-    {
-      title: 'User',
-      coordinates: {
-        latitude: user.coordinates.latitude,
-        longitude: user.coordinates.longitude
-      }
-    }
-  );
+  const [userMarker, setUserMarkekr] = useState({
+    title: "User",
+    coordinates: {
+      latitude: user.coordinates.latitude,
+      longitude: user.coordinates.longitude,
+    },
+  });
 
   // /**
   //  * This effect sets up the socket connection to the User.
@@ -227,7 +225,7 @@ setDisconnectNotification: schedules notification for <time>
         default:
           console.log(
             "Unexpected socket status received in SafewalkerMapScreen: status " +
-            status
+              status
           );
       }
     });
@@ -248,7 +246,7 @@ setDisconnectNotification: schedules notification for <time>
 
   async function onMapReady() {
     // mapRef.current.fitToElements();
-  };
+  }
 
   return (
     <View style={styles.container}>
@@ -270,7 +268,7 @@ setDisconnectNotification: schedules notification for <time>
         <MapView.Marker
           coordinate={{
             latitude: startMarker.coordinates.latitude,
-            longitude: startMarker.coordinates.longitude
+            longitude: startMarker.coordinates.longitude,
           }}
           title={startMarker.title}
           pinColor={pinColor[0]}
@@ -278,7 +276,7 @@ setDisconnectNotification: schedules notification for <time>
         <MapView.Marker
           coordinate={{
             latitude: destMarker.coordinates.latitude,
-            longitude: destMarker.coordinates.longitude
+            longitude: destMarker.coordinates.longitude,
           }}
           title={destMarker.title}
           pinColor={pinColor[1]}
@@ -316,8 +314,8 @@ const styles = StyleSheet.create({
   },
   mapStyle: {
     marginTop: 0,
-    width: Dimensions.get('window').width,
+    width: Dimensions.get("window").width,
     height: hp("83%"),
-    justifyContent: 'space-between'
+    justifyContent: "space-between",
   },
 });

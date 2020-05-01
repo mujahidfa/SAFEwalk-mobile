@@ -10,15 +10,15 @@ import { AuthProvider } from "./../../../contexts/AuthProvider";
 import colors from "./../../../constants/colors";
 
 const createTestProps = (props) => ({
-    initialRouteName: "EditProfile",
-    screenOptions: {
-        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-        headerStyle: {
-            backgroundColor: colors.lightorange,
-        },
-        headerTintColor: "#fff",
-        headerTitleAlign: "center",
+  initialRouteName: "EditProfile",
+  screenOptions: {
+    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    headerStyle: {
+      backgroundColor: colors.lightorange,
     },
+    headerTintColor: "#fff",
+    headerTitleAlign: "center",
+  },
 });
 
 let props;
@@ -26,20 +26,20 @@ let component;
 let screen;
 
 describe("EditProfileNavigation ", () => {
-    beforeEach(() => {
-        props = createTestProps();
+  beforeEach(() => {
+    props = createTestProps();
 
-        component = (
-            <AuthProvider>
-                <NavigationContainer>
-                    <EditProfileNavigation {...props} />;
-                </NavigationContainer>
-            </AuthProvider>
-        );
-    });
+    component = (
+      <AuthProvider>
+        <NavigationContainer>
+          <EditProfileNavigation {...props} />;
+        </NavigationContainer>
+      </AuthProvider>
+    );
+  });
 
-    it("renders correctly", () => {
-        const tree = renderer.create(component).toJSON();
-        expect(tree).toMatchSnapshot();
-    });
+  it("renders correctly", () => {
+    const tree = renderer.create(component).toJSON();
+    expect(tree).toMatchSnapshot();
+  });
 });

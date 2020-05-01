@@ -24,7 +24,7 @@ import style from "./../../constants/style";
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
-import {SafeAreaView} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SafewalkerProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
@@ -245,7 +245,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
   }
 
   return (
-      <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
         <View style={styles.profileContainer}>
           <Avatar.Image
@@ -283,8 +283,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
           <Spacer />
         </View>
       </View>
-      </SafeAreaView>
-
+    </SafeAreaView>
   );
 }
 
