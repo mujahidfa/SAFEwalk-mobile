@@ -127,13 +127,14 @@ export default function LoginSettingsScreen({ navigation }) {
           {/* Inner View */}
           <KeyboardAvoidingView style={styles.innerContainer}>
             {errors.currentPassword && (
-              <Text style={styles.textError}>
+              <Text style={styles.textError} accessibilityLabel="currentRequired">
                 Current password is required.
               </Text>
             )}
             <TextInput
               label="Current Password"
               placeholder="Current Password"
+              accessibilityLabel="Current Password"
               ref={register({ name: "currentPassword" }, { required: true })}
               onChangeText={(text) => setValue("currentPassword", text, true)}
               secureTextEntry
@@ -141,11 +142,12 @@ export default function LoginSettingsScreen({ navigation }) {
             />
 
             {errors.password && (
-              <Text style={styles.textError}>Password is required.</Text>
+              <Text style={styles.textError} accessibilityLabel="newRequired">Password is required.</Text>
             )}
             <TextInput
               label="New Password"
               placeholder="New Password"
+              accessibilityLabel="New Password"
               ref={register({ name: "password" }, { required: true })}
               onChangeText={(text) => setValue("password", text, true)}
               secureTextEntry
@@ -153,10 +155,11 @@ export default function LoginSettingsScreen({ navigation }) {
             />
 
             {errors.confirmPassword && (
-              <Text style={styles.textError}>The passwords do not match.</Text>
+              <Text style={styles.textError} accessibilityLabel="confirmRequired">The passwords do not match.</Text>
             )}
             <TextInput
               label="Confirm password"
+              accessibilityLabel="Confirm Password"
               ref={register(
                 { name: "confirmPassword" },
                 {
@@ -175,6 +178,7 @@ export default function LoginSettingsScreen({ navigation }) {
             <View style={styles.containerButton}>
               <Button
                 title="Confirm Password Change"
+                accessibilityLabel="Save Button"
                 onPress={handleSubmit(onSubmit)}
               />
             </View>
@@ -204,7 +208,7 @@ const styles = StyleSheet.create({
   containerButton: {
     height: hp("10%"),
     justifyContent: "flex-end",
-    marginTop: hp("4%"),
+    marginTop: hp("4%")
   },
   innerContainer: {
     justifyContent: "space-around",
