@@ -49,5 +49,4 @@ describe("LoginSettingsNavigation ", () => {
     const header = getByText("Login Settings");
     expect(header).toBeTruthy();
   });
-
 });

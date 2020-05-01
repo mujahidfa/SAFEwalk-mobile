@@ -24,42 +24,41 @@ jest.mock("abort-controller", () => {
 });
 
 jest.mock("react-native-safe-area-context", () => ({
-    SafeAreaView: ({ children }) => <>{children}</>,
-  }));
+  SafeAreaView: ({ children }) => <>{children}</>,
+}));
 
-  export const createTestProps = (props) => ({
-    navigation: {
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-      replace: jest.fn(),
-    },
-    ...props,
-  });
-  
-  let props;
-  let component;
-  let screen;
+export const createTestProps = (props) => ({
+  navigation: {
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    replace: jest.fn(),
+  },
+  ...props,
+});
+
+let props;
+let component;
+let screen;
 
 describe("LoginSettingsScreen ", () => {
-    beforeEach(() => {
-        props = createTestProps();
-    
-        let route = {
-          params: {
-            email: "a@wisc.edu",
-            password: "asdfg",
-          },
-        };
-    
-        component = (
-          <AuthProvider>
-            <LoginSettingsScreen route={route} navigation={props.navigation} />
-          </AuthProvider>
-        );
-    
-        screen = render(component);
-      });
+  beforeEach(() => {
+    props = createTestProps();
 
+    let route = {
+      params: {
+        email: "a@wisc.edu",
+        password: "asdfg",
+      },
+    };
+
+    component = (
+      <AuthProvider>
+        <LoginSettingsScreen route={route} navigation={props.navigation} />
+      </AuthProvider>
+    );
+
+    screen = render(component);
+  });
 
   it("renders correctly", () => {
     const tree = renderer.create(component).toJSON();
@@ -69,7 +68,7 @@ describe("LoginSettingsScreen ", () => {
   it("has a current password TextInput", () => {
     expect(screen.getByLabelText("Current Password")).toBeTruthy();
   });
- 
+
   it("has a new password TextInput", () => {
     expect(screen.getByLabelText("New Password")).toBeTruthy();
   });
@@ -106,98 +105,100 @@ describe("LoginSettingsScreen ", () => {
     });
 
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("Confirm Password"), "asdf");
-      });
+      fireEvent.changeText(screen.getByLabelText("Confirm Password"), "asdf");
+    });
 
-      let saveButton = screen.getByLabelText("Save Button");
-      act(() => {
-        fireEvent.press(saveButton);
-      });
+    let saveButton = screen.getByLabelText("Save Button");
+    act(() => {
+      fireEvent.press(saveButton);
+    });
   });
 
   it("shows error if new password does not match confirmation", () => {
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("New Password"), "asdfd");
-      });
+      fireEvent.changeText(screen.getByLabelText("New Password"), "asdfd");
+    });
 
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("Confirm Password"), "asdf");
-      });
+      fireEvent.changeText(screen.getByLabelText("Confirm Password"), "asdf");
+    });
   });
-
 
   it("saves the password upon success", async () => {
     let response = {
-        status: 200,
+      status: 200,
     };
 
     global.fetch = jest.fn(() => Promise.resolve(response));
 
     // Change inputs
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("Current Password"), "asdfg");
+      fireEvent.changeText(screen.getByLabelText("Current Password"), "asdfg");
     });
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("New Password"), "pass");
+      fireEvent.changeText(screen.getByLabelText("New Password"), "pass");
     });
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("Confirm Password"), "pass");
+      fireEvent.changeText(screen.getByLabelText("Confirm Password"), "pass");
     });
 
     // press save button
     let saveButton = screen.getByLabelText("Save Button");
     act(() => {
-        fireEvent.press(saveButton);
+      fireEvent.press(saveButton);
     });
-});
+  });
 
   it("Alerts the user upon failure to update password", async () => {
     let response = {
-        status: 409,
+      status: 409,
     };
 
     global.fetch = jest.fn(() => Promise.resolve(response));
 
     // Change inputs
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("Current Password"), "password");
+      fireEvent.changeText(
+        screen.getByLabelText("Current Password"),
+        "password"
+      );
     });
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("New Password"), "pass");
+      fireEvent.changeText(screen.getByLabelText("New Password"), "pass");
     });
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("Confirm Password"), "pass");
+      fireEvent.changeText(screen.getByLabelText("Confirm Password"), "pass");
     });
 
     // press save button
     let saveButton = screen.getByLabelText("Save Button");
     act(() => {
-        fireEvent.press(saveButton);
+      fireEvent.press(saveButton);
     });
-});
+  });
 
-it("shows error if there's other uncaptured server errors", async () => {
+  it("shows error if there's other uncaptured server errors", async () => {
     global.fetch = jest.fn(() => Promise.resolve(response));
 
     // Change inputs
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("Current Password"), "asdfg");
+      fireEvent.changeText(screen.getByLabelText("Current Password"), "asdfg");
     });
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("New Password"), "pass");
+      fireEvent.changeText(screen.getByLabelText("New Password"), "pass");
     });
     act(() => {
-        fireEvent.changeText(screen.getByLabelText("Confirm Password"), "pass");
+      fireEvent.changeText(screen.getByLabelText("Confirm Password"), "pass");
     });
 
     // press save button
     let saveButton = screen.getByLabelText("Save Button");
     act(() => {
-        fireEvent.press(saveButton);
+      fireEvent.press(saveButton);
     });
-});
+  });
 
-it("fails if email and password is null", async () => {
+  it("fails if email and password is null", async () => {
     let route = {
       params: {
         email: null,
@@ -213,5 +214,4 @@ it("fails if email and password is null", async () => {
 
     screen = render(component);
   });
-
 });

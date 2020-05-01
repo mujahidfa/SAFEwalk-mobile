@@ -127,7 +127,10 @@ export default function LoginSettingsScreen({ navigation }) {
           {/* Inner View */}
           <KeyboardAvoidingView style={styles.innerContainer}>
             {errors.currentPassword && (
-              <Text style={styles.textError} accessibilityLabel="currentRequired">
+              <Text
+                style={styles.textError}
+                accessibilityLabel="currentRequired"
+              >
                 Current password is required.
               </Text>
             )}
@@ -142,7 +145,9 @@ export default function LoginSettingsScreen({ navigation }) {
             />
 
             {errors.password && (
-              <Text style={styles.textError} accessibilityLabel="newRequired">Password is required.</Text>
+              <Text style={styles.textError} accessibilityLabel="newRequired">
+                Password is required.
+              </Text>
             )}
             <TextInput
               label="New Password"
@@ -155,7 +160,12 @@ export default function LoginSettingsScreen({ navigation }) {
             />
 
             {errors.confirmPassword && (
-              <Text style={styles.textError} accessibilityLabel="confirmRequired">The passwords do not match.</Text>
+              <Text
+                style={styles.textError}
+                accessibilityLabel="confirmRequired"
+              >
+                The passwords do not match.
+              </Text>
             )}
             <TextInput
               label="Confirm password"
@@ -208,7 +218,7 @@ const styles = StyleSheet.create({
   containerButton: {
     height: hp("10%"),
     justifyContent: "flex-end",
-    marginTop: hp("4%")
+    marginTop: hp("4%"),
   },
   innerContainer: {
     justifyContent: "space-around",
