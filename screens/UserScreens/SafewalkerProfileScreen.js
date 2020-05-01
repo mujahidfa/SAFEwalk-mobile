@@ -24,6 +24,7 @@ import style from "./../../constants/style";
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SafewalkerProfileScreen({ navigation }) {
   const [firstname, setFirstname] = useState("");
@@ -74,7 +75,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in SafewalkerProfileScreen: status " +
-            status
+              status
           );
       }
     });
@@ -123,7 +124,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
       }
       console.error(
         "Error in GET SAFEwalker email and walker ID in loadWalkerProfile() in SafewalkerProfileScreen:" +
-        error
+          error
       );
     });
 
@@ -136,7 +137,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "get SAFEwalker email & socket ID in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
-        status
+          status
       );
       return; // exit
     }
@@ -166,7 +167,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
       }
       console.error(
         "Error in retrieving SAFEwalker name and phone number in loadWalkerProfile() in SafewalkerProfileScreen:" +
-        error
+          error
       );
     });
 
@@ -179,7 +180,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "get SAFEwalker name & phone number in loadWalkerProfile() in SafewalkerProfileScreen failed: status " +
-        status
+          status
       );
       return; // exit
     }
@@ -204,7 +205,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
     }).catch((error) => {
       console.error(
         "Error in deleting a walk in cancelWalk() in SafewalkerProfileScreen:" +
-        error
+          error
       );
     });
 
@@ -244,7 +245,7 @@ export default function SafewalkerProfileScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
         <View style={styles.profileContainer}>
           <Avatar.Image
@@ -278,11 +279,11 @@ export default function SafewalkerProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.buttonCancelContainer}>
-          <BButton title="Cancel" onPress={() => cancelWalk()} />
+          <BButton title="Cancel" onPress={() => cancelWalk()} color="red" />
           <Spacer />
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -304,6 +305,7 @@ const styles = StyleSheet.create({
   profilePicture: {},
   textName: {
     fontSize: wp("9%"), //30,
+    color: colors.gray,
   },
   buttonContactContainer: {
     flex: 1,

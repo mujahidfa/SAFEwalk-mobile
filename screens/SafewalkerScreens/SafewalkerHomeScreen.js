@@ -1,10 +1,17 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
-import { StyleSheet, Text, View, FlatList, totalResults, Alert  } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  totalResults,
+  Alert,
+} from "react-native";
 
 // 3rd party libraries
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import moment from "moment/moment.js";
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from "react-native-vector-icons/FontAwesome";
 
 // Constants
 import socket from "./../../contexts/socket";
@@ -14,15 +21,18 @@ import TextInput from "./../../components/TextInput";
 import Button from "./../../components/Button";
 import style from "./../../constants/style";
 
-
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
 export default function SafewalkerHomeScreen({ navigation }) {
   const [requests, setRequests] = useState([]);
   const { userToken, email } = useContext(AuthContext);
-  const { setUserInfo, setWalkAsActive } = useContext(WalkContext);
+  const { setUserInfo, setCoordinates, setWalkAsActive } = useContext(
+    WalkContext
+  );
 
   /**
    * This effect sets up the socket connection to the User to listen to new walk requests.
@@ -32,7 +42,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     // this is to fix memory leak error: Promise cleanup
     const loadWalkAbortController = new AbortController();
     const signal = loadWalkAbortController.signal;
-
+    askNotification();
     loadWalk(signal);
 
     socket.removeAllListeners();
@@ -54,6 +64,17 @@ export default function SafewalkerHomeScreen({ navigation }) {
       loadWalkAbortController.abort();
     };
   }, []);
+
+  /* Notification Setup
+askNotification (only for starting screens): Asks iOS for notification permissions
+*/
+
+  const askNotification = async () => {
+    // We need to ask for Notification permissions for ios devices
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+    if (Constants.isDevice && status === "granted")
+      console.log("Notification permissions granted.");
+  };
 
   /**
    * Loads the walk requests from the database and fills them in local state (i.e. in "requests")
@@ -77,7 +98,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
       }
       console.error(
         "Error in fetching walk requests from loadWalk() in SafewalkerHomeScreen:" +
-        error
+          error
       );
     });
 
@@ -90,7 +111,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "get walk requests in loadWalk() in SafewalkerHomeScreen failed: status " +
-        status
+          status
       );
       return; //exit
     }
@@ -128,8 +149,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }).catch((error) => {
       console.error(
         "Error in GET walk request in acceptRequest() in SafewalkerHomeScreen:" +
-        error
-      )
+          error
+      );
     });
 
     let status = res.status;
@@ -137,7 +158,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "get walk status in acceptRequest() in SafewalkerHomeScreen failed: status " +
-        status
+          status
       );
       return; // exit
     }
@@ -165,8 +186,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }).catch((error) => {
       console.error(
         "Error in PUT walk request in acceptRequest() in SafewalkerHomeScreen:" +
-        error
-      )
+          error
+      );
     });
 
     status = res1.status;
@@ -174,7 +195,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "accept walk in acceptRequest() in SafewalkerHomeScreen failed: status " +
-        status
+          status
       );
       return; // exit
     }
@@ -184,6 +205,10 @@ export default function SafewalkerHomeScreen({ navigation }) {
     const data1 = await res1.json();
     const userEmail = data1["userEmail"];
     const userSocketId = data1["userSocketId"];
+    const startLat = data1["startLat"];
+    const startLng = data1["startLng"];
+    const destLat = data1["destLat"];
+    const destLng = data1["destLng"];
 
     // Let user know request has been accepted
     socket.emit("walker walk status", { userId: userSocketId, status: 1 });
@@ -191,6 +216,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     socket.emit("walk status", true);
 
     setUserInfo(walkId, userEmail, userSocketId); // save walk info in WalkContext
+    setCoordinates(startLat + "", startLng + "", destLat + "", destLng + ""); // save coordinates in WalkContext
     setWalkAsActive(); // setting this will bring the navigation to ActiveWalk Screens
   }
 
@@ -198,19 +224,26 @@ export default function SafewalkerHomeScreen({ navigation }) {
   const swipeableRef = useRef(null);
   const closeSwipeable = () => {
     swipeableRef.current.close();
-  }
+  };
 
-  // helper funtion to confirm delete
+  /**
+   * Helper function for swipe to delete. Adds in the confirm to delete functionality.
+   *
+   * Calls deleteRequest upon confirm
+   * Closes the swipeable upon cancel
+   *
+   * @param request the request to either be deleted or closed
+   */
   function deleteRequest2(request) {
     Alert.alert(
-      'Deny SAFEwalk Request',
-      '',
+      "Deny SAFEwalk Request",
+      "",
       [
-        {text: 'Deny', onPress: () => deleteRequest(request.id)},
-        {text: 'Cancel', onPress: () => closeSwipeable()},
+        { text: "Deny", onPress: () => deleteRequest(request.id) },
+        { text: "Cancel", onPress: () => closeSwipeable() },
       ],
       { cancelable: false }
-    )
+    );
   }
 
   /**
@@ -235,8 +268,8 @@ export default function SafewalkerHomeScreen({ navigation }) {
     }).catch((error) => {
       console.error(
         "Error in deleting walk request in deleteRequest() in SafewalkerHomeScreen:" +
-        error
-      )
+          error
+      );
     });
 
     let status = res.status;
@@ -244,7 +277,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "delete walk request in deleteRequest() in SafewalkerHomeScreen failed: status " +
-        status
+          status
       );
       return; // exit
     }
@@ -291,7 +324,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
 
   function requestCount() {
     var total = requests.length;
-    return total;
+    return total == 1 ? "1 Request" : total + " Requests";
   }
 
   const listEmptyComponent = () => (
@@ -304,21 +337,17 @@ export default function SafewalkerHomeScreen({ navigation }) {
           fontWeight: "bold",
           marginTop: 60,
         }}
-      >
-       
-        </Text>
+      ></Text>
     </View>
   );
 
   const ListHeaderComponent = () => (
-      <View style={styles.header}>
-        <Text style={styles.textTitle}>
-          <Text>Requests: </Text>
-          <Text style={{fontWeight: "bold"}}>{requestCount()}</Text>
-        </Text>
-      </View>
+    <View style={styles.header}>
+      <Text style={styles.textTitle}>
+        <Text style={{ fontWeight: "bold" }}>{requestCount()}</Text>
+      </Text>
+    </View>
   );
-
 
   function Item({ request, deleteRequest }) {
     return (
@@ -334,16 +363,27 @@ export default function SafewalkerHomeScreen({ navigation }) {
             <View style={styles.row}>
               <Text style={styles.name}>{trimEmail(request.username)}</Text>
               <Text style={styles.time}>
-                {moment.utc(request.time).local().format("MMMM Do, h:mm a")}
+                {moment
+                  .utc(request.time)
+                  .local()
+                  .format("MMMM Do, h:mm a")}
               </Text>
             </View>
             <View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={{ color: "green", fontWeight: "bold", fontSize: 15, }}><Icon name="map-marker" size={15} color="green" />  </Text>
+                <Text
+                  style={{ color: "green", fontWeight: "bold", fontSize: 15 }}
+                >
+                  <Icon name="map-marker" size={15} color="green" />{" "}
+                </Text>
                 <Text style={styles.location}>{request.startText}</Text>
               </View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={{ color: "red", fontWeight: "bold", fontSize: 15,}}><Icon name="map-marker" size={15} color="red" />  </Text>
+                <Text
+                  style={{ color: "red", fontWeight: "bold", fontSize: 15 }}
+                >
+                  <Icon name="map-marker" size={15} color="red" />{" "}
+                </Text>
                 <Text style={styles.location}>{request.endText}</Text>
               </View>
             </View>
@@ -357,7 +397,7 @@ export default function SafewalkerHomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <FlatList
-        data={requests.sort(function (a, b) {
+        data={requests.sort(function(a, b) {
           var dateA = new Date(a.time),
             dateB = new Date(b.time);
           return dateA - dateB;
@@ -431,16 +471,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8e8e8",
     borderWidth: 1,
     borderColor: "#e8e8e8",
-    height: '50%',
+    height: "50%",
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    justifyContent: "center",
+    alignItems: "flex-start",
   },
   textTitle: {
     color: colors.darkgray,
-    fontSize: 16,
+    fontSize: 15,
     justifyContent: "flex-start",
     marginLeft: 15,
-    padding: 1
+    padding: 1,
+    marginBottom: 3,
   },
 });

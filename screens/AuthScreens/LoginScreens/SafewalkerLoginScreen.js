@@ -80,13 +80,13 @@ export default function SafewalkerLoginScreen({ navigation }) {
         // and a full body response if there's an error.
         // Therefore, if data.status exists, then this means it's an error.
         if (data.status) {
-          console.log("data in if: " + JSON.stringify(data));
+          // console.log("data in if: " + JSON.stringify(data));
 
           if (data.status === 404) {
-            console.log("captured 404! User not available.");
+            // console.log("captured 404! User not available.");
             setIsUserNotAvailable(true);
           } else {
-            console.log("Unknown error " + data.status + ". Try again");
+            // console.log("Unknown error " + data.status + ". Try again");
             setIsLoginError(true);
           }
         }
@@ -97,7 +97,7 @@ export default function SafewalkerLoginScreen({ navigation }) {
         }
       })
       .catch((error) => {
-        console.log("Error in login(): " + error);
+        // console.log("Error in login(): " + error);
         setIsLoginError(true);
         setIsLoading(false);
       });
@@ -117,16 +117,23 @@ export default function SafewalkerLoginScreen({ navigation }) {
             <Text style={styles.titleLogin}>SAFEwalker Login</Text>
             <View style={styles.inputContainer}>
               {errors.email && (
-                <ErrorText>wisc.edu email is required.</ErrorText>
+                <ErrorText accessibilityLabel="emailRequired">
+                  wisc.edu email is required.
+                </ErrorText>
               )}
               {isUserNotAvailable && (
-                <ErrorText>Invalid email or password.</ErrorText>
+                <ErrorText accessibilityLabel="invalidEmail">
+                  Invalid email or password.
+                </ErrorText>
               )}
               {isLoginError && (
-                <ErrorText>There was an error. Please try again.</ErrorText>
+                <ErrorText accessibilityLabel="serverError">
+                  There was an error. Please try again.
+                </ErrorText>
               )}
               <TextInput
                 label="Email"
+                accessibilityLabel="Email"
                 placeholder="netid@wisc.edu"
                 ref={register(
                   { name: "email" },
@@ -139,12 +146,19 @@ export default function SafewalkerLoginScreen({ navigation }) {
             </View>
 
             <View style={styles.inputContainer}>
-              {errors.password && <ErrorText>Password is required.</ErrorText>}
+              {errors.password && (
+                <ErrorText accessibilityLabel="passwordRequired">
+                  Password is required.
+                </ErrorText>
+              )}
               {isUserNotAvailable && (
-                <ErrorText>Invalid email or password.</ErrorText>
+                <ErrorText accessibilityLabel="invalidPassword">
+                  Invalid email or password.
+                </ErrorText>
               )}
               <TextInput
                 label="Password"
+                accessibilityLabel="Password"
                 placeholder="Password"
                 ref={register({ name: "password" }, { required: true })}
                 onChangeText={(text) => setValue("password", text, true)}
@@ -153,6 +167,7 @@ export default function SafewalkerLoginScreen({ navigation }) {
             </View>
             <Spacer />
             <Button
+              accessibilityLabel="Login"
               title="Login"
               onPress={handleSubmit(onSubmit)}
               loading={isLoading}
@@ -164,7 +179,8 @@ export default function SafewalkerLoginScreen({ navigation }) {
           <Or withOr={false} />
           <Spacer />
           <Button
-            title="Go to User login"
+            accessibilityLabel="Login as User"
+            title="Login as User"
             onPress={() => navigation.replace("UserLogin")}
             type="outline"
           />
@@ -187,12 +203,13 @@ const styles = StyleSheet.create({
   },
   innerFooterContainer: {
     marginHorizontal: style.marginContainerHorizontal,
+    marginTop: hp("4%"),
   },
   titleLogin: {
-    fontSize: wp("6%"),
-    fontWeight: "normal",
-    alignSelf: "center",
-    color: colors.darkgray,
+    fontSize: wp("5.5%"),
+    fontWeight: "bold",
+    textAlign: "center",
+    color: colors.gray,
   },
   inputContainer: {
     height: hp("9.5%"),

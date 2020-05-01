@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Linking } from "expo";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import { Keyboard, StyleSheet, Text, View } from "react-native";
+import { Linking, Notifications } from "expo";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 // Libraries
-import TimerMixin from 'react-timer-mixin';
+import TimerMixin from "react-timer-mixin";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   widthPercentageToDP as wp,
@@ -36,6 +36,16 @@ export default function UserProfileScreen({ navigation }) {
   const [postalCode, setPostalCode] = useState("53715");
   const [city, setCity] = useState("Madison");
 
+  const [location, setLocation] = useState({
+    coordinates: {
+      latitude: 43.081606,
+      longitude: -89.376298,
+    },
+  });
+
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
   const { userToken, email } = useContext(AuthContext);
   const { walkId, userEmail, userSocketId, resetWalkContextState } = useContext(
     WalkContext
@@ -56,6 +66,7 @@ export default function UserProfileScreen({ navigation }) {
         // user canceled the walk
         case -2:
           resetWalkContextState();
+          setUserCancelNotification(1000);
           alert("The user canceled the walk.");
           console.log("listened to user walk - cancelled request");
           break;
@@ -63,7 +74,7 @@ export default function UserProfileScreen({ navigation }) {
         default:
           console.log(
             "Unexpected socket status received in UserProfileScreen: status " +
-            status
+              status
           );
       }
     });
@@ -75,6 +86,7 @@ export default function UserProfileScreen({ navigation }) {
         // reset the Walk states
         // This will bring navigation to InactiveWalk screens
         resetWalkContextState();
+        setCancelNotification(1000);
         alert("Connection lost, walk cancelled.");
       }
     });
@@ -85,26 +97,46 @@ export default function UserProfileScreen({ navigation }) {
       socket.off("connection lost", null);
     };
   }, []);
-  
+
+  async function showLocation(position) {
+    console.log(
+      "Walker location: " +
+        position.coords.latitude +
+        ", " +
+        position.coords.longitude
+    );
+
+    setLocation({
+      coordinates: {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      },
+    });
+  }
+
   useEffect(() => {
     // send location to user every 5 seconds
     const interval = setInterval(() => {
       console.log("send");
       console.log(userSocketId);
-      if (userSocketId != null) { 
+      if (userSocketId != null) {
         console.log("sending");
         // send location to user
+
+        navigator.geolocation.getCurrentPosition(showLocation);
+
+        // console.log("Updated state: " + location.coordinates.latitude + ", " + location.coordinates.longitude);
         socket.emit("walker location", {
           userId: userSocketId,
-          lat: 0,
-          lng: 0,
+          lat: locationRef.current.coordinates.latitude,
+          lng: locationRef.current.coordinates.longitude,
         });
       }
     }, 5000); // 5 seconds
 
     return () => {
       clearInterval(interval);
-    }
+    };
   }, [userSocketId]);
 
   /**
@@ -131,6 +163,48 @@ export default function UserProfileScreen({ navigation }) {
      */
   }, [userEmail]);
 
+  /* Notification Setup 1
+setCancelNotification: schedules notification for <time>
+*/
+  const CancelNotification = {
+    title: "Connection is Lost",
+    body: "Connection lost, walk cancelled.",
+  };
+  let localCancelNotificationId = null;
+  const setCancelNotification = (time) => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localCancelNotificationId = Notifications.scheduleLocalNotificationAsync(
+      CancelNotification,
+      schedulingOptions
+    );
+  };
+
+  /* Notification Setup 2
+setCancelNotification: schedules notification for <time>
+*/
+  const userCancelNotification = {
+    title: "Walk Cancelled",
+    body: "User canceled the walk",
+  };
+  let localUserCancelNotificationId = null;
+  const setUserCancelNotification = (time) => {
+    Keyboard.dismiss();
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(time),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localUserCancelNotificationId = Notifications.scheduleLocalNotificationAsync(
+      userCancelNotification,
+      schedulingOptions
+    );
+  };
+
   /**
    * Loads the user profile from the database based on the user's email
    * and fills it up in the local state.
@@ -155,7 +229,7 @@ export default function UserProfileScreen({ navigation }) {
       }
       console.error(
         "Error in fetching data from loadUserProfile() in UserProfileScreen:" +
-        error
+          error
       );
     });
 
@@ -168,7 +242,7 @@ export default function UserProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "retrieving user info in loadUserProfile() in UserProfileScreen failed: status " +
-        status
+          status
       );
       return; // exit
     }
@@ -192,9 +266,8 @@ export default function UserProfileScreen({ navigation }) {
       },
     }).catch((error) => {
       console.error(
-        "Error in DELETE walk from cancelWalk() in UserProfileScreen:" +
-        error
-      )
+        "Error in DELETE walk from cancelWalk() in UserProfileScreen:" + error
+      );
     });
 
     let status = res.status;
@@ -202,10 +275,9 @@ export default function UserProfileScreen({ navigation }) {
     if (status != 200 && status != 201) {
       console.log(
         "deleting walk failed in cancelWalk() in UserProfileScreen: status " +
-        status
+          status
       );
     }
-
   }
 
   /**
@@ -282,9 +354,8 @@ export default function UserProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.buttonCancelContainer}>
-          <BButton title="Cancel" onPress={() => cancelWalk()} />
+          <BButton title="Cancel" onPress={() => cancelWalk()} color="red" />
         </View>
-        <Spacer />
       </View>
     </SafeAreaView>
   );
@@ -308,6 +379,7 @@ const styles = StyleSheet.create({
   profilePicture: {},
   textName: {
     fontSize: wp("9%"), //30,
+    color: colors.gray,
   },
   buttonContactContainer: {
     flex: 1,

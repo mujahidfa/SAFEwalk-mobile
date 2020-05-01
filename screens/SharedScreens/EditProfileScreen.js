@@ -152,7 +152,7 @@ export default function EditProfileScreen() {
       })
       .catch((error) => {
         console.log(error.message);
-        console.log("Error in saving profile information. Please try again.");
+        //console.log("Error in saving profile information. Please try again.");
       });
   };
 
@@ -166,127 +166,156 @@ export default function EditProfileScreen() {
       {!edit ? (
         <ScrollView style={styles.container}>
           <SafeAreaView style={styles.innerContainer}>
-            <View style={{ alignItems: "center", marginBottom: 40 }}>
+            <View
+              style={{ alignItems: "center", marginBottom: 40, marginTop: 40 }}
+            >
               {/* Fix so avatar does not move when clicking edit button */}
               {!image ? (
                 <Avatar
                   rounded
-                  size={200}
-                  icon={{
-                    name: "user-circle",
-                    type: "font-awesome",
-                    size: 175,
-                  }}
+                  accessibilityLabel="NoImageAvatar"
+                  size={150}
+                  title={firstName[0] + lastName[0]}
                   containerStyle={styles.avatar}
-                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  overlayContainerStyle={{
+                    backgroundColor: colors.medlightgray,
+                  }}
                 />
               ) : (
                 <Avatar
                   rounded
+                  accessibilityLabel="ImageAvatar"
                   source={{ uri: image }}
-                  size={200}
+                  size={150}
                   containerStyle={styles.avatar}
                 />
               )}
             </View>
-            <Divider style={styles.divider} />
-            <Text style={styles.text}>Name: {firstName + " " + lastName}</Text>
-            <Divider style={styles.divider} />
-            <Text style={styles.text}>Phone Number: {formatPhone()}</Text>
-            <Divider style={styles.divider} />
-            <Text style={styles.text}>Interests: {interests}</Text>
-            <Divider style={styles.divider} />
+            <Divider accessibilityLabel="Divider 1" style={styles.divider} />
+            <Text accessibilityLabel="Name" style={styles.text}>
+              Name: {firstName + " " + lastName}
+            </Text>
+            <Divider accessibilityLabel="Divider 2" style={styles.divider} />
+            <Text accessibilityLabel="Phone" style={styles.text}>
+              Phone Number: {formatPhone()}
+            </Text>
+            <Divider accessibilityLabel="Divider 3" style={styles.divider} />
+            <Text accessibilityLabel="Interests" style={styles.text}>
+              Interests: {interests}
+            </Text>
+            <Divider accessibilityLabel="Divider 4" style={styles.divider} />
 
             {/* Button to Edit Profile */}
             <View style={styles.buttonContainer}>
-              <Button title="Edit" onPress={() => setEdit(true)} />
+              <Button
+                accessibilityLabel="EditButton"
+                title="Edit"
+                onPress={() => setEdit(true)}
+              />
             </View>
           </SafeAreaView>
         </ScrollView>
       ) : (
-        <KeyboardAvoidingView style={styles.container} behavior={"padding"}>
+        <KeyboardAvoidingView style={styles.container}>
           <SafeAreaView style={styles.innerContainer}>
-            <View style={{ alignItems: "center" }}>
+            <View
+              style={{
+                flex: 1,
+                alignItems: "center",
+                marginBottom: 40,
+                marginTop: 40,
+              }}
+            >
               {!image ? (
                 <Avatar
                   rounded
-                  size={200}
-                  icon={{
-                    name: "user-circle",
-                    type: "font-awesome",
-                    size: 175,
-                  }}
+                  accessibilityLabel="NoImageAvatarEdit"
+                  size={150}
+                  title={firstName[0] + lastName[0]}
                   containerStyle={styles.avatar}
-                  overlayContainerStyle={{ backgroundColor: colors.orange }}
+                  overlayContainerStyle={{
+                    backgroundColor: colors.medlightgray,
+                  }}
                   showEditButton
                   onEditPress={() => uploadImage()}
                 />
               ) : (
                 <Avatar
                   rounded
+                  accessibilityLabel="ImageAvatarEdit"
                   source={{ uri: image }}
-                  size={200}
+                  size={150}
                   containerStyle={styles.avatar}
                   showEditButton
                   onEditPress={() => uploadImage()}
                 />
               )}
             </View>
-            <TextInput
-              label="First Name"
-              defaultValue={firstName}
-              onChangeText={setFirstName}
-              mode="outlined"
-              theme={{ colors: { primary: colors.orange } }}
-              style={styles.inputContainer}
-            />
-            <TextInput
-              label="Last Name"
-              defaultValue={lastName}
-              onChangeText={setLastName}
-              mode="outlined"
-              theme={{ colors: { primary: colors.orange } }}
-              style={styles.inputContainer}
-            />
+            <View style={{ backgroundColor: colors.white }}>
+              <TextInput
+                label="First Name"
+                accessibilityLabel="FirstName"
+                defaultValue={firstName}
+                onChangeText={setFirstName}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+              />
+              <TextInput
+                label="Last Name"
+                accessibilityLabel="LastName"
+                defaultValue={lastName}
+                onChangeText={setLastName}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+              />
 
-            {errors.phoneNumber && (
-              <Text style={style.textError}>
-                Valid US phone number is required.
-              </Text>
-            )}
-            <RNTextInput
-              label="Phone Number"
-              defaultValue={phoneNumber}
-              ref={register(
-                { name: "phoneNumber" },
-                {
-                  required: false,
-                  minLength: 10,
-                  maxLength: 10,
-                  pattern: /^[0-9]+$/,
-                }
+              {errors.phoneNumber && (
+                <Text style={style.textError}>
+                  Valid US phone number is required.
+                </Text>
               )}
-              onChangeText={(text) => setValue("phoneNumber", text, true)}
-              mode="outlined"
-              theme={{ colors: { primary: colors.orange } }}
-              style={styles.inputContainer}
-              keyboardType={"numeric"}
-            />
-            <TextInput
-              label="Interests"
-              defaultValue={interests}
-              placeholder={interests}
-              onChangeText={setInterests}
-              mode="outlined"
-              multiline={true}
-              numberOfLines={3}
-              theme={{ colors: { primary: colors.orange } }}
-              style={styles.inputContainer}
-            />
+              <RNTextInput
+                label="Phone Number"
+                defaultValue={phoneNumber}
+                accessibilityLabel="PhoneNumber"
+                ref={register(
+                  { name: "phoneNumber" },
+                  {
+                    required: false,
+                    minLength: 10,
+                    maxLength: 10,
+                    pattern: /^[0-9]+$/,
+                  }
+                )}
+                onChangeText={(text) => setValue("phoneNumber", text, true)}
+                mode="outlined"
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+                keyboardType={"numeric"}
+              />
+              <TextInput
+                label="Interests"
+                accessibilityLabel="InterestsInput"
+                defaultValue={interests}
+                placeholder={interests}
+                onChangeText={setInterests}
+                mode="outlined"
+                multiline={true}
+                numberOfLines={3}
+                theme={{ colors: { primary: colors.orange } }}
+                style={styles.inputContainer}
+              />
 
-            {/* Button to Edit Profile */}
-            <View style={styles.buttonContainer}>
-              <Button title="Save" onPress={handleSubmit(onSubmit)} />
+              {/* Button to Edit Profile */}
+              <View style={styles.buttonContainer}>
+                <Button
+                  accessibilityLabel="saveButton"
+                  title="Save"
+                  onPress={handleSubmit(onSubmit)}
+                />
+              </View>
             </View>
           </SafeAreaView>
         </KeyboardAvoidingView>
@@ -302,7 +331,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-end",
     marginHorizontal: style.marginContainerHorizontal,
   },
   contentContainer: {
@@ -314,6 +343,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: style.fontSize,
+    color: colors.gray,
     marginBottom: 20,
     marginLeft: 20,
   },

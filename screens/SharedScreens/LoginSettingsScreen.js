@@ -3,14 +3,11 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
 } from "react-native";
-import { Avatar } from "react-native-elements";
-//import { TextInput } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm } from "react-hook-form";
 import {
@@ -71,7 +68,6 @@ export default function LoginSettingsScreen({ navigation }) {
       }
     });
 
-    //await setPassword(data.confirmPassword);
     endpoint = "/api/Users/";
     if (userType == "safewalker") {
       endpoint = "/api/Safewalkers/";
@@ -125,19 +121,23 @@ export default function LoginSettingsScreen({ navigation }) {
         <SafeAreaView style={styles.container2}>
           {/* Top View */}
           <View style={styles.containerTop}>
-            <Text style={styles.textTitle}> Update Password:</Text>
+            <Text style={styles.textTitle}> Update Password</Text>
           </View>
 
           {/* Inner View */}
           <KeyboardAvoidingView style={styles.innerContainer}>
             {errors.currentPassword && (
-              <Text style={styles.textError}>
+              <Text
+                style={styles.textError}
+                accessibilityLabel="currentRequired"
+              >
                 Current password is required.
               </Text>
             )}
             <TextInput
               label="Current Password"
               placeholder="Current Password"
+              accessibilityLabel="Current Password"
               ref={register({ name: "currentPassword" }, { required: true })}
               onChangeText={(text) => setValue("currentPassword", text, true)}
               secureTextEntry
@@ -145,11 +145,14 @@ export default function LoginSettingsScreen({ navigation }) {
             />
 
             {errors.password && (
-              <Text style={styles.textError}>Password is required.</Text>
+              <Text style={styles.textError} accessibilityLabel="newRequired">
+                Password is required.
+              </Text>
             )}
             <TextInput
               label="New Password"
               placeholder="New Password"
+              accessibilityLabel="New Password"
               ref={register({ name: "password" }, { required: true })}
               onChangeText={(text) => setValue("password", text, true)}
               secureTextEntry
@@ -157,10 +160,16 @@ export default function LoginSettingsScreen({ navigation }) {
             />
 
             {errors.confirmPassword && (
-              <Text style={styles.textError}>The passwords do not match.</Text>
+              <Text
+                style={styles.textError}
+                accessibilityLabel="confirmRequired"
+              >
+                The passwords do not match.
+              </Text>
             )}
             <TextInput
               label="Confirm password"
+              accessibilityLabel="Confirm Password"
               ref={register(
                 { name: "confirmPassword" },
                 {
@@ -175,10 +184,11 @@ export default function LoginSettingsScreen({ navigation }) {
               style={styles.textInput}
             />
 
-            {/* Bottom */}
+            {/* Bottom/Button */}
             <View style={styles.containerButton}>
               <Button
                 title="Confirm Password Change"
+                accessibilityLabel="Save Button"
                 onPress={handleSubmit(onSubmit)}
               />
             </View>
@@ -197,17 +207,18 @@ const styles = StyleSheet.create({
   container2: {
     flex: 1,
     marginHorizontal: style.marginContainerHorizontal,
-    //justifyContent: "center",
-    marginVertical: hp("6%"),
+    marginVertical: hp("1%"),
   },
   containerTop: {
+    marginVertical: hp("3%"),
     height: hp("10%"),
     justifyContent: "space-around",
     fontSize: wp("4%"),
   },
   containerButton: {
     height: hp("10%"),
-    justifyContent: "space-around",
+    justifyContent: "flex-end",
+    marginTop: hp("4%"),
   },
   innerContainer: {
     justifyContent: "space-around",
@@ -220,8 +231,10 @@ const styles = StyleSheet.create({
   },
   textTitle: {
     color: colors.orange,
-    fontSize: style.fontSize,
+    fontSize: 24,
     fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 40,
   },
   textInput: {
     marginBottom: 20,

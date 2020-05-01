@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, Keyboard } from "react-native";
 import LottieView from "lottie-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  heightPercentageToDP as hp
-} from "react-native-responsive-screen";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { Notifications } from "expo";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
 // Components
 import Button from "./../../components/Button";
@@ -31,16 +32,42 @@ export default function UserHomeScreen({ navigation }) {
     WalkContext
   );
 
+  /* Notification Setup
+setNotification: schedules notification for <time>
+handleNotification: cancels all scheduled notifications
+*/
+  const requestTimeOutNotification = {
+    title: "Request Error",
+    body: "Request Timed Out",
+  };
+  let localNotificationId = null;
+  const setNotification = (text) => {
+    Keyboard.dismiss();
+    console.log("Notification set for " + text);
+    const schedulingOptions = {
+      time: new Date().getTime() + Number(text),
+    };
+    // Notifications show only when app is not active.
+    // (ie. another app being used or device's screen is locked)
+    localNotificationId = Notifications.scheduleLocalNotificationAsync(
+      requestTimeOutNotification,
+      schedulingOptions
+    );
+  };
+  const handleNotification = async () => {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  };
+
   /**
    * This effect sets up the socket connection to the SAFEwalker to listen to walk request responses.
    * This effect is run once upon component mount.
    */
   useEffect(() => {
     socket.removeAllListeners();
-    
+    setNotification(30000);
     console.log("in useEffect socket of UserWaitScreen");
     // socket to listen to walker status change
-    socket.on("walker walk status", (status) => {
+    socket.on("walker walk status", async (status) => {
       console.log("walk status in UserWaitScreen:" + status);
 
       switch (status) {
@@ -57,19 +84,22 @@ export default function UserHomeScreen({ navigation }) {
               },
             ],
           });
+          await handleNotification();
           alert("Your request was denied.");
           break;
 
         // Request accepted by SAFEwalker
         case 1:
           setWalkAsActive();
+          await handleNotification();
           alert("A SAFEwalker is on their way!");
           break;
 
         default:
+          await handleNotification();
           console.log(
             "Unexpected socket status received in UserWaitScreen: status " +
-            status
+              status
           );
       }
     });
@@ -125,8 +155,7 @@ export default function UserHomeScreen({ navigation }) {
       },
     }).catch((error) => {
       console.error(
-        "Error in DELETE walk from cancelRequest() in UserWaitScreen:" +
-        error
+        "Error in DELETE walk from cancelRequest() in UserWaitScreen:" + error
       );
     });
 
@@ -135,7 +164,7 @@ export default function UserHomeScreen({ navigation }) {
     if (status !== 200 && status !== 201) {
       console.log(
         "deleting requested walk failed in cancelRequest() in UserWaitScreen: status " +
-        status
+          status
       );
     }
 
@@ -161,6 +190,7 @@ export default function UserHomeScreen({ navigation }) {
       setIsTimeout(false);
       alert("Your request was timed out.");
     } else {
+      await handleNotification();
       alert("Request canceled.");
     }
   }
@@ -178,22 +208,18 @@ export default function UserHomeScreen({ navigation }) {
           autoSize={true}
           style={styles.animation}
         />
-
-        {/* Informational Text to the User */}
-        <Text style={styles.textHeader}>
-          Waiting for SAFEwalker
-        </Text>
-        <Text style={styles.text}>
-          {'\n'}Your request has been submitted and is pending approval by the next available SAFEwalker.
-        </Text>
+        <View>
+          {/* Informational Text to the User */}
+          <Text style={styles.textHeader}>Waiting for SAFEwalker</Text>
+          <Text style={styles.text}>
+            {"\n"}Your request has been submitted and is pending approval by the
+            next available SAFEwalker.
+          </Text>
+        </View>
 
         {/* Button to Submit Request */}
         <View style={styles.buttonContainer}>
-          <Button
-              title="Cancel"
-              onPress={() => cancelRequest()}
-              color="red"
-          />
+          <Button title="Cancel" onPress={() => cancelRequest()} color="red" />
         </View>
       </SafeAreaView>
     </View>
@@ -207,25 +233,25 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    marginHorizontal: style.marginContainerHorizontal
+    justifyContent: "space-between",
+    marginHorizontal: style.marginContainerHorizontal,
   },
   animation: {
     height: hp("35%"),
     alignSelf: "center",
     justifyContent: "center",
+    marginTop: hp("9%"),
   },
   textHeader: {
     textAlign: "center",
     fontSize: hp("3%"),
-    color: "black",
+    color: colors.gray,
     fontWeight: "bold",
   },
   text: {
     textAlign: "center",
     fontSize: style.fontSize,
-    color: "black",
-    fontWeight: "bold",
+    color: colors.gray,
   },
   buttonContainer: {
     height: hp("17%"),

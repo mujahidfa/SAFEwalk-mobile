@@ -18,7 +18,11 @@ export default function WalkErrorScreen(props) {
         <Text h3>{props.filename}</Text>
         <Text h3>userType value:"{userType}"</Text>
         <Text h2>Please sign out.</Text>
-        <Button title="Sign out" onPress={() => handlePress()} />
+        <Button
+          accessibilityLabel="Sign out"
+          title="Sign out"
+          onPress={() => handlePress()}
+        />
       </View>
     </View>
   );

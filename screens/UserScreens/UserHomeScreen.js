@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import axios from 'axios';
+import axios from "axios";
 import {
   StyleSheet,
   Text,
@@ -9,105 +9,125 @@ import {
   TouchableWithoutFeedback,
   TouchableOpacity,
   View,
-  Keyboard
+  Keyboard,
 } from "react-native";
-import { Input } from "react-native-elements";
+import { Button as ButtonE, Input, Icon } from "react-native-elements";
 import { useForm } from "react-hook-form";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
 
 // Components
-import Button from "./../../components/Button"
+import Button from "./../../components/Button";
 
 // Constants
 import colors from "./../../constants/colors";
 import socket from "./../../contexts/socket";
 import url from "./../../constants/api";
-import style from "./../../constants/style"
+import style from "./../../constants/style";
 
 // Contexts
 import { AuthContext } from "./../../contexts/AuthProvider";
 import { WalkContext } from "./../../contexts/WalkProvider";
-import MapView, { Marker, PROVIDER_GOOGLE, fitToElements } from "react-native-maps";
+import MapView, {
+  Marker,
+  PROVIDER_GOOGLE,
+  fitToElements,
+} from "react-native-maps";
+import { Notifications } from "expo";
+import * as Permissions from "expo-permissions";
+import Constants from "expo-constants";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 const ASPECT_RATIO = width / height;
 const LATITUDE = 43.076492;
 const LONGITUDE = -89.401185;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-// temporary - replace with home address API call
-const homePlace = {
-  description: 'Home',
-  text: "",
-  coordinates: {
-    latitude: 43.081606,
-    longitude: -89.376298
-  }
-};
-
-const pinColor = ["#46C4FF", "red"]
+const pinColor = ["green", "red"];
 
 export default function UserHomeScreen({ navigation }) {
-
   const mapRef = useRef(null);
 
   // store current user location
   const [location, setLocation] = useState({
     coordinates: {
       latitude: 43.081606,
-      longitude: -89.376298
+      longitude: -89.376298,
     },
-    text: ""
+    text: "",
   });
+
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
+  function showLocation(position) {
+    setLocation({
+      coordinates: {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      },
+      text: "Current Location",
+    });
+    console.log(
+      "Current location: " +
+        locationRef.current.coordinates.latitude +
+        ", " +
+        locationRef.current.coordinates.longitude
+    );
+  }
 
   // destination
   const [destination, setDestination] = useState({
     coordinates: {
-      latitude: +43.081606,
-      longitude: -89.376298
+      latitude: 43.071974,
+      longitude: -89.408064,
     },
-    text: ""
+    text: "",
   });
+
+  const destinationRef = useRef(destination);
+  destinationRef.current = destination;
 
   // walk origin - default to current location
   const [start, setStart] = useState({
     coordinates: {
-      latitude: 43.075143,
-      longitude: -89.400151
+      latitude: locationRef.current.coordinates.latitude,
+      longitude: locationRef.current.coordinates.longitude,
     },
-    text: ""
+    text: "Current Location",
   });
 
-  const [eta, setEta] = useState("0");
-  const [duration, setDuration] = useState("0 minutes");
+  const startRef = useRef(start);
+  startRef.current = start;
 
-  // markers and locations
-  const [markers, setMarkers] = useState([
-    {
-      key: 0,
-      title: 'Start',
-      coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
-      }
+  const [startMarker, setStartMarker] = useState({
+    title: "Start",
+    coordinates: {
+      latitude: locationRef.current.coordinates.latitude,
+      longitude: locationRef.current.coordinates.longitude,
     },
-    {
-      key: 1,
-      title: 'Destination',
-      coordinates: {
-        // replace with api to get user's home addre
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
-      }
-    }
-  ]);
+  });
+
+  const startMarkerRef = useRef(startMarker);
+  startMarkerRef.current = startMarker;
+
+  const [destMarker, setDestMarker] = useState({
+    title: "Destination",
+    coordinates: {
+      latitude: destinationRef.current.coordinates.latitude,
+      longitude: destinationRef.current.coordinates.longitude,
+    },
+  });
+
+  const destMarkerRef = useRef(destMarker);
+  destMarkerRef.current = destMarker;
 
   const { userToken, email } = useContext(AuthContext);
-  const { setWalkId } = useContext(WalkContext);
+  const { setWalkId, setCoordinates } = useContext(WalkContext);
 
   // forms input handling
   const { register, setValue, errors, triggerValidation } = useForm();
@@ -130,7 +150,7 @@ export default function UserHomeScreen({ navigation }) {
       return; // exit
     }
 
-    console.log(destination.text);
+    console.log(destinationRef.current.text);
 
     // Add Walk API call
     // Create a walk in the database
@@ -143,15 +163,18 @@ export default function UserHomeScreen({ navigation }) {
       },
       body: JSON.stringify({
         time: new Date(),
-        startText: start.text,
-        destText: destination.text,
+        startText: startRef.current.text,
+        startLat: startRef.current.coordinates.latitude,
+        startLng: startRef.current.coordinates.longitude,
+        destText: destinationRef.current.text,
+        destLat: destinationRef.current.coordinates.latitude,
+        destLng: destinationRef.current.coordinates.longitude,
         userSocketId: socket.id,
       }),
     }).catch((error) => {
       console.error(
-        "Error in POST walk in addRequest() in UserHomeScreen:" +
-        error
-      )
+        "Error in POST walk in addRequest() in UserHomeScreen:" + error
+      );
     });
 
     let status = res.status;
@@ -159,14 +182,19 @@ export default function UserHomeScreen({ navigation }) {
     if (status !== 200 && status !== 201) {
       console.log(
         "creating a walk request in addRequest() in UserHomeScreen failed: status " +
-        status
+          status
       );
       return; // exit
     }
 
     let data = await res.json();
-    // store walkId in the WalkContext
-    setWalkId(data["id"]);
+    setWalkId(data["id"]); // store walkId in the WalkContext
+    setCoordinates(
+      startRef.current.coordinates.latitude + "",
+      startRef.current.coordinates.longitude + "",
+      destinationRef.current.coordinates.latitude + "",
+      destinationRef.current.coordinates.longitude + ""
+    ); // store coordinates in the WalkContext
 
     // send notification to all Safewalkers
     socket.emit("walk status", true);
@@ -187,315 +215,208 @@ export default function UserHomeScreen({ navigation }) {
       setValue("startLocation", location, true);
       setStart({
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
+          latitude: startRef.current.coordinates.latitude,
+          longitude: startRef.current.coordinates.longitude,
         },
-        text: location
+        text: location,
       });
     } else {
       setValue("endLocation", location, true);
       setDestination({
         coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
+          latitude: destinationRef.current.coordinates.latitude,
+          longitude: destinationRef.current.coordinates.longitude,
         },
-        text: location
+        text: location,
       });
     }
   };
 
-  async function onStartTextChange(textValue) {
+  function onStartTextChange(textValue) {
     setStart({
       coordinates: {
-        latitude: start.coordinates.latitude,
-        longitude: start.coordinates.longitude
+        latitude: startRef.current.coordinates.latitude,
+        longitude: startRef.current.coordinates.longitude,
       },
-      text: textValue
+      text: textValue,
     });
   }
 
-  async function onDestinationTextChange(textValue) {
+  function onDestinationTextChange(textValue) {
     setDestination({
       coordinates: {
-        latitude: destination.coordinates.latitude,
-        longitude: destination.coordinates.longitude
+        latitude: destinationRef.current.coordinates.latitude,
+        longitude: destinationRef.current.coordinates.longitude,
       },
-      text: textValue
+      text: textValue,
     });
   }
 
-  const getStartCoordinates = text => {
-    var replaced = text.split(' ').join('+');
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
-    axios.get(axiosURL)
-      .then(res => {
-        // start.coordinates.latitude = res.data.results[0].geometry.location.lat;
-        // start.coordinates.longitude = res.data.results[0].geometry.location.lng;
-        setStart({
-          coordinates: {
-            latitude: res.data.results[0].geometry.location.lat,
-            longitude: res.data.results[0].geometry.location.lng
-          },
-          text: text
-        });
-      })
-  }
-
-  const getDestinationCoordinates = text => {
-    var replaced = text.split(' ').join('+');
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + replaced + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
-    axios.get(axiosURL)
-      .then(res => {
-        // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
-        // destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
-        setDestination({
-          coordinates: {
-            latitude: res.data.results[0].geometry.location.lat,
-            longitude: res.data.results[0].geometry.location.lng
-          },
-          text: text
-        });
-      })
-  }
-
-  const getStartAddress = coordinates => {
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
-    axios.get(axiosURL)
-    .then(res => {
+  function getStartCoordinates(text) {
+    if (text == "Current Location") {
+      navigator.geolocation.getCurrentPosition(showLocation);
       setStart({
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
+          latitude: locationRef.current.coordinates.latitude,
+          longitude: locationRef.current.coordinates.longitude,
         },
-        text: res.data.results[0].formatted_address
-      })
-      return(res.data.results[0].formatted_address);
-    })
+        text: text,
+      });
+      return;
+    }
+    var replaced = text.split(" ").join("+");
+    var axiosURL =
+      "https://maps.googleapis.com/maps/api/geocode/json?address=" +
+      replaced +
+      "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL).then((res) => {
+      // start.coordinates.latitude = res.data.results[0].geometry.location.lat;
+      // start.coordinates.longitude = res.data.results[0].geometry.location.lng;
+      setStart({
+        coordinates: {
+          latitude: res.data.results[0].geometry.location.lat,
+          longitude: res.data.results[0].geometry.location.lng,
+        },
+        text: text,
+      });
+    });
   }
 
-  const getDestinationAddress = coordinates => {
-    var axiosURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + coordinates.latitude + ", " + coordinates.longitude + "&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
-    axios.get(axiosURL)
-    .then(res => {
+  function getDestinationCoordinates(text) {
+    var replaced = text.split(" ").join("+");
+    var axiosURL =
+      "https://maps.googleapis.com/maps/api/geocode/json?address=" +
+      replaced +
+      "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL).then((res) => {
+      // destination.coordinates.latitude = res.data.results[0].geometry.location.lat;
+      // destination.coordinates.longitude = res.data.results[0].geometry.location.lng;
       setDestination({
         coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
+          latitude: res.data.results[0].geometry.location.lat,
+          longitude: res.data.results[0].geometry.location.lng,
         },
-        text: res.data.results[0].formatted_address
-      })
-      return(res.data.results[0].formatted_address);
-    })
+        text: text,
+      });
+    });
   }
 
-  async function updateStart() {
-
-    getStartCoordinates(start.text);
-
-    changeLocation("start", start.text);
-
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
+  function getStartAddress(coordinates) {
+    var axiosURL =
+      "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
+      coordinates.latitude +
+      ", " +
+      coordinates.longitude +
+      "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL).then((res) => {
+      setStart({
         coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
+          latitude: startRef.current.coordinates.latitude,
+          longitude: startRef.current.coordinates.longitude,
+        },
+        text: res.data.results[0].formatted_address,
+      });
+      return res.data.results[0].formatted_address;
+    });
+  }
+
+  function getDestinationAddress(coordinates) {
+    var axiosURL =
+      "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
+      coordinates.latitude +
+      ", " +
+      coordinates.longitude +
+      "&key=AIzaSyAIzBUtTCj7Giys9FaOu0EZMh6asAx7nEI";
+    axios.get(axiosURL).then((res) => {
+      setDestination({
+        coordinates: {
+          latitude: destinationRef.current.coordinates.latitude,
+          longitude: destinationRef.current.coordinates.longitude,
+        },
+        text: res.data.results[0].formatted_address,
+      });
+      return res.data.results[0].formatted_address;
+    });
+  }
+
+  function updateStart() {
+    getStartCoordinates(startRef.current.text);
+
+    changeLocation("start", startRef.current.text);
+
+    setStartMarker({
+      title: "Start",
+      coordinates: {
+        latitude: startRef.current.coordinates.latitude,
+        longitude: startRef.current.coordinates.longitude,
       },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
-      }
-    ])
+    });
   }
 
-  async function updateDestination() {
+  function updateDestination() {
+    getDestinationCoordinates(destinationRef.current.text);
 
-    getDestinationCoordinates(destination.text);
+    changeLocation("destination", destinationRef.current.text);
 
-    changeLocation("destination", destination.text);
-
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
+    setDestMarker({
+      title: "Destination",
+      coordinates: {
+        latitude: destinationRef.current.coordinates.latitude,
+        longitude: destinationRef.current.coordinates.longitude,
       },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
-      }
-    ])
-
+    });
   }
 
-  async function convertEta() {
-    var today = new Date();
-    var hours = today.getHours();
-    var minutes = today.getMinutes();
-    var replaced = duration.split(' ');
-    if(replaced[1].localeCompare("hours") == 0) {
-      hours = parseInt(hours) + parseInt(replaced[0]);
-      minutes = parseInt(minutes) + parseInt(replaced[2]);
-    }
-    else{
-      minutes = parseInt(minutes) + parseInt(replaced[0]);
-    }
+  function currentAsStart() {
+    navigator.geolocation.getCurrentPosition(showLocation);
 
-    if(minutes > 59) {
-      minutes = parseInt(minutes) - 60;
-      hours = parseInt(hours) + 1;
-    }
-    if(hours > 12) {
-      hours = parseInt(hours) - 12;
-    }
+    startRef.current.text = "Current Location";
+    startRef.current.coordinates.latitude =
+      locationRef.current.coordinates.latitude;
+    startRef.current.coordinates.longitude =
+      locationRef.current.coordinates.longitude;
+    setStart({
+      text: "Current Location",
+      coordinates: {
+        latitude: locationRef.current.coordinates.latitude,
+        longitude: locationRef.current.coordinates.longitude,
+      },
+    });
+    setStartMarker({
+      title: "Start",
+      coordinates: {
+        latitude: locationRef.current.coordinates.latitude,
+        longitude: locationRef.current.coordinates.longitude,
+      },
+    });
 
-    if(minutes < 10) {
-      minutes = "0" + minutes;
-    }
-    var returnString = hours + ":" + minutes;
-    setEta(returnString);
+    changeLocation("start", startRef.current.text);
   }
 
-  async function getEta() {
-    var axiosURL = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + start.coordinates.latitude + ", " + start.coordinates.longitude + "&destinations=" + destination.coordinates.latitude + ", " + destination.coordinates.longitude + "&mode=walking&key=AIzaSyAOjTjRyHvY82Iw_TWRVGZl-VljNhRYZ-c";
-    axios.get(axiosURL)
-    .then(res => {
-      setDuration(res.data.rows[0].elements[0].duration.text);
-      convertEta();
-    })
+  function onMapReady() {
+    currentAsStart();
+    // mapRef.current.fitToElements();
   }
 
-  async function showLocation(position) {
-    setLocation(
-      {
-        coordinates: {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        }
-      }
-    )
- }
+  /* Notification Setup
+askNotification (only for starting screens): Asks iOS for notification permissions
+*/
 
-  async function onMapReady() {
-    mapRef.current.fitToElements();
+  const askNotification = async () => {
+    // We need to ask for Notification permissions for ios devices
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+    if (Constants.isDevice && status === "granted")
+      console.log("Notification permissions granted.");
   };
 
-  async function currentAsStart() {
-    setStart({
-      coordinates: {
-        latitude: location.coordinates.latitude,
-        longitude: location.coordinates.longitude
-      },
-      text: ""
-    });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: location.coordinates.latitude,
-          longitude: location.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: destination.coordinates.latitude,
-          longitude: destination.coordinates.longitude
-        }
-      }
-    ])
-    mapRef.current.fitToElements();
-  }
-
-  async function homeAsDest() {
-    setDestination({
-      coordinates: {
-        latitude: homePlace.coordinates.latitude,
-        longitude: homePlace.coordinates.longitude
-      },
-      text: ""
-    });
-    setMarkers([
-      {
-        key: 0,
-        title: 'Start',
-        coordinates: {
-          latitude: start.coordinates.latitude,
-          longitude: start.coordinates.longitude
-        }
-      },
-      {
-        key: 1,
-        title: 'Destination',
-        coordinates: {
-          latitude: homePlace.coordinates.latitude,
-          longitude: homePlace.coordinates.longitude
-        }
-      }
-    ])
-    mapRef.current.fitToElements();
-  }
+  useEffect(() => {
+    askNotification();
+  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-         <View style={styles.container}>
-           <View style={styles.innerContainer}>
-            {/* User Start and End Location input fields */}
-            <View style={styles.inputContainer}>
-              {errors.startLocation && (
-                <Text style={style.textError}>Start location is required.</Text>
-              )}
-              <Input
-                inputStyle={styles.inputStyle}
-                inputContainerStyle={styles.inputContainerStyleTop}
-                containerStyle={styles.containerStyle}
-                placeholder="Start Location"
-                ref={register({ name: "startLocation" }, { required: true })}
-                value={start.text}
-                returnKeyType='search'
-                onChangeText={onStartTextChange}
-                onSubmitEditing={updateStart}
-                leftIcon={{
-                  type: "font-awesome",
-                  name: "map-marker",
-                }}
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              {errors.endLocation && (
-                <Text style={style.textError}>Destination is required.</Text>
-            )}
-            <Input
-              inputStyle={styles.inputStyle}
-              inputContainerStyle={styles.inputContainerStyleBottom}
-              containerStyle={styles.containerStyle}
-              placeholder="Destination"
-              ref={register({ name: "endLocation" }, { required: true })}
-              value={destination.text}
-              onChangeText={onDestinationTextChange}
-              onSubmitEditing={updateDestination}
-              returnKeyType='search'
-              leftIcon={{
-                type: "font-awesome",
-                name: "map-marker",
-              }}
-            />
-          </View>
+      <View style={styles.container}>
+        <KeyboardAvoidingView style={styles.innerContainer}>
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.mapStyle}
@@ -504,56 +425,127 @@ export default function UserHomeScreen({ navigation }) {
             minZoomLevel={10}
             maxZoomLevel={15}
             onMapReady={onMapReady}
+            initialRegion={{
+              latitude: 43.075143,
+              longitude: -89.400151,
+              latitudeDelta: 0.0822,
+              longitudeDelta: 0.0421,
+            }}
           >
-            <Text>  ETA: {eta}</Text>
-            {markers.map((marker) => (
-              <MapView.Marker
-                key={marker.key}
-                coordinate={{
-                  latitude: marker.coordinates.latitude,
-                  longitude: marker.coordinates.longitude
-                }}
-                title={marker.title}
-                pinColor={pinColor[marker.key]}
-              />
-            ))}
+            <MapView.Marker
+              coordinate={{
+                latitude: startMarkerRef.current.coordinates.latitude,
+                longitude: startMarkerRef.current.coordinates.longitude,
+              }}
+              title={startMarkerRef.current.title}
+              pinColor={pinColor[0]}
+            />
+            <MapView.Marker
+              coordinate={{
+                latitude: destMarkerRef.current.coordinates.latitude,
+                longitude: destMarkerRef.current.coordinates.longitude,
+              }}
+              title={destMarkerRef.current.title}
+              pinColor={pinColor[1]}
+            />
           </MapView>
-          <View style={styles.buttonContainer}>
-            <Button
-                title="Start = Current"
+
+          {/* User Start and End Location input fields */}
+          <View style={styles.inputContainer}>
+            {errors.startLocation && (
+              <Text style={styles.textError}>Start location is required.</Text>
+            )}
+            <Input
+              inputStyle={styles.inputStyle}
+              inputContainerStyle={styles.inputContainerStyleTop}
+              containerStyle={styles.containerStyle}
+              placeholder="Start Location"
+              ref={register({ name: "startLocation" }, { required: true })}
+              value={start.text}
+              returnKeyType="search"
+              onChangeText={onStartTextChange}
+              onSubmitEditing={updateStart}
+              leftIcon={{
+                type: "font-awesome",
+                name: "map-marker",
+                color: "green",
+              }}
+              /*
+                rightIcon={{
+                  type: "material",
+                  name: "gps-fixed",
+                  onPress: () => {currentAsStart(); mapRef.current.fitToElements()}
+                }}
+                */
+            />
+            {errors.endLocation && (
+              <Text style={styles.textError}>Destination is required.</Text>
+            )}
+            <Input
+              inputStyle={styles.inputStyle}
+              inputContainerStyle={styles.inputContainerStyleBottom}
+              containerStyle={styles.containerStyle}
+              placeholder="Destination"
+              ref={register({ name: "endLocation" }, { required: true })}
+              value={destinationRef.current.text}
+              onChangeText={onDestinationTextChange}
+              onSubmitEditing={updateDestination}
+              returnKeyType="search"
+              leftIcon={{
+                type: "font-awesome",
+                name: "map-marker",
+                color: "red",
+              }}
+              /*
+                rightIcon={{
+                  type: "font-awesome",
+                  name: "home",
+                  onPress: () => {homeAsDest(); mapRef.current.fitToElements()}
+                }}
+                */
+            />
+
+            <View style={styles.icons}>
+              <Icon
+                style={styles.icon}
+                raised
+                type="material"
+                name="gps-fixed"
                 onPress={() => {
-                  navigator.geolocation.getCurrentPosition(showLocation);
                   currentAsStart();
-                  mapRef.current.fitToElements();
+                  // mapRef.current.fitToElements();
                 }}
                 loading={isLoading}
                 disabled={isLoading}
+              />
+              {/*
+            <Icon
+              style={styles.icon}
+              raised
+              type= "font-awesome"
+              name= "hourglass"
+              onPress={() => {getEta(); mapRef.current.fitToElements()}}
+              loading={isLoading}
+              disabled={isLoading}
             />
-            <Button
-                title="Home = Dest."
-                onPress={() => {homeAsDest(); mapRef.current.fitToElements()}}
-                loading={isLoading}
-                disabled={isLoading}
-            />
-            <Button
-                title="ETA"
-                onPress={() => {getEta(); mapRef.current.fitToElements()}}
-                loading={isLoading}
-                disabled={isLoading}
-            />
-            <Button
-                title="Request Now"
-                onPress={() => addRequest()}
-                loading={isLoading}
-                disabled={isLoading}
+            */}
+            </View>
+          </View>
+          <View style={styles.buttonContainer}>
+            <ButtonE
+              title="Request Now"
+              buttonStyle={{ backgroundColor: colors.orange }}
+              onPress={() => addRequest()}
+              loading={isLoading}
+              disabled={isLoading}
+              raised
             />
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </View>
-      </TouchableWithoutFeedback>
-    );
+    </TouchableWithoutFeedback>
+  );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -561,37 +553,76 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    justifyContent: "center",
   },
   inputContainer: {
-    height: hp("7.5%"),
-    justifyContent: "flex-end",
+    //height: hp("7.5%"),
+    justifyContent: "space-between",
+    position: "absolute",
+    top: 10,
+    left: 10,
+    right: 10,
+    padding: 10,
   },
   inputStyle: {
     marginLeft: 20,
+    marginRight: 20,
   },
   containerStyle: {
     paddingLeft: 0,
-    paddingRight: 0
+    paddingRight: 0,
   },
   inputContainerStyleTop: {
-    borderColor: "black",
+    borderColor: "white",
     borderWidth: 2,
     borderRadius: 2,
+    backgroundColor: colors.white,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   inputContainerStyleBottom: {
-    borderColor: "black",
+    borderColor: "white",
     borderWidth: 2,
     borderRadius: 2,
-    marginBottom: 20
+    backgroundColor: colors.white,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   buttonContainer: {
-    height: hp("17%"),
-    justifyContent: "space-around",
+    position: "absolute",
+    bottom: 50,
+    right: 75,
+    left: 75,
   },
   mapStyle: {
-    marginTop:0,
-    width: Dimensions.get('window').width,
-    height: hp("55%")
-  }
+    marginTop: 0,
+    width: Dimensions.get("window").width,
+    height: hp("90%"),
+    justifyContent: "space-between",
+  },
+  icons: {
+    marginTop: 10,
+    left: 315,
+  },
+  icon: {
+    paddingVertical: 10,
+    position: "absolute",
+  },
+  textError: {
+    color: colors.red,
+    fontSize: wp("4%"),
+    paddingBottom: 5,
+  },
 });

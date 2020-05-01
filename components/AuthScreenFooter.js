@@ -12,14 +12,14 @@ export default function Footer(props) {
       {props.type === "signup" ? (
         <>
           <Text style={styles.footerPrompt}>No account? </Text>
-          <TouchableOpacity onPress={props.onPress}>
+          <TouchableOpacity accessibilityLabel="signup" onPress={props.onPress}>
             <Text style={styles.footerClickable}>Sign up!</Text>
           </TouchableOpacity>
         </>
       ) : (
         <>
           <Text style={styles.footerPrompt}>Already have an account? </Text>
-          <TouchableOpacity onPress={props.onPress}>
+          <TouchableOpacity accessibilityLabel="signin" onPress={props.onPress}>
             <Text style={styles.footerClickable}>Sign in.</Text>
           </TouchableOpacity>
         </>

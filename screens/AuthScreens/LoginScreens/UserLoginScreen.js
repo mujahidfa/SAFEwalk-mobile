@@ -81,12 +81,12 @@ export default function UserLoginScreen({ navigation }) {
         // and a full body response if there's an error.
         // Therefore, if data.status exists, then this means it's an error.
         if (data.status) {
-          console.log("data in if: " + JSON.stringify(data));
+          // console.log("data in if: " + JSON.stringify(data));
           if (data.status === 404) {
-            console.log("captured 404! User not available.");
+            // console.log("captured 404! User not available.");
             setIsUserNotAvailable(true);
           } else {
-            console.log("Unknown error " + data.status + ". Try again");
+            // console.log("Unknown error " + data.status + ". Try again");
             setIsLoginError(true);
           }
         }
@@ -99,7 +99,7 @@ export default function UserLoginScreen({ navigation }) {
         }
       })
       .catch((error) => {
-        console.log("Error in login(): " + error);
+        // console.log("Error in login(): " + error);
         setIsLoginError(true);
         setIsLoading(false);
       });
@@ -119,16 +119,23 @@ export default function UserLoginScreen({ navigation }) {
             <Text style={styles.titleLogin}>User Login</Text>
             <View style={styles.inputContainer}>
               {errors.email && (
-                <ErrorText>wisc.edu email is required.</ErrorText>
+                <ErrorText accessibilityLabel="emailRequired">
+                  wisc.edu email is required.
+                </ErrorText>
               )}
               {isUserNotAvailable && (
-                <ErrorText>Invalid email or password.</ErrorText>
+                <ErrorText accessibilityLabel="invalidEmail">
+                  Invalid email or password.
+                </ErrorText>
               )}
               {isLoginError && (
-                <ErrorText>There was an error. Please try again.</ErrorText>
+                <ErrorText accessibilityLabel="serverError">
+                  There was an error. Please try again.
+                </ErrorText>
               )}
               <TextInput
                 label="Email"
+                accessibilityLabel="Email"
                 placeholder="netid@wisc.edu"
                 ref={register(
                   { name: "email" },
@@ -141,12 +148,19 @@ export default function UserLoginScreen({ navigation }) {
             </View>
 
             <View style={styles.inputContainer}>
-              {errors.password && <ErrorText>Password is required.</ErrorText>}
+              {errors.password && (
+                <ErrorText accessibilityLabel="passwordRequired">
+                  Password is required.
+                </ErrorText>
+              )}
               {isUserNotAvailable && (
-                <ErrorText>Invalid email or password.</ErrorText>
+                <ErrorText accessibilityLabel="invalidPassword">
+                  Invalid email or password.
+                </ErrorText>
               )}
               <TextInput
                 label="Password"
+                accessibilityLabel="Password"
                 placeholder="Password"
                 ref={register({ name: "password" }, { required: true })}
                 onChangeText={(text) => setValue("password", text, true)}
@@ -155,6 +169,7 @@ export default function UserLoginScreen({ navigation }) {
             </View>
             <Spacer />
             <Button
+              accessibilityLabel="Login"
               title="Login"
               onPress={handleSubmit(onSubmit)}
               loading={isLoading}
@@ -165,6 +180,7 @@ export default function UserLoginScreen({ navigation }) {
 
         <View style={styles.innerFooterContainer}>
           <Footer
+            testID="signup"
             type="signup"
             onPress={() => navigation.replace("SignupStack")}
           />
@@ -172,6 +188,7 @@ export default function UserLoginScreen({ navigation }) {
           <Or />
           <Spacer padding={{ paddingVertical: hp("1%") }} />
           <Button
+            accessibilityLabel="Login as SAFEwalker"
             title="Login as SAFEwalker"
             onPress={() => navigation.replace("SafewalkerLogin")}
             type="outline"
@@ -197,10 +214,10 @@ const styles = StyleSheet.create({
     marginHorizontal: style.marginContainerHorizontal,
   },
   titleLogin: {
-    fontSize: wp("6%"),
-    fontWeight: "normal",
-    alignSelf: "center",
-    color: colors.darkgray,
+    fontSize: wp("5.5%"),
+    fontWeight: "bold",
+    textAlign: "center",
+    color: colors.gray,
   },
   inputContainer: {
     height: hp("9.5%"),

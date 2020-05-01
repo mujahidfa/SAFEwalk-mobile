@@ -39,8 +39,8 @@ export default function SuccessSignupScreen({ route }) {
   // upon pressing the submit button
   function handleLogin() {
     setIsLoading(true);
-    console.log("email: " + route.params.email);
-    console.log("password: " + route.params.password);
+    // console.log("email: " + route.params.email);
+    // console.log("password: " + route.params.password);
     fetch(url + "/api/Login", {
       method: "GET",
       headers: {
@@ -51,33 +51,35 @@ export default function SuccessSignupScreen({ route }) {
         isUser: true, // since this is user login, then isUser has to be true
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        return response.json();
+      })
       .then((data) => {
         setIsLoading(false);
-        console.log("data: " + data);
+        // console.log("data: " + data);
         // The endpoint only returns a string upon success
         // and a full body response if there's an error.
         // Therefore, if data.status exists, then this means it's an error.
         if (data.status) {
-          console.log("data in if: " + JSON.stringify(data));
+          // console.log("data in if: " + JSON.stringify(data));
           if (data.status === 404) {
-            console.log("captured 404! User not available.");
+            // console.log("captured 404! User not available.");
             setIsUserNotAvailable(true);
           } else {
-            console.log("Unknown error " + data.status + ". Try again");
+            // console.log("Unknown error " + data.status + ". Try again");
             setIsLoginError(true);
           }
         }
         // The endpoint only returns a string upon success,
         // so because of that, if it's a success, data.status would be null.
         else {
-          console.log("data in else: " + data);
-          console.log("email: " + route.params.email);
+          // console.log("data in else: " + data);
+          // console.log("email: " + route.params.email);
           login("user", data, route.params.email);
         }
       })
       .catch((error) => {
-        console.log("Error in login(): " + error);
+        // console.log("Error in login(): " + error);
         setIsLoginError(true);
         setIsLoading(false);
       });
@@ -86,7 +88,10 @@ export default function SuccessSignupScreen({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       {/* Progress animation */}
-      <View style={styles.progressContainer}>
+      <View
+        accessibilityLabel="loadingComponent"
+        style={styles.progressContainer}
+      >
         <View style={styles.progressCircleContainer}>
           <View style={styles.progressCircle}>
             <Text style={styles.progressCircleText}>✓</Text>
@@ -120,6 +125,7 @@ export default function SuccessSignupScreen({ route }) {
         <Text style={styles.textSuccess}>Success!</Text>
         <Spacer />
         <Image
+          accessibilityLabel="successImage"
           source={require("./../../../assets/signup-success.jpg")}
           style={styles.image}
           PlaceholderContent={<ActivityIndicator />}
@@ -129,16 +135,17 @@ export default function SuccessSignupScreen({ route }) {
       {/* Button go to main screen */}
       <View style={styles.buttonContainer}>
         {isLoginError && (
-          <ErrorText>
+          <ErrorText accessibilityLabel="isLoginError">
             There was an error. Please try again. (isLoginError)
           </ErrorText>
         )}
         {isUserNotAvailable && (
-          <ErrorText>
+          <ErrorText accessibilityLabel="isUserNotAvailable">
             There was an error. Please try again. (isUserNotAvailable)
           </ErrorText>
         )}
         <Button
+          accessibilityLabel="Go to main screen"
           title="Go to main screen"
           loading={isLoading}
           disabled={isLoading}

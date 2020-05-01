@@ -14,6 +14,7 @@ export default function SAFEwalkLogo() {
       <Image
         source={require("./../assets/safewalk-logo.png")}
         style={styles.logo}
+        accessibilityLabel="logo"
       />
     </View>
   );
